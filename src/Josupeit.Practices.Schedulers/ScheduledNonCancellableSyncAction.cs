@@ -1,0 +1,97 @@
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Josupeit.Practices.Schedulers;
+
+internal sealed class ScheduledNonCancellableSyncAction : IScheduledAction
+{
+    private readonly TaskCompletionSource<object?> _taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    private readonly Action _action;
+
+    public ScheduledNonCancellableSyncAction(Action action)
+    {
+        _action = action;
+    }
+
+    bool IScheduled.IsCancellationRequested => false;
+
+    public Task Promise => _taskCompletionSource.Task;
+
+    public void Decline()
+    {
+        _taskCompletionSource.TrySetException(
+            new ExecutionDeclinedException());
+    }
+
+    public void Execute(CancellationToken executionCancellationToken)
+    {
+        if (executionCancellationToken.IsCancellationRequested)
+        {
+            _taskCompletionSource.TrySetException(
+                new ExecutionDeclinedException());
+
+            throw new OperationCanceledException(executionCancellationToken);
+        }
+
+        try
+        {
+            _action();
+
+            _taskCompletionSource.TrySetResult(null);
+        }
+        catch (OperationCanceledException ex) when (executionCancellationToken.IsCancellationRequested)
+        {
+            _taskCompletionSource.TrySetException(
+                new ExecutionDeclinedException(ex));
+
+            throw;
+        }
+        catch (OperationCanceledException)
+        {
+            _taskCompletionSource.TrySetCanceled();
+        }
+        catch (Exception ex)
+        {
+            _taskCompletionSource.TrySetException(ex);
+        }
+    }
+
+    public Task ExecuteAsync(CancellationToken executionCancellationToken)
+    {
+        if (executionCancellationToken.IsCancellationRequested)
+        {
+            _taskCompletionSource.TrySetException(
+                new ExecutionDeclinedException());
+
+            return Task.FromCanceled(executionCancellationToken);
+        }
+
+        try
+        {
+            _action();
+
+            _taskCompletionSource.TrySetResult(null);
+        }
+        catch (OperationCanceledException ex) when (executionCancellationToken.IsCancellationRequested)
+        {
+            _taskCompletionSource.TrySetException(
+                new ExecutionDeclinedException(ex));
+
+            return Task.FromCanceled(executionCancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            _taskCompletionSource.TrySetCanceled();
+        }
+        catch (Exception ex)
+        {
+            _taskCompletionSource.TrySetException(ex);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public void Wait() => _taskCompletionSource.Task.GetAwaiter().GetResult();
+}

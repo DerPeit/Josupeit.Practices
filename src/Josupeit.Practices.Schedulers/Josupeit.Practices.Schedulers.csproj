@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>Enable</Nullable>
+    <TargetFrameworks>netstandard1.3;netstandard2.0;netstandard2.1;netcoreapp3.0;netcoreapp3.1;net50</TargetFrameworks>
+    <RootNamespace>Josupeit.Practices.Schedulers</RootNamespace>
+    <PackageId>Josupeit.Practices.Schedulers.Core</PackageId>
+    <Authors>Manuel Josupeit-Walter</Authors>
+    <Company>Manuel Josupeit-Walter, Freelancing Developer</Company>
+    <Product>Manuel Josupeit-Walter, Practices and Patterns</Product>
+    <Copyright>Manuel Josupeit-Walter</Copyright>
+    <PackageLicenseExpression>EUPL-1.2</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <IncludeSymbols>True</IncludeSymbols>
+    <IncludeSource>True</IncludeSource>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.ValueTuple" Version="[4.3.0, 5)" Condition="'$(TargetFramework)' == 'netstandard1.3'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Josupeit.Practices.Polyfills.Tasks\Josupeit.Practices.Polyfills.Tasks.csproj" />
+    <ProjectReference Include="..\Josupeit.Practices.Disposables.Abstractions\Josupeit.Practices.Disposables.Abstractions.csproj" />
+    <ProjectReference Include="..\Josupeit.Practices.Disposables\Josupeit.Practices.Disposables.csproj" />
+    <ProjectReference Include="..\Josupeit.Practices.Schedulers.Abstractions\Josupeit.Practices.Schedulers.Abstractions.csproj" />
+    <ProjectReference Include="..\Josupeit.Practices.Services\Josupeit.Practices.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Scheduler.Generated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Scheduler.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Scheduler.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Scheduler.Generated.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+</Project>
