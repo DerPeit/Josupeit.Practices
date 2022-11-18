@@ -28,6 +28,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Josupeit.Practices.Schedule
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Josupeit.Practices.Polyfills.Tasks", "src\Josupeit.Practices.Polyfills.Tasks\Josupeit.Practices.Polyfills.Tasks.csproj", "{29C60660-ADFA-4585-87BC-8AF96EF776D3}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Josupeit.Practices.Specifications", "src\Josupeit.Practices.Specifications\Josupeit.Practices.Specifications.csproj", "{10E70E6B-1903-4738-9EA3-878F91481CD8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,6 +72,10 @@ Global
 		{29C60660-ADFA-4585-87BC-8AF96EF776D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{29C60660-ADFA-4585-87BC-8AF96EF776D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{29C60660-ADFA-4585-87BC-8AF96EF776D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10E70E6B-1903-4738-9EA3-878F91481CD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10E70E6B-1903-4738-9EA3-878F91481CD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10E70E6B-1903-4738-9EA3-878F91481CD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10E70E6B-1903-4738-9EA3-878F91481CD8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -84,6 +90,7 @@ Global
 		{D8B0B66B-868B-47B6-A167-67778E4BE0F5} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
 		{B6F70D12-2A05-4B25-A8DD-FF4E21A362A0} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
 		{29C60660-ADFA-4585-87BC-8AF96EF776D3} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
+		{10E70E6B-1903-4738-9EA3-878F91481CD8} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F4C4903F-3753-4242-8D6A-4F0C543AB9E7}

@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.1;netstandard1.3;netstandard2.0;netstandard2.1;net40</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Josupeit.Practices.Polyfills.Tasks\Josupeit.Practices.Polyfills.Tasks.csproj" />
+  </ItemGroup>
+
+</Project>
