@@ -1,20 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <LangVersion>latest</LangVersion>
-    <Nullable>Enable</Nullable>
     <TargetFrameworks>netstandard1.1;netstandard2.0;netstandard2.1;net40;netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Services</RootNamespace>
-    <Authors>Manuel Josupeit-Walter</Authors>
-    <Company>Manuel Josupeit-Walter, Freelancing Developer</Company>
-    <Product>Manuel Josupeit-Walter, Practices and Patterns</Product>
-    <Copyright>Manuel Josupeit-Walter</Copyright>
-    <PackageLicenseExpression>EUPL-1.2</PackageLicenseExpression>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <NeutralLanguage>en-US</NeutralLanguage>
-    <IncludeSymbols>True</IncludeSymbols>
-    <IncludeSource>True</IncludeSource>
   </PropertyGroup>
 
   <ItemGroup>
