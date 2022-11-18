@@ -12,32 +12,4 @@
     <ProjectReference Include="..\Josupeit.Practices.Services.Abstractions\Josupeit.Practices.Services.Abstractions.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Async\AsyncService.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AsyncService.Generated.cs</LastGenOutput>
-    </None>
-    <None Update="Sync\Service.tt">
-      <LastGenOutput>Service.Generated.cs</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Async\AsyncService.Generated.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>AsyncService.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Sync\Service.Generated.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Service.tt</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
 </Project>

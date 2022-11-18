@@ -18,23 +18,4 @@
     <ProjectReference Include="..\Josupeit.Practices.Services\Josupeit.Practices.Services.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Scheduler.Generated.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Scheduler.tt</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Scheduler.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Scheduler.Generated.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-
 </Project>
