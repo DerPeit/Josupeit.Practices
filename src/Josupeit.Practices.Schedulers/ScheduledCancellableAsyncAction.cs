@@ -9,11 +9,12 @@ internal sealed class ScheduledCancellableAsyncAction : IScheduledAction
     private readonly Func<CancellationToken, Task>? _cancellableAsyncAction;
     private readonly Task? _prematurePromise;
     private readonly CancellationToken? _scheduleCancellationToken;
+    private readonly ExecutionContext? _executionContext;
     private readonly TaskCompletionSource<object?>? _taskCompletionSource;
     
     private IDisposable? _prematureCancellationRegistration;
 
-    public ScheduledCancellableAsyncAction(Func<CancellationToken, Task> cancellableAsyncAction, CancellationToken scheduleCancellationToken)
+    public ScheduledCancellableAsyncAction(Func<CancellationToken, Task> cancellableAsyncAction, CancellationToken scheduleCancellationToken, ExecutionContext? executionContext)
     {
         if (scheduleCancellationToken.IsCancellationRequested)
         {
@@ -23,6 +24,7 @@ internal sealed class ScheduledCancellableAsyncAction : IScheduledAction
 
         _cancellableAsyncAction = cancellableAsyncAction;
         _scheduleCancellationToken = scheduleCancellationToken;
+        _executionContext = executionContext ?? Singletons.DefaultExecutionContext;
         _taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         if (!scheduleCancellationToken.CanBeCanceled)
@@ -89,7 +91,11 @@ internal sealed class ScheduledCancellableAsyncAction : IScheduledAction
                 _ => executionCancellationToken,
             };
 
-            switch (_cancellableAsyncAction!(cancellationToken))
+            Task promise = null!;
+
+            ExecutionContext.Run(_executionContext!, _ => promise = _cancellableAsyncAction!(cancellationToken), state: null);
+
+            switch (promise)
             {
                 case { IsCompleted: true, IsCanceled: false, IsFaulted: false }:
                     _taskCompletionSource!.TrySetResult(null);
@@ -127,8 +133,8 @@ internal sealed class ScheduledCancellableAsyncAction : IScheduledAction
 
                     return Task.CompletedTask;
 
-                case { } task:
-                    return Awaited(this, cancellationTokenSource, executionCancellationToken, task);
+                default:
+                    return Awaited(this, cancellationTokenSource, executionCancellationToken, promise);
             }
         }
         catch (OperationCanceledException) when (_scheduleCancellationToken.Value.IsCancellationRequested)

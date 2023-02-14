@@ -9,11 +9,12 @@ internal sealed class ScheduledCancellableSyncFunction<TResult> : IScheduledFunc
     private readonly Func<CancellationToken, TResult>? _cancellableFunction;
     private readonly Task<TResult>? _prematurePromise;
     private readonly CancellationToken? _scheduleCancellationToken;
+    private readonly ExecutionContext? _executionContext;
     private readonly TaskCompletionSource<TResult>? _taskCompletionSource;
 
     private IDisposable? _prematureCancellationRegistration;
 
-    public ScheduledCancellableSyncFunction(Func<CancellationToken, TResult> cancellableFunction, CancellationToken scheduleCancellationToken)
+    public ScheduledCancellableSyncFunction(Func<CancellationToken, TResult> cancellableFunction, CancellationToken scheduleCancellationToken, ExecutionContext? executionContext)
     {
         if (scheduleCancellationToken.IsCancellationRequested)
         {
@@ -23,6 +24,7 @@ internal sealed class ScheduledCancellableSyncFunction<TResult> : IScheduledFunc
 
         _cancellableFunction = cancellableFunction;
         _scheduleCancellationToken = scheduleCancellationToken;
+        _executionContext = executionContext ?? Singletons.DefaultExecutionContext;
         _taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         if (!scheduleCancellationToken.CanBeCanceled)
@@ -87,7 +89,9 @@ internal sealed class ScheduledCancellableSyncFunction<TResult> : IScheduledFunc
                 _ => executionCancellationToken,
             };
 
-            var result  = _cancellableFunction!(cancellationToken);
+            TResult result = default!;
+
+            ExecutionContext.Run(_executionContext!, _ => result = _cancellableFunction!(cancellationToken), state: null);
 
             _taskCompletionSource!.TrySetResult(result);
         }
@@ -148,7 +152,9 @@ internal sealed class ScheduledCancellableSyncFunction<TResult> : IScheduledFunc
                 _ => executionCancellationToken,
             };
 
-            var result = _cancellableFunction!(cancellationToken);
+            TResult result = default!;
+
+            ExecutionContext.Run(_executionContext!, _ => result = _cancellableFunction!(cancellationToken), state: null);
 
             _taskCompletionSource!.TrySetResult(result);
         }

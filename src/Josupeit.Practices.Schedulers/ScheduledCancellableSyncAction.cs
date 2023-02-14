@@ -9,11 +9,12 @@ internal sealed class ScheduledCancellableSyncAction : IScheduledAction
     private readonly Action<CancellationToken>? _cancellableAction;
     private readonly Task? _prematurePromise;
     private readonly CancellationToken? _scheduleCancellationToken;
+    private readonly ExecutionContext? _executionContext;
     private readonly TaskCompletionSource<object?>? _taskCompletionSource;
 
     private IDisposable? _prematureCancellationRegistration;
 
-    public ScheduledCancellableSyncAction(Action<CancellationToken> cancellableAction, CancellationToken scheduleCancellationToken)
+    public ScheduledCancellableSyncAction(Action<CancellationToken> cancellableAction, CancellationToken scheduleCancellationToken, ExecutionContext? executionContext)
     {
         if (scheduleCancellationToken.IsCancellationRequested)
         {
@@ -23,6 +24,7 @@ internal sealed class ScheduledCancellableSyncAction : IScheduledAction
 
         _cancellableAction = cancellableAction;
         _scheduleCancellationToken = scheduleCancellationToken;
+        _executionContext = executionContext ?? Singletons.DefaultExecutionContext;
         _taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         if (!scheduleCancellationToken.CanBeCanceled)
@@ -87,7 +89,7 @@ internal sealed class ScheduledCancellableSyncAction : IScheduledAction
                 _ => executionCancellationToken,
             };
 
-            _cancellableAction!(cancellationToken);
+            ExecutionContext.Run(_executionContext!, _ => _cancellableAction!(cancellationToken), state: null);
 
             _taskCompletionSource!.TrySetResult(null);
         }
@@ -147,9 +149,9 @@ internal sealed class ScheduledCancellableSyncAction : IScheduledAction
                 (null, { CanBeCanceled: true }) => _scheduleCancellationToken.Value,
                 _ => executionCancellationToken,
             };
-            
-            _cancellableAction!(cancellationToken);
-            
+
+            ExecutionContext.Run(_executionContext!, _ => _cancellableAction!(cancellationToken), state: null);
+
             _taskCompletionSource!.TrySetResult(null);
         }
         catch (OperationCanceledException) when (_scheduleCancellationToken.Value.IsCancellationRequested)

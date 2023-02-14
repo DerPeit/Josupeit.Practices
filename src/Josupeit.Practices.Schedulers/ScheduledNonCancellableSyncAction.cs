@@ -9,10 +9,12 @@ internal sealed class ScheduledNonCancellableSyncAction : IScheduledAction
     private readonly TaskCompletionSource<object?> _taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private readonly Action _action;
+    private readonly ExecutionContext _executionContext;
 
-    public ScheduledNonCancellableSyncAction(Action action)
+    public ScheduledNonCancellableSyncAction(Action action, ExecutionContext? executionContext)
     {
         _action = action;
+        _executionContext = executionContext ?? Singletons.DefaultExecutionContext;
     }
 
     bool IScheduled.IsCancellationRequested => false;
@@ -37,7 +39,7 @@ internal sealed class ScheduledNonCancellableSyncAction : IScheduledAction
 
         try
         {
-            _action();
+            ExecutionContext.Run(_executionContext, static self => ((ScheduledNonCancellableSyncAction)self!)._action(), state: this);
 
             _taskCompletionSource.TrySetResult(null);
         }
@@ -70,8 +72,8 @@ internal sealed class ScheduledNonCancellableSyncAction : IScheduledAction
 
         try
         {
-            _action();
-
+            ExecutionContext.Run(_executionContext, static self => ((ScheduledNonCancellableSyncAction)self!)._action(), state: this);
+ 
             _taskCompletionSource.TrySetResult(null);
         }
         catch (OperationCanceledException ex) when (executionCancellationToken.IsCancellationRequested)

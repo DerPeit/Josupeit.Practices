@@ -90,14 +90,24 @@ public abstract class <#= className #> : <#= baseTypes #>
         _scheduledFactory = scheduledFactory;
         _enqueueBehavior = enqueueBehavior;
     }
+<#
+    foreach (var isUnsafe in new[] { false, true })
+    {
 
+        var methodName = isUnsafe ? "UnsafeSchedule" : "Schedule";
+
+#>
     /// <inheritdoc />
-    public void Schedule(Action action)
+    public void <#= methodName #>(Action action)
     {
         if (action == null)
             throw new ArgumentNullException(nameof(action));
 
-        var scheduled = _scheduledFactory.Create(action);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(action, executionContext);
 
         _enqueueBehavior.Enqueue(scheduled);
 
@@ -105,15 +115,19 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public void Schedule(Action<CancellationToken> cancellableAction) => Schedule(cancellableAction, CancellationToken.None);
+    public void <#= methodName #>(Action<CancellationToken> cancellableAction) => <#= methodName #>(cancellableAction, CancellationToken.None);
 
     /// <inheritdoc />
-    public void Schedule(Action<CancellationToken> cancellableAction, CancellationToken cancellationToken)
+    public void <#= methodName #>(Action<CancellationToken> cancellableAction, CancellationToken cancellationToken)
     {
         if (cancellableAction == null)
             throw new ArgumentNullException(nameof(cancellableAction));
 
-        var scheduled = _scheduledFactory.Create(cancellableAction, cancellationToken);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableAction, executionContext, cancellationToken);
 
         _enqueueBehavior.Enqueue(scheduled, cancellationToken);
 
@@ -121,12 +135,16 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public void Schedule(Func<Task> asyncAction)
+    public void <#= methodName #>(Func<Task> asyncAction)
     {
         if (asyncAction == null)
             throw new ArgumentNullException(nameof(asyncAction));
 
-        var scheduled = _scheduledFactory.Create(asyncAction);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(asyncAction, executionContext);
 
         _enqueueBehavior.Enqueue(scheduled);
 
@@ -134,15 +152,19 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public void Schedule(Func<CancellationToken, Task> cancellableAsyncAction) => Schedule(cancellableAsyncAction, CancellationToken.None);
+    public void <#= methodName #>(Func<CancellationToken, Task> cancellableAsyncAction) => <#= methodName #>(cancellableAsyncAction, CancellationToken.None);
 
     /// <inheritdoc />
-    public void Schedule(Func<CancellationToken, Task> cancellableAsyncAction, CancellationToken cancellationToken)
+    public void <#= methodName #>(Func<CancellationToken, Task> cancellableAsyncAction, CancellationToken cancellationToken)
     {
         if (cancellableAsyncAction == null)
             throw new ArgumentNullException(nameof(cancellableAsyncAction));
 
-        var scheduled = _scheduledFactory.Create(cancellableAsyncAction, cancellationToken);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableAsyncAction, executionContext, cancellationToken);
 
         _enqueueBehavior.Enqueue(scheduled, cancellationToken);
 
@@ -150,12 +172,16 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public TResult Schedule<TResult>(Func<TResult> func)
+    public TResult <#= methodName #><TResult>(Func<TResult> func)
     {
         if (func == null)
             throw new ArgumentNullException(nameof(func));
 
-        var scheduled = _scheduledFactory.Create(func);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(func, executionContext);
 
         _enqueueBehavior.Enqueue(scheduled);
 
@@ -163,15 +189,19 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public TResult Schedule<TResult>(Func<CancellationToken, TResult> cancellableFunc) => Schedule(cancellableFunc, CancellationToken.None);
+    public TResult <#= methodName #><TResult>(Func<CancellationToken, TResult> cancellableFunc) => <#= methodName #>(cancellableFunc, CancellationToken.None);
 
     /// <inheritdoc />
-    public TResult Schedule<TResult>(Func<CancellationToken, TResult> cancellableFunc, CancellationToken cancellationToken)
+    public TResult <#= methodName #><TResult>(Func<CancellationToken, TResult> cancellableFunc, CancellationToken cancellationToken)
     {
         if (cancellableFunc == null)
             throw new ArgumentNullException(nameof(cancellableFunc));
 
-        var scheduled = _scheduledFactory.Create(cancellableFunc, cancellationToken);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableFunc, executionContext, cancellationToken);
 
         _enqueueBehavior.Enqueue(scheduled, cancellationToken);
 
@@ -179,12 +209,16 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public TResult Schedule<TResult>(Func<Task<TResult>> asyncFunc)
+    public TResult <#= methodName #><TResult>(Func<Task<TResult>> asyncFunc)
     {
         if (asyncFunc == null)
             throw new ArgumentNullException(nameof(asyncFunc));
 
-        var scheduled = _scheduledFactory.Create(asyncFunc);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(asyncFunc, executionContext);
 
         _enqueueBehavior.Enqueue(scheduled);
 
@@ -192,15 +226,19 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public TResult Schedule<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc) => Schedule(cancellableAsyncFunc, CancellationToken.None);
+    public TResult <#= methodName #><TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc) => <#= methodName #>(cancellableAsyncFunc, CancellationToken.None);
 
     /// <inheritdoc />
-    public TResult Schedule<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc, CancellationToken cancellationToken)
+    public TResult <#= methodName #><TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc, CancellationToken cancellationToken)
     {
         if (cancellableAsyncFunc == null)
             throw new ArgumentNullException(nameof(cancellableAsyncFunc));
 
-        var scheduled = _scheduledFactory.Create(cancellableAsyncFunc, cancellationToken);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableAsyncFunc, executionContext, cancellationToken);
 
         _enqueueBehavior.Enqueue(scheduled, cancellationToken);
 
@@ -208,15 +246,19 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public Task ScheduleAsync(Action action) => ScheduleAsync(action, CancellationToken.None);
+    public Task <#= methodName #>Async(Action action) => <#= methodName #>Async(action, CancellationToken.None);
 
     /// <inheritdoc />
-    public async Task ScheduleAsync(Action action, CancellationToken cancellationToken)
+    public async Task <#= methodName #>Async(Action action, CancellationToken cancellationToken)
     {
         if (action == null)
             throw new ArgumentNullException(nameof(action));
 
-        var scheduled = _scheduledFactory.Create(action);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(action, executionContext);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
 
@@ -224,15 +266,19 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public Task ScheduleAsync(Action<CancellationToken> cancellableAction) => ScheduleAsync(cancellableAction, CancellationToken.None);
+    public Task <#= methodName #>Async(Action<CancellationToken> cancellableAction) => <#= methodName #>Async(cancellableAction, CancellationToken.None);
 
     /// <inheritdoc />
-    public async Task ScheduleAsync(Action<CancellationToken> cancellableAction, CancellationToken cancellationToken)
+    public async Task <#= methodName #>Async(Action<CancellationToken> cancellableAction, CancellationToken cancellationToken)
     {
         if (cancellableAction == null)
             throw new ArgumentNullException(nameof(cancellableAction));
 
-        var scheduled = _scheduledFactory.Create(cancellableAction, cancellationToken);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableAction, executionContext, cancellationToken);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken);
 
@@ -240,15 +286,19 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public Task ScheduleAsync(Func<Task> asyncAction) => ScheduleAsync(asyncAction, CancellationToken.None);
+    public Task <#= methodName #>Async(Func<Task> asyncAction) => <#= methodName #>Async(asyncAction, CancellationToken.None);
 
     /// <inheritdoc />
-    public async Task ScheduleAsync(Func<Task> asyncAction, CancellationToken cancellationToken)
+    public async Task <#= methodName #>Async(Func<Task> asyncAction, CancellationToken cancellationToken)
     {
         if (asyncAction == null)
             throw new ArgumentNullException(nameof(asyncAction));
 
-        var scheduled = _scheduledFactory.Create(asyncAction);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(asyncAction, executionContext);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
 
@@ -256,15 +306,19 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public Task ScheduleAsync(Func<CancellationToken, Task> cancellableAsyncAction) => ScheduleAsync(cancellableAsyncAction, CancellationToken.None);
+    public Task <#= methodName #>Async(Func<CancellationToken, Task> cancellableAsyncAction) => <#= methodName #>Async(cancellableAsyncAction, CancellationToken.None);
 
     /// <inheritdoc />
-    public async Task ScheduleAsync(Func<CancellationToken, Task> cancellableAsyncAction, CancellationToken cancellationToken)
+    public async Task <#= methodName #>Async(Func<CancellationToken, Task> cancellableAsyncAction, CancellationToken cancellationToken)
     {
         if (cancellableAsyncAction == null)
             throw new ArgumentNullException(nameof(cancellableAsyncAction));
 
-        var scheduled = _scheduledFactory.Create(cancellableAsyncAction, cancellationToken);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableAsyncAction, executionContext, cancellationToken);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
 
@@ -272,15 +326,19 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public Task<TResult> ScheduleAsync<TResult>(Func<TResult> func) => ScheduleAsync(func, CancellationToken.None);
+    public Task<TResult> <#= methodName #>Async<TResult>(Func<TResult> func) => <#= methodName #>Async(func, CancellationToken.None);
 
     /// <inheritdoc />
-    public async Task<TResult> ScheduleAsync<TResult>(Func<TResult> func, CancellationToken cancellationToken)
+    public async Task<TResult> <#= methodName #>Async<TResult>(Func<TResult> func, CancellationToken cancellationToken)
     {
         if (func == null)
             throw new ArgumentNullException(nameof(func));
 
-        var scheduled = _scheduledFactory.Create(func);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(func, executionContext);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
 
@@ -288,15 +346,19 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public Task<TResult> ScheduleAsync<TResult>(Func<CancellationToken, TResult> cancellableFunc) => ScheduleAsync(cancellableFunc, CancellationToken.None);
+    public Task<TResult> <#= methodName #>Async<TResult>(Func<CancellationToken, TResult> cancellableFunc) => <#= methodName #>Async(cancellableFunc, CancellationToken.None);
 
     /// <inheritdoc />
-    public async Task<TResult> ScheduleAsync<TResult>(Func<CancellationToken, TResult> cancellableFunc, CancellationToken cancellationToken)
+    public async Task<TResult> <#= methodName #>Async<TResult>(Func<CancellationToken, TResult> cancellableFunc, CancellationToken cancellationToken)
     {
         if (cancellableFunc == null)
             throw new ArgumentNullException(nameof(cancellableFunc));
 
-        var scheduled = _scheduledFactory.Create(cancellableFunc, cancellationToken);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableFunc, executionContext, cancellationToken);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
 
@@ -304,15 +366,19 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public Task<TResult> ScheduleAsync<TResult>(Func<Task<TResult>> asyncFunc) => ScheduleAsync(asyncFunc, CancellationToken.None);
+    public Task<TResult> <#= methodName #>Async<TResult>(Func<Task<TResult>> asyncFunc) => <#= methodName #>Async(asyncFunc, CancellationToken.None);
 
     /// <inheritdoc />
-    public async Task<TResult> ScheduleAsync<TResult>(Func<Task<TResult>> asyncFunc, CancellationToken cancellationToken)
+    public async Task<TResult> <#= methodName #>Async<TResult>(Func<Task<TResult>> asyncFunc, CancellationToken cancellationToken)
     {
         if (asyncFunc == null)
             throw new ArgumentNullException(nameof(asyncFunc));
 
-        var scheduled = _scheduledFactory.Create(asyncFunc);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(asyncFunc, executionContext);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
 
@@ -320,15 +386,19 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
     /// <inheritdoc />
-    public Task<TResult> ScheduleAsync<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc) => ScheduleAsync(cancellableAsyncFunc, CancellationToken.None);
+    public Task<TResult> <#= methodName #>Async<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc) => <#= methodName #>Async(cancellableAsyncFunc, CancellationToken.None);
 
     /// <inheritdoc />
-    public async Task<TResult> ScheduleAsync<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc, CancellationToken cancellationToken)
+    public async Task<TResult> <#= methodName #>Async<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc, CancellationToken cancellationToken)
     {
         if (cancellableAsyncFunc == null)
             throw new ArgumentNullException(nameof(cancellableAsyncFunc));
 
-        var scheduled = _scheduledFactory.Create(cancellableAsyncFunc, cancellationToken);
+#if !NETSTANDARD1_3
+        using
+#endif
+        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableAsyncFunc, executionContext, cancellationToken);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
 
@@ -336,7 +406,8 @@ public abstract class <#= className #> : <#= baseTypes #>
     }
 
 <#
-
+    }
+    
     if (wantsAsyncEnqueueMethod)
     {
     #>

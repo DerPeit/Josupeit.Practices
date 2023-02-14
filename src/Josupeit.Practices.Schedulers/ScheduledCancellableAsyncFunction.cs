@@ -9,11 +9,12 @@ internal sealed class ScheduledCancellableAsyncFunction<TResult> : IScheduledFun
     private readonly Func<CancellationToken, Task<TResult>>? _cancellableAsyncFunction;
     private readonly Task<TResult>? _prematurePromise;
     private readonly CancellationToken? _scheduleCancellationToken;
+    private readonly ExecutionContext? _executionContext;
     private readonly TaskCompletionSource<TResult>? _taskCompletionSource;
 
     private IDisposable? _prematureCancellationRegistration;
 
-    public ScheduledCancellableAsyncFunction(Func<CancellationToken, Task<TResult>> cancellableAsyncFunction, CancellationToken scheduleCancellationToken)
+    public ScheduledCancellableAsyncFunction(Func<CancellationToken, Task<TResult>> cancellableAsyncFunction, CancellationToken scheduleCancellationToken, ExecutionContext? executionContext)
     {
         if (scheduleCancellationToken.IsCancellationRequested)
         {
@@ -23,6 +24,7 @@ internal sealed class ScheduledCancellableAsyncFunction<TResult> : IScheduledFun
 
         _cancellableAsyncFunction = cancellableAsyncFunction;
         _scheduleCancellationToken = scheduleCancellationToken;
+        _executionContext = executionContext ?? Singletons.DefaultExecutionContext;
         _taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         if (!scheduleCancellationToken.CanBeCanceled)
@@ -89,7 +91,11 @@ internal sealed class ScheduledCancellableAsyncFunction<TResult> : IScheduledFun
                 _ => executionCancellationToken,
             };
 
-            switch (_cancellableAsyncFunction!(cancellationToken))
+            Task<TResult> promise = null!;
+
+            ExecutionContext.Run(_executionContext!, _ => promise = _cancellableAsyncFunction!(cancellationToken), state: null);
+
+            switch (promise)
             {
                 case { IsCompleted: true, IsCanceled: false, IsFaulted: false } task:
                     _taskCompletionSource!.TrySetResult(task.Result);
@@ -127,8 +133,8 @@ internal sealed class ScheduledCancellableAsyncFunction<TResult> : IScheduledFun
 
                     return Task.CompletedTask;
 
-                case { } task:
-                    return Awaited(this, cancellationTokenSource, executionCancellationToken, task);
+                default:
+                    return Awaited(this, cancellationTokenSource, executionCancellationToken, promise);
             }
         }
         catch (OperationCanceledException) when (_scheduleCancellationToken.Value.IsCancellationRequested)

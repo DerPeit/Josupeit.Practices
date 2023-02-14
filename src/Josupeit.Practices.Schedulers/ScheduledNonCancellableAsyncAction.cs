@@ -9,10 +9,12 @@ internal sealed class ScheduledNonCancellableAsyncAction :  IScheduledAction
     private readonly TaskCompletionSource<object?> _taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private readonly Func<Task> _asyncAction;
+    private readonly ExecutionContext _executionContext;
 
-    public ScheduledNonCancellableAsyncAction(Func<Task> asyncAction)
+    public ScheduledNonCancellableAsyncAction(Func<Task> asyncAction, ExecutionContext? executionContext)
     {
         _asyncAction = asyncAction;
+        _executionContext = executionContext ?? Singletons.DefaultExecutionContext;
     }
 
     bool IScheduled.IsCancellationRequested => false;
@@ -39,7 +41,11 @@ internal sealed class ScheduledNonCancellableAsyncAction :  IScheduledAction
 
         try
         {
-            switch (_asyncAction())
+            Task promise = null!;
+
+            ExecutionContext.Run(_executionContext, _ => promise = _asyncAction(), state: null);
+
+            switch (promise)
             {
                 case { IsCompleted: true, IsCanceled: false, IsFaulted: false }:
                     _taskCompletionSource.TrySetResult(null);
@@ -62,8 +68,8 @@ internal sealed class ScheduledNonCancellableAsyncAction :  IScheduledAction
 
                     return Task.CompletedTask;
 
-                case { } task:
-                    return Awaited(this, executionCancellationToken, task);
+                default:
+                    return Awaited(this, executionCancellationToken, promise);
             }
         }
         catch (Exception ex)

@@ -9,10 +9,12 @@ internal sealed class ScheduledNonCancellableSyncFunction<TResult> : IScheduledF
     private readonly TaskCompletionSource<TResult> _taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private readonly Func<TResult> _function;
+    private readonly ExecutionContext _executionContext;
 
-    public ScheduledNonCancellableSyncFunction(Func<TResult> function)
+    public ScheduledNonCancellableSyncFunction(Func<TResult> function, ExecutionContext? executionContext)
     {
         _function = function;
+        _executionContext = executionContext ?? Singletons.DefaultExecutionContext;
     }
 
     bool IScheduled.IsCancellationRequested => false;
@@ -37,7 +39,9 @@ internal sealed class ScheduledNonCancellableSyncFunction<TResult> : IScheduledF
 
         try
         {
-            var result = _function();
+            TResult result = default!;
+
+            ExecutionContext.Run(_executionContext, _ => result = _function(), state: null);
 
             _taskCompletionSource.TrySetResult(result);
         }
@@ -70,8 +74,10 @@ internal sealed class ScheduledNonCancellableSyncFunction<TResult> : IScheduledF
 
         try
         {
-            var result = _function();
+            TResult result = default!;
 
+            ExecutionContext.Run(_executionContext, _ => result = _function(), state: null);
+            
             _taskCompletionSource.TrySetResult(result);
         }
         catch (OperationCanceledException ex) when (executionCancellationToken.IsCancellationRequested)
