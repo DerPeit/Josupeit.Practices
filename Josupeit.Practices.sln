@@ -31,7 +31,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Josupeit.Practices.Polyfill
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Josupeit.Practices.Specifications", "src\Josupeit.Practices.Specifications\Josupeit.Practices.Specifications.csproj", "{10E70E6B-1903-4738-9EA3-878F91481CD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Josupeit.Practices.Jobs.Abstractions", "src\Josupeit.Practices.Jobs.Abstractions\Josupeit.Practices.Jobs.Abstractions.csproj", "{13DE7347-70C1-4250-B1F2-CF3FF8A302AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Josupeit.Practices.Jobs.Abstractions", "src\Josupeit.Practices.Jobs.Abstractions\Josupeit.Practices.Jobs.Abstractions.csproj", "{13DE7347-70C1-4250-B1F2-CF3FF8A302AA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Josupeit.Practices.Jobs", "src\Josupeit.Practices.Jobs\Josupeit.Practices.Jobs.csproj", "{BBE0DBE2-DAC2-47D0-BAB1-5EBA6CBBEADA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,6 +85,10 @@ Global
 		{13DE7347-70C1-4250-B1F2-CF3FF8A302AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13DE7347-70C1-4250-B1F2-CF3FF8A302AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13DE7347-70C1-4250-B1F2-CF3FF8A302AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBE0DBE2-DAC2-47D0-BAB1-5EBA6CBBEADA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBE0DBE2-DAC2-47D0-BAB1-5EBA6CBBEADA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBE0DBE2-DAC2-47D0-BAB1-5EBA6CBBEADA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBE0DBE2-DAC2-47D0-BAB1-5EBA6CBBEADA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -99,6 +105,7 @@ Global
 		{29C60660-ADFA-4585-87BC-8AF96EF776D3} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
 		{10E70E6B-1903-4738-9EA3-878F91481CD8} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
 		{13DE7347-70C1-4250-B1F2-CF3FF8A302AA} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
+		{BBE0DBE2-DAC2-47D0-BAB1-5EBA6CBBEADA} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F4C4903F-3753-4242-8D6A-4F0C543AB9E7}
