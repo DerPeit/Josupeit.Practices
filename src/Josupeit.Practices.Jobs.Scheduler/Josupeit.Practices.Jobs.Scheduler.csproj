@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+    <RootNamespace>Josupeit.Practices.Jobs</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Josupeit.Practices.Jobs\Josupeit.Practices.Jobs.csproj" />
+    <ProjectReference Include="..\Josupeit.Practices.Schedulers.Abstractions\Josupeit.Practices.Schedulers.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>
