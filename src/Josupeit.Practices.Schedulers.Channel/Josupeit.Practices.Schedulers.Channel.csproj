@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.3;netstandard2.0;netstandard2.1;netcoreapp3.0;netcoreapp3.1;net46;net461;net462</TargetFrameworks>
+    <RootNamespace>Josupeit.Practices.Schedulers</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nito.AsyncEx.Coordination" Version="[5, 6)" />
+    <PackageReference Include="System.Threading.Channels" Version="[4.5.0, 6)" Condition="'$(TargetFramework)' == 'netstandard1.3' or '$(TargetFramework)' == 'net46'" />
+    <PackageReference Include="System.Threading.Channels" Version="[4.5.0, 7)" Condition="'$(TargetFramework)' == 'net461'" />
+    <PackageReference Include="System.Threading.Channels" Version="[4.5.0, 8)" Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netstandard2.1' or '$(TargetFramework)' == 'net462'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Josupeit.Practices.Schedulers\Josupeit.Practices.Schedulers.csproj" />
+    <ProjectReference Include="..\Josupeit.Practices.Services\Josupeit.Practices.Services.csproj" />
+  </ItemGroup>
+
+</Project>

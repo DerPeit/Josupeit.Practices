@@ -39,7 +39,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Josupeit.Practices.Jobs.Tas
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Josupeit.Practices.Jobs.Scheduler", "src\Josupeit.Practices.Jobs.Scheduler\Josupeit.Practices.Jobs.Scheduler.csproj", "{523EED6B-3A82-45F4-B2DD-B2F32C3026D2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Josupeit.Practices.Schedulers.TaskPool", "src\Josupeit.Practices.Schedulers.TaskPool\Josupeit.Practices.Schedulers.TaskPool.csproj", "{C073C5B6-57BD-4DDD-B18C-EFB6B7ED270B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Josupeit.Practices.Schedulers.TaskPool", "src\Josupeit.Practices.Schedulers.TaskPool\Josupeit.Practices.Schedulers.TaskPool.csproj", "{C073C5B6-57BD-4DDD-B18C-EFB6B7ED270B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Josupeit.Practices.Schedulers.Channel", "src\Josupeit.Practices.Schedulers.Channel\Josupeit.Practices.Schedulers.Channel.csproj", "{069F5F6B-304F-4219-B066-2B9E9DD122BB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -107,6 +109,10 @@ Global
 		{C073C5B6-57BD-4DDD-B18C-EFB6B7ED270B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C073C5B6-57BD-4DDD-B18C-EFB6B7ED270B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C073C5B6-57BD-4DDD-B18C-EFB6B7ED270B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{069F5F6B-304F-4219-B066-2B9E9DD122BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{069F5F6B-304F-4219-B066-2B9E9DD122BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{069F5F6B-304F-4219-B066-2B9E9DD122BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{069F5F6B-304F-4219-B066-2B9E9DD122BB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -127,6 +133,7 @@ Global
 		{2CA639C7-038C-4AB8-9D04-D60BF5B298DB} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
 		{523EED6B-3A82-45F4-B2DD-B2F32C3026D2} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
 		{C073C5B6-57BD-4DDD-B18C-EFB6B7ED270B} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
+		{069F5F6B-304F-4219-B066-2B9E9DD122BB} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F4C4903F-3753-4242-8D6A-4F0C543AB9E7}
