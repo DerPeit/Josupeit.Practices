@@ -11,8 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Josupeit.Practices.Polyfills.Tasks\Josupeit.Practices.Polyfills.Tasks.csproj" />
-    <ProjectReference Include="..\Josupeit.Practices.Disposables.Abstractions\Josupeit.Practices.Disposables.Abstractions.csproj" />
     <ProjectReference Include="..\Josupeit.Practices.Disposables\Josupeit.Practices.Disposables.csproj" />
     <ProjectReference Include="..\Josupeit.Practices.Schedulers.Abstractions\Josupeit.Practices.Schedulers.Abstractions.csproj" />
     <ProjectReference Include="..\Josupeit.Practices.Services\Josupeit.Practices.Services.csproj" />
