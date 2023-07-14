@@ -1,23 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.1;netstandard2.0;netstandard2.1;net40;netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net40;netstandard1.0;netstandard2.1</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Disposables</RootNamespace>
   </PropertyGroup>
 
-  <Choose>
-    <When Condition="'$(TargetFramework)' == 'netstandard1.1' Or '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'net40'">
-      <ItemGroup>
-        <Compile Remove="ExplicitAsyncDisposable.cs" />
-        <Compile Remove="ImplicitAsyncDisposable.cs" />
-      </ItemGroup>
-
-      <ItemGroup>
-        <None Include="ExplicitAsyncDisposable.cs" />
-        <None Include="ImplicitAsyncDisposable.cs" />
-      </ItemGroup>
-    </When>
-  </Choose>
+  <ItemGroup  Condition="'$(TargetFramework)' != 'netstandard2.1'">
+    <Compile Remove="ExplicitAsyncDisposable.cs" />
+    <Compile Remove="ImplicitAsyncDisposable.cs" />
+    <None Include="ExplicitAsyncDisposable.cs" />
+    <None Include="ImplicitAsyncDisposable.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Josupeit.Practices.Disposables.Abstractions\Josupeit.Practices.Disposables.Abstractions.csproj" />

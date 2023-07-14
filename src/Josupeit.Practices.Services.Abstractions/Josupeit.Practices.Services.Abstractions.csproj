@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.1;net40</TargetFrameworks>
+    <TargetFrameworks>net40;netstandard1.0</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Services</RootNamespace>
   </PropertyGroup>
 
