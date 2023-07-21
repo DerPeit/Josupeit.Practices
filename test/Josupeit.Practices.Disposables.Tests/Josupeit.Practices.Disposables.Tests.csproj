@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>
+      net481; <!--Equivalence class for net40 -->
+      netcoreapp2.2; <!--Equivalence class for netstandard1.0 -->
+      net80 <!--Equivalence class for netstandard2.1 -->
+    </TargetFrameworks>
+
+    <LangVersion>11</LangVersion>
+    <Nullable>enable</Nullable>
+    <NoWarn>NETSDK1138;NU1603</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Bcl.Build" Version="1.0.21" Condition="'$(TargetFramework)' == 'net481'" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" Condition="'$(TargetFramework)' != 'net481'" />
+    <PackageReference Include="NSubstitute" Version="2.0.3" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Josupeit.Practices.Disposables\Josupeit.Practices.Disposables.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net80'">
+    <Compile Remove="ExplicitAsyncDisposableTests.cs" />
+    <Compile Remove="ImplicitAsyncDisposableTests.cs" />
+    <None Include="ExplicitAsyncDisposableTests.cs" />
+    <None Include="ImplicitAsyncDisposableTests.cs" />
+  </ItemGroup>
+
+</Project>

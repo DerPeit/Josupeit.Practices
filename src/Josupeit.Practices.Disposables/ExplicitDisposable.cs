@@ -51,7 +51,7 @@ public abstract class ExplicitDisposable : INotifyingDisposable
     protected void Dispose()
     {
         Dispose(isDisposing: true);
-        GC.SuppressFinalize(this);
+        GCProvider.Current.SuppressFinalize(this);
     }
 
     /// <summary>

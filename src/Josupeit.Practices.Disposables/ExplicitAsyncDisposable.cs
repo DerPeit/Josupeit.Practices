@@ -50,7 +50,7 @@ public abstract class ExplicitAsyncDisposable : INotifyingAsyncDisposable
     protected void Dispose()
     {
         Dispose(isDisposing: true);
-        GC.SuppressFinalize(this);
+        GCProvider.Current.SuppressFinalize(this);
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public abstract class ExplicitAsyncDisposable : INotifyingAsyncDisposable
     protected async ValueTask DisposeAsync()
     {
         await DisposeAsyncCore().ConfigureAwait(false);
-        GC.SuppressFinalize(this);
+        GCProvider.Current.SuppressFinalize(this);
     }
 
     /// <summary>

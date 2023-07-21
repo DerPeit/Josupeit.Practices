@@ -12,6 +12,11 @@
     <None Include="ImplicitAsyncDisposable.cs" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' != 'netstandard1.0'">
+    <Compile Remove="ExcludeFromCodeCoverageAttribute.cs" />
+    <None Include="ExcludeFromCodeCoverageAttribute.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Josupeit.Practices.Disposables.Abstractions\Josupeit.Practices.Disposables.Abstractions.csproj" />
   </ItemGroup>
