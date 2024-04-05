@@ -9,7 +9,7 @@
 
     <LangVersion>11</LangVersion>
     <Nullable>enable</Nullable>
-    <NoWarn>NETSDK1138;NU1603</NoWarn>
+    <NoWarn>NETSDK1138;NU1603;NU1902;NU1903</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
