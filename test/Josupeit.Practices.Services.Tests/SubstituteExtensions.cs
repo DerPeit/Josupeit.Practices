@@ -1,6 +1,9 @@
-﻿using System.Linq;
+﻿#if NET40
+extern alias Theraot;
+#endif
+
+using System.Linq;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 
 namespace Josupeit.Practices.Services.Tests;
 
@@ -33,7 +36,11 @@ internal static class SubstituteExtensions
         }
         catch (TargetInvocationException ex)
         {
-            ExceptionDispatchInfo.Capture(ex.InnerException!).Throw();
+#if NET40
+            Theraot.
+#endif
+
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException!).Throw();
 
             throw;
         }
