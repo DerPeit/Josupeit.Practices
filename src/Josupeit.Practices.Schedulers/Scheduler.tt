@@ -90,6 +90,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         _scheduledFactory = scheduledFactory;
         _enqueueBehavior = enqueueBehavior;
     }
+
 <#
     foreach (var isUnsafe in new[] { false, true })
     {
