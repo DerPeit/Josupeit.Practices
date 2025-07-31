@@ -12,7 +12,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Generation\Template.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Attribute.cs" />
+    <EmbeddedResource Include="Generation\Template.cs" />
   </ItemGroup>
 
   <ItemGroup Label="Generator compile-time references">
