@@ -51,9 +51,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Josupeit.Practices.Services
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Josupeit.Practices.Schedulers.Tests", "test\Josupeit.Practices.Schedulers.Tests\Josupeit.Practices.Schedulers.Tests.csproj", "{67F64729-F16A-43D2-92C3-6DAFE205FE1A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Josupeit.Practices.Disposables.Mixins", "src\Josupeit.Practices.Disposables.Mixins\Josupeit.Practices.Disposables.Mixins.csproj", "{2FF891F5-EC76-C6E3-5A18-1A7474064094}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Josupeit.Practices.Mixins.Disposable", "src\Josupeit.Practices.Mixins.Disposable\Josupeit.Practices.Mixins.Disposable.csproj", "{2FF891F5-EC76-C6E3-5A18-1A7474064094}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Josupeit.Practices.Disposables.Mixins.Tests", "test\Josupeit.Practices.Disposables.Mixins.Tests\Josupeit.Practices.Disposables.Mixins.Tests.csproj", "{FFC419E0-CDB2-3F65-A907-A4AB9C6EC219}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Josupeit.Practices.Mixins.Disposable.Tests", "test\Josupeit.Practices.Mixins.Disposable.Tests\Josupeit.Practices.Mixins.Disposable.Tests.csproj", "{FFC419E0-CDB2-3F65-A907-A4AB9C6EC219}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Josupeit.Practices.Mixins.Disposable.Generator", "src\Josupeit.Practices.Mixins.Disposable.Generator\Josupeit.Practices.Mixins.Disposable.Generator.csproj", "{8ACAA2B1-98C3-44E4-992E-4545FF7161B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Josupeit.Practices.Mixins.Disposable.Analyzer", "src\Josupeit.Practices.Mixins.Disposable.Analyzer\Josupeit.Practices.Mixins.Disposable.Analyzer.csproj", "{1CCBC40C-A61C-47EB-862B-165AD66919CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -149,6 +153,14 @@ Global
 		{FFC419E0-CDB2-3F65-A907-A4AB9C6EC219}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFC419E0-CDB2-3F65-A907-A4AB9C6EC219}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FFC419E0-CDB2-3F65-A907-A4AB9C6EC219}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8ACAA2B1-98C3-44E4-992E-4545FF7161B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8ACAA2B1-98C3-44E4-992E-4545FF7161B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8ACAA2B1-98C3-44E4-992E-4545FF7161B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8ACAA2B1-98C3-44E4-992E-4545FF7161B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CCBC40C-A61C-47EB-862B-165AD66919CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CCBC40C-A61C-47EB-862B-165AD66919CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CCBC40C-A61C-47EB-862B-165AD66919CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CCBC40C-A61C-47EB-862B-165AD66919CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -176,6 +188,8 @@ Global
 		{67F64729-F16A-43D2-92C3-6DAFE205FE1A} = {631D29B0-55D7-4CF1-A575-23FF6F2C6B17}
 		{2FF891F5-EC76-C6E3-5A18-1A7474064094} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
 		{FFC419E0-CDB2-3F65-A907-A4AB9C6EC219} = {631D29B0-55D7-4CF1-A575-23FF6F2C6B17}
+		{8ACAA2B1-98C3-44E4-992E-4545FF7161B1} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
+		{1CCBC40C-A61C-47EB-862B-165AD66919CE} = {DE0592B2-15E8-4711-AB7C-3C9B04D68B37}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F4C4903F-3753-4242-8D6A-4F0C543AB9E7}
