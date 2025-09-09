@@ -34,7 +34,7 @@ internal sealed class StubRemovingRewriter : CSharpSyntaxRewriter
 
         foreach (var member in node.Members)
         {
-            if (member is not MethodDeclarationSyntax { HasLeadingTrivia: true } method || method.GetLeadingTrivia().ToString().Trim() != "// Stub")
+            if (member is not MethodDeclarationSyntax { HasLeadingTrivia: true } method || !method.GetLeadingTrivia().ToString().Contains("// Stub"))
             {
                 retain.Add(member);
                 continue;
