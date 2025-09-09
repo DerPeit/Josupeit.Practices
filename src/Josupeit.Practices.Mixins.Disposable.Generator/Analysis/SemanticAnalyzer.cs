@@ -110,6 +110,27 @@ internal ref struct SemanticAnalyzer(GeneratorAttributeSyntaxContext context)
         if (_typeSyntax.Modifiers.Any(SyntaxKind.SealedKeyword))
             flags |= TypeFlags.Sealed;
 
+        var baseType = _targetSymbol.BaseType;
+        var disposableInterface = context.SemanticModel.Compilation.GetTypeByMetadataName("System.IDisposable")!;
+        var asyncDisposableInterface = context.SemanticModel.Compilation.GetTypeByMetadataName("System.IAsyncDisposable");
+
+        while (baseType != null && baseType.SpecialType != SpecialType.System_Object)
+        {
+            if (baseType.AllInterfaces.Contains(disposableInterface))
+            {
+                flags |= TypeFlags.HasDisposableBase;
+                break;
+            }
+
+            if (asyncDisposableInterface != null && baseType.AllInterfaces.Contains(asyncDisposableInterface))
+            {
+                flags |= TypeFlags.HasDisposableBase;
+                break;
+            }
+
+            baseType = baseType.BaseType;
+        }
+
         if (_targetSymbol.GetMembers("DisposeManagedResources").Any(x => x is IMethodSymbol { IsGenericMethod: false, IsPartialDefinition: false, Parameters.Length: 0 }))
             members |= ImplementedMembers.DisposeManagedResources;
 

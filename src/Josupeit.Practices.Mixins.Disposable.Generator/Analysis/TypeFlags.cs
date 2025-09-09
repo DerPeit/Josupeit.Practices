@@ -7,4 +7,5 @@ internal enum TypeFlags
 {
     None = 0,
     Sealed = 1,
+    HasDisposableBase = 2,
 }

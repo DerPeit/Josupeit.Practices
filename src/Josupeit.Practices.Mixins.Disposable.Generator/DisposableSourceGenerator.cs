@@ -55,6 +55,9 @@ public sealed class DisposableSourceGenerator : IIncrementalGenerator
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
+            if (target.TypeProperties.Flags.HasFlag(TypeFlags.HasDisposableBase))
+                continue;
+
             context.AddSource(
                 target.Type.Name + ".g.cs", 
                 new CodeGenerator(target, tool, version).Generate(context.CancellationToken));
