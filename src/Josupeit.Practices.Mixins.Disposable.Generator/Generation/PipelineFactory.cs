@@ -42,6 +42,7 @@ internal sealed class PipelineFactory(SemanticTarget target, string tool, string
         pipeline |= new EmptyTryBlockRewriter();
         pipeline |= new AsyncKeywordRemovingRewriter();
         pipeline |= new MarkerBlockInliningRewriter();
+        pipeline |= new ParentTypeWrappingRewriter(target.Type.Parent);
         pipeline |= new FormattingRewriter();
         pipeline |= new LanguageVersionRewriter(target.LanguageVersion);
 

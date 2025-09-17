@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -90,16 +91,44 @@ internal ref struct SemanticAnalyzer(GeneratorAttributeSyntaxContext context)
     private void DescribeTarget()
     {
         var @namespace = _targetSymbol.ContainingNamespace.ToDisplayString();
+        var parents = new Stack<ParentType>();
         var name = _targetSymbol.Name;
         var nameWithConstraints = _targetSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+        var type = Discriminate(_typeSyntax);
+        
+        for (var parentSyntax = _typeSyntax.Parent; parentSyntax is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax or InterfaceDeclarationSyntax; parentSyntax = parentSyntax.Parent)
+        {
+            var parentSymbol = (INamedTypeSymbol)context.SemanticModel.GetDeclaredSymbol(parentSyntax)!;
 
-        var type = _typeSyntax switch
+            parents.Push(
+                new ParentType(
+                    Parent: null,
+                    Discriminate((TypeDeclarationSyntax)parentSyntax),
+                    parentSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)));
+        }
+
+        while (parents.Count > 1)
+        {
+            var parent = parents.Pop();
+            var child = parents.Pop();
+
+            child = child with { Parent = parent };
+            parents.Push(child);
+        }
+
+        _targetType = new TargetType(@namespace, parents.FirstOrDefault(), type, name, nameWithConstraints);
+
+        return;
+
+        static TypeDiscriminator Discriminate(TypeDeclarationSyntax type) => type switch
         {
             ClassDeclarationSyntax => TypeDiscriminator.Class,
+            StructDeclarationSyntax => TypeDiscriminator.Struct,
+            RecordDeclarationSyntax x when x.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword) => TypeDiscriminator.StructRecord,
+            RecordDeclarationSyntax => TypeDiscriminator.ClassRecord,
+            InterfaceDeclarationSyntax => TypeDiscriminator.Interface,
             _ => TypeDiscriminator.Unknown,
         };
-
-        _targetType = new TargetType(@namespace, type, name, nameWithConstraints);
     }
 
     private void AnalyzeTarget()

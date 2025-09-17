@@ -4,4 +4,8 @@ internal enum TypeDiscriminator
 {
     Unknown,
     Class,
+    Struct,
+    ClassRecord,
+    StructRecord,
+    Interface,
 }

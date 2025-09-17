@@ -10,18 +10,19 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Josupeit.Practices.Mixins.Disposable.Analyzer;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class DisposableAnalyzer : DiagnosticAnalyzer
+public sealed class DisposableAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         => ImmutableArray.Create(
             Diagnostics.TargetMustNotHaveDisposableBase,
             Diagnostics.TargetMustBePartial,
+            Diagnostics.EnclosingTypeMustBePartial,
             Diagnostics.SealedTargetImplementsNoCallback,
             Diagnostics.TargetImplementsNoCallback,
             Diagnostics.TargetDoesNotImplementDisposeManagedResources,
             Diagnostics.TargetDoesNotImplementDisposeManagedResourcesAsync,
             Diagnostics.TargetDoesNotImplementDisposeUnmanagedResources);
-
+    
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
@@ -43,7 +44,7 @@ public class DisposableAnalyzer : DiagnosticAnalyzer
         if (ReportTargetMustNotHaveDisposableBase(context, classSemantics, attributeSyntax, disposableInterface, asyncDisposableInterface))
             return;
 
-        if (ReportTargetMustBePartial(context, classSyntax, classSemantics))
+        if (ReportTargetAndParentsMustBePartial(context, classSyntax))
             return;
 
         if (FindCallbacks(classSyntax, ["DisposeManagedResources", "DisposeManagedResourcesAsync", "DisposeUnmanagedResources"]) is not [var disposeManagedResources, var disposeManagedResourcesAsync, var disposeUnmanagedResources])
@@ -120,7 +121,8 @@ public class DisposableAnalyzer : DiagnosticAnalyzer
             var baseInterfaces = baseType.AllInterfaces;
 
             var baseImplementsDisposable = baseInterfaces.Contains(disposableInterface)
-                                           || asyncDisposableInterface != null && baseInterfaces.Contains(asyncDisposableInterface);
+                                        || asyncDisposableInterface != null 
+                                        && baseInterfaces.Contains(asyncDisposableInterface);
 
             if (!baseImplementsDisposable)
                 continue;
@@ -137,18 +139,23 @@ public class DisposableAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private static bool ReportTargetMustBePartial(SyntaxNodeAnalysisContext context, ClassDeclarationSyntax classSyntax, INamedTypeSymbol classSemantics)
+    private static bool ReportTargetAndParentsMustBePartial(SyntaxNodeAnalysisContext context, ClassDeclarationSyntax classSyntax)
     {
-        if (classSyntax.Modifiers.Any(SyntaxKind.PartialKeyword))
-            return false;
+        for (SyntaxNode? node = classSyntax; node is TypeDeclarationSyntax typeDeclaration; node = typeDeclaration.Parent)
+        {
+            if (typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
+                continue;
 
-        var diagnostic = Diagnostic.Create(
-            Diagnostics.TargetMustBePartial,
-            classSyntax.Identifier.GetLocation(),
-            classSemantics.Name);
+            var diagnostic = Diagnostic.Create(
+                typeDeclaration == classSyntax ? Diagnostics.TargetMustBePartial : Diagnostics.EnclosingTypeMustBePartial,
+                typeDeclaration.Identifier.GetLocation(),
+                typeDeclaration.Identifier.ToString());
 
-        context.ReportDiagnostic(diagnostic);
-        return true;
+            context.ReportDiagnostic(diagnostic);
+            return true;
+        }
+
+        return false;
     }
 
     private static IReadOnlyList<MethodDeclarationSyntax?> FindCallbacks(ClassDeclarationSyntax classSyntax, IList<string> names)

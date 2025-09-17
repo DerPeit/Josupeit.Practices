@@ -7,6 +7,7 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 JPMD010 | Usage | Error | Diagnostics
 JPMD020 | Usage | Error | Diagnostics
+JPMD021 | Usage | Error | Diagnostics
 JPMD030 | Usage | Warning | Diagnostics
 JPMD031 | Usage | Info | Diagnostics
 JPMD032 | Usage | Hidden | Diagnostics

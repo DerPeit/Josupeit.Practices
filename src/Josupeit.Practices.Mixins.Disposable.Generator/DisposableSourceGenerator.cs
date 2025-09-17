@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Josupeit.Practices.Mixins.Disposable.Generator.Analysis;
 using Josupeit.Practices.Mixins.Disposable.Generator.Generation;
@@ -35,7 +37,14 @@ public sealed class DisposableSourceGenerator : IIncrementalGenerator
 
     private static bool CanBeTransformed(SyntaxNode node, CancellationToken cancellationToken)
     {
-        return node is ClassDeclarationSyntax { Modifiers: var modifiers } && modifiers.Any(SyntaxKind.PartialKeyword);
+        if (node is not ClassDeclarationSyntax)
+            return false;
+
+        for (var nodeOrParent = node; nodeOrParent is TypeDeclarationSyntax typeDeclaration; nodeOrParent = typeDeclaration.Parent)
+            if (!typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
+                return false;
+
+        return true;
     }
 
     private static SemanticTarget GetSemanticTarget(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
@@ -51,16 +60,30 @@ public sealed class DisposableSourceGenerator : IIncrementalGenerator
         var tool = typeof(DisposableSourceGenerator).ToString();
         var version = typeof(DisposableSourceGenerator).Assembly.GetName().Version.ToString();
 
-        foreach (var target in targets)
+        var eligibleTargetsGroupedByTypeName = targets
+            .Where(x => !x.TypeProperties.Flags.HasFlag(TypeFlags.HasDisposableBase))
+            .GroupBy(x => x.Type.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(x => x.Key, x => x.ToList(), StringComparer.OrdinalIgnoreCase);
+
+        foreach (var kvp in eligibleTargetsGroupedByTypeName)
         {
-            context.CancellationToken.ThrowIfCancellationRequested();
+            var nameHint = kvp.Key;
+            var group = kvp.Value;
 
-            if (target.TypeProperties.Flags.HasFlag(TypeFlags.HasDisposableBase))
-                continue;
+            foreach (var target in group)
+            {
+                context.CancellationToken.ThrowIfCancellationRequested();
 
-            context.AddSource(
-                target.Type.Name + ".g.cs", 
-                new CodeGenerator(target, tool, version).Generate(context.CancellationToken));
+                var sourceTextName = group.Count switch
+                {
+                    > 1 => string.Concat(nameHint, '-', unchecked((uint)target.GetHashCode()), ".g.cs"),
+                    _ => string.Concat(nameHint, ".g.cs"),
+                };
+
+                var sourceText = new CodeGenerator(target, tool, version).Generate(context.CancellationToken);
+
+                context.AddSource(sourceTextName, sourceText);
+            }
         }
     }
 }

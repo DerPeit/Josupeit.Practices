@@ -23,6 +23,14 @@ internal static class Diagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor EnclosingTypeMustBePartial = new(
+        "JPMD021",
+        title: "Type must be partial",
+        messageFormat: "Type '{0}' must be partial, because it contains a nested class which is annotated with the [DisposableMixin] attribute",
+        category: "Usage",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
     public static readonly DiagnosticDescriptor SealedTargetImplementsNoCallback = new(
         "JPMD030",
         title: "Sealed class implements no callback",

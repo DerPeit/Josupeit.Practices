@@ -15,7 +15,9 @@ namespace Josupeit.Practices.Mixins.Disposable.Analyzer;
 [Shared]
 public sealed class PartialCodeFixProvider : CodeFixProvider
 {
-    public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(Diagnostics.TargetMustBePartial.Id);
+    public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
+        Diagnostics.TargetMustBePartial.Id,
+        Diagnostics.EnclosingTypeMustBePartial.Id);
 
     public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -28,25 +30,25 @@ public sealed class PartialCodeFixProvider : CodeFixProvider
         var diagnostic = context.Diagnostics[0];
         var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-        var classDeclaration = root.FindToken(diagnosticSpan.Start).Parent?.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().FirstOrDefault();
-        if (classDeclaration == null)
+        var typeDeclaration = root.FindToken(diagnosticSpan.Start).Parent?.AncestorsAndSelf().OfType<TypeDeclarationSyntax>().FirstOrDefault();
+        if (typeDeclaration == null)
             return;
 
         context.RegisterCodeFix(
             CodeAction.Create(
                 title: "Add 'partial' keyword",
-                createChangedDocument: c => AddPartialModifierAsync(context.Document, classDeclaration, c),
+                createChangedDocument: c => AddPartialModifierAsync(context.Document, typeDeclaration, c),
                 equivalenceKey: "AddPartialModifier"),
             diagnostic);
     }
 
-    private static async Task<Document> AddPartialModifierAsync(Document document, ClassDeclarationSyntax classDeclaration, CancellationToken cancellationToken)
+    private static async Task<Document> AddPartialModifierAsync(Document document, TypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
     {
-        var newClassDeclaration = classDeclaration.WithModifiers(
-            classDeclaration.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword)));
+        var newClassDeclaration = typeDeclaration.WithModifiers(
+            typeDeclaration.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword)));
      
         var root = await document.GetSyntaxRootAsync(cancellationToken);
-        var newRoot = root!.ReplaceNode(classDeclaration, newClassDeclaration);
+        var newRoot = root!.ReplaceNode(typeDeclaration, newClassDeclaration);
 
         return document.WithSyntaxRoot(newRoot);
     }

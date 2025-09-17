@@ -26,6 +26,7 @@ internal sealed class FormattingRewriter : CSharpSyntaxRewriter
                 EventFieldDeclarationSyntax => 3,
                 PropertyDeclarationSyntax => 4,
                 MethodDeclarationSyntax => 5,
+                TypeDeclarationSyntax => 6,
 
                 _ => throw new NotImplementedException(),
             })
@@ -54,6 +55,7 @@ internal sealed class FormattingRewriter : CSharpSyntaxRewriter
                 EventDeclarationSyntax y => y.Identifier.ToString(),
                 PropertyDeclarationSyntax y => y.Identifier.ToString(),
                 MethodDeclarationSyntax y => y.Identifier.ToString(),
+                TypeDeclarationSyntax y => y.Identifier.ToString(),
 
                 _ => "",
             })
