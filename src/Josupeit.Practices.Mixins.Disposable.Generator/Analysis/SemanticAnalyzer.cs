@@ -90,7 +90,12 @@ internal ref struct SemanticAnalyzer(GeneratorAttributeSyntaxContext context)
 
     private void DescribeTarget()
     {
-        var @namespace = _targetSymbol.ContainingNamespace.ToDisplayString();
+        var @namespace = _targetSymbol.ContainingNamespace switch
+        {
+            { IsGlobalNamespace: true } => null,
+            { } any => any.ToDisplayString(),
+        };
+
         var parents = new Stack<ParentType>();
         var name = _targetSymbol.Name;
         var nameWithConstraints = _targetSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
