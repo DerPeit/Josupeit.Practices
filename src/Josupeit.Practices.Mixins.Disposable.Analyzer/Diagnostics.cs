@@ -70,4 +70,20 @@ internal static class Diagnostics
         category: "Usage",
         defaultSeverity: DiagnosticSeverity.Hidden,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor MethodShouldBeProtectedVirtual = new(
+        "JPMD040",
+        title: "Method should be protected virtual",
+        messageFormat: "Method '{0}.{1}' should have protected visibility and be overridable",
+        category: "Usage",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor MethodShouldBePrivate = new(
+        "JPMD041",
+        title: "Method should be private",
+        messageFormat: "Method '{0}.{1}' should have private visibility",
+        category: "Usage",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
 }

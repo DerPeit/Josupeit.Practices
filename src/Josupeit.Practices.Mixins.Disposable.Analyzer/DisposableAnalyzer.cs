@@ -21,7 +21,9 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
             Diagnostics.TargetImplementsNoCallback,
             Diagnostics.TargetDoesNotImplementDisposeManagedResources,
             Diagnostics.TargetDoesNotImplementDisposeManagedResourcesAsync,
-            Diagnostics.TargetDoesNotImplementDisposeUnmanagedResources);
+            Diagnostics.TargetDoesNotImplementDisposeUnmanagedResources,
+            Diagnostics.MethodShouldBeProtectedVirtual,
+            Diagnostics.MethodShouldBePrivate);
     
     public override void Initialize(AnalysisContext context)
     {
@@ -58,6 +60,13 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
             asyncDisposableInterface, 
             disposeManagedResources, 
             disposeManagedResourcesAsync, 
+            disposeUnmanagedResources);
+
+        ReportInvalidVisibility(
+            context,
+            classSemantics,
+            disposeManagedResources,
+            disposeManagedResourcesAsync,
             disposeUnmanagedResources);
     }
 
@@ -212,5 +221,60 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
 
         context.ReportDiagnostic(diagnostic);
         return true;
+    }
+
+    private static void ReportInvalidVisibility(SyntaxNodeAnalysisContext context, INamedTypeSymbol classSemantics, MethodDeclarationSyntax? disposeManagedResources, MethodDeclarationSyntax? disposeManagedResourcesAsync, MethodDeclarationSyntax? disposeUnmanagedResources)
+    {
+        ReportInvalidVisibility(context, classSemantics, disposeManagedResources);
+        ReportInvalidVisibility(context, classSemantics, disposeManagedResourcesAsync);
+        ReportInvalidVisibility(context, classSemantics, disposeUnmanagedResources);
+    }
+
+    private static void ReportInvalidVisibility(SyntaxNodeAnalysisContext context, INamedTypeSymbol classSemantics, MethodDeclarationSyntax? callbackSyntax)
+    {
+        if (callbackSyntax == null)
+            return;
+
+        if (classSemantics.IsSealed)
+        {
+            if (HasOnlyVisibilityModifiers(callbackSyntax, SyntaxKind.PrivateKeyword))
+                return;
+
+            context.ReportDiagnostic(
+                Diagnostic.Create(
+                    Diagnostics.MethodShouldBePrivate,
+                    callbackSyntax.Identifier.GetLocation(),
+                    classSemantics.Name,
+                    callbackSyntax.Identifier.ToString()));
+        }
+        else
+        {
+            if (HasOnlyVisibilityModifiers(callbackSyntax, SyntaxKind.ProtectedKeyword, SyntaxKind.VirtualKeyword))
+                return;
+
+            context.ReportDiagnostic(
+                Diagnostic.Create(
+                    Diagnostics.MethodShouldBeProtectedVirtual,
+                    callbackSyntax.Identifier.GetLocation(),
+                    classSemantics.Name,
+                    callbackSyntax.Identifier.ToString()));
+        }
+
+        return;
+
+        static bool HasOnlyVisibilityModifiers(MethodDeclarationSyntax callbackSyntax, params SyntaxKind[] mustHaves)
+        {
+            var mustNotHaves = new[] { SyntaxKind.PublicKeyword, SyntaxKind.InternalKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.VirtualKeyword }.Except(mustHaves);
+
+            foreach (var modifier in mustHaves)
+                if (!callbackSyntax.Modifiers.Any(candidate => candidate.IsKind(modifier)))
+                    return false;
+
+            foreach (var modifier in mustNotHaves)
+                if (callbackSyntax.Modifiers.Any(candidate => candidate.IsKind(modifier)))
+                    return false;
+
+            return true;
+        }
     }
 }
