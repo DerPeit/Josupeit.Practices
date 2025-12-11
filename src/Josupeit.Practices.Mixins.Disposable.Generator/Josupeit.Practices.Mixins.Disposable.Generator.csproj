@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Attribute.cs" />
+    <EmbeddedResource Include="Attributes.cs" />
     <EmbeddedResource Include="Generation\Template.cs" />
   </ItemGroup>
 

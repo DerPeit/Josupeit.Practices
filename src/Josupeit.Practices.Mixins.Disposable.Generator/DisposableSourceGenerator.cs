@@ -30,7 +30,7 @@ public sealed class DisposableSourceGenerator : IIncrementalGenerator
     private static SourceText GetMarkerAttributesSource()
     {
         var self = typeof(DisposableSourceGenerator);
-        var stream = self.Assembly.GetManifestResourceStream(self, "Attribute.cs")!;
+        var stream = self.Assembly.GetManifestResourceStream(self, "Attributes.cs")!;
 
         return SourceText.From(stream, canBeEmbedded: true);
     }
