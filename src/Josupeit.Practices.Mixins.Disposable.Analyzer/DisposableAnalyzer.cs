@@ -49,7 +49,7 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
         if (ReportTargetAndParentsMustBePartial(context, classSyntax))
             return;
 
-        if (FindCallbacks(classSyntax, ["DisposeManagedResources", "DisposeManagedResourcesAsync", "DisposeUnmanagedResources"]) is not [var disposeManagedResources, var disposeManagedResourcesAsync, var disposeUnmanagedResources])
+        if (FindCallbacks(classSyntax, classSemantics, ["DisposeManagedResources", "DisposeManagedResourcesAsync", "DisposeUnmanagedResources"]) is not [var disposeManagedResources, var disposeManagedResourcesAsync, var disposeUnmanagedResources])
             throw new NotImplementedException();
 
         ReportMissingCallbacks(
@@ -167,7 +167,7 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private static IReadOnlyList<MethodDeclarationSyntax?> FindCallbacks(ClassDeclarationSyntax classSyntax, IList<string> names)
+    private static IReadOnlyList<MethodDeclarationSyntax?> FindCallbacks(ClassDeclarationSyntax classSyntax, INamedTypeSymbol classSemantics, IList<string> names)
     {
         var result = new MethodDeclarationSyntax?[names.Count];
         var count = 0;
@@ -187,6 +187,24 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
 
             if (++count == result.Length)
                 break;
+        }
+
+        // The syntax-based search above only covers the current partial declaration.
+        // For callbacks defined in a separate partial file, fall back to the semantic model
+        // which sees all members across all partial declarations.
+        for (var i = 0; i < names.Count; i++)
+        {
+            if (result[i] != null)
+                continue;
+
+            // Exclude methods marked with [GeneratedCode] to avoid matching the
+            // generator's own stubs, which are part of the compilation at this point.
+            var methodSymbol = classSemantics.GetMembers(names[i])
+                .OfType<IMethodSymbol>()
+                .FirstOrDefault(m => !m.IsStatic && !m.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "System.CodeDom.Compiler.GeneratedCodeAttribute"));
+
+            if (methodSymbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is MethodDeclarationSyntax methodSyntax)
+                result[i] = methodSyntax;
         }
 
         return result;

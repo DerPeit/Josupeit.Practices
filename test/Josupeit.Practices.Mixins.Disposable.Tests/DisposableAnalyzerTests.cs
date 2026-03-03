@@ -306,6 +306,47 @@ namespace TestNamespace
     }
 
     [Test]
+    public async Task No_diagnostics_when_callbacks_in_separate_partial_file()
+    {
+        var test = new CSharpAnalyzerVerifier.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    @"
+using System.Threading.Tasks;
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace
+{
+    [DisposableMixin]
+    public partial class TestClass
+    {
+    }
+}
+",
+                    @"
+using System.Threading.Tasks;
+
+namespace TestNamespace
+{
+    public partial class TestClass
+    {
+        protected virtual void DisposeManagedResources() { }
+        protected virtual ValueTask DisposeManagedResourcesAsync() { return new ValueTask(); }
+        protected virtual void DisposeUnmanagedResources() { }
+    }
+}
+",
+                },
+            },
+        };
+
+        await test.RunAsync();
+    }
+
+    [Test]
     public async Task Analyzer_reads_named_attribute_arguments()
     {
         var test = new CSharpAnalyzerVerifier.Test
