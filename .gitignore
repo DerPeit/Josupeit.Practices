@@ -300,3 +300,6 @@ __pycache__/
 
 # OpenCover UI analysis results
 OpenCover/
+
+# Claude Code
+.claude/
