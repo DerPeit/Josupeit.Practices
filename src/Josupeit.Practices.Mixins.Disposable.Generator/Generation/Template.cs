@@ -12,7 +12,6 @@ partial class Class : global::System.IDisposable, global::System.IAsyncDisposabl
     ~Class()
     {
         this.Dispose(isDisposing: false);
-        global::System.GC.SuppressFinalize(this);
     }
 
     /// <summary>

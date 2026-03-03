@@ -6,11 +6,6 @@ namespace Josupeit.Practices.Mixins.Disposable.Generator.Generation;
 
 internal sealed class EventRemovingRewriter : CSharpSyntaxRewriter
 {
-    public override SyntaxNode? Visit(SyntaxNode? node)
-    {
-        return base.Visit(node);
-    }
-
     public override SyntaxNode? VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
     {
         return null;
