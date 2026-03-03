@@ -9,7 +9,7 @@ internal sealed class PipelineFactory(SemanticTarget target, string tool, string
         var pipeline = RewritePipeline.Empty;
 
         pipeline |= new TypeTailoringRewriter(target.Type);
-        pipeline |= new AnnotatingRewriter(tool, version);
+        pipeline |= new AnnotatingRewriter(tool, version, target.IsBrowsableAttributeAvailable);
 
         if (!target.Options.HasFlag(MixinOptions.WithProperty))
             pipeline |= new PropertyRemovingRewriter();

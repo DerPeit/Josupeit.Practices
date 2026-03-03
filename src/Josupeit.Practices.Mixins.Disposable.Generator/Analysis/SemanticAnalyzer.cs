@@ -14,6 +14,7 @@ internal ref struct SemanticAnalyzer(GeneratorAttributeSyntaxContext context)
 
     private LanguageVersion _languageVersion = LanguageVersion.CSharp5;
     private MixinOptions _mixinOptions;
+    private bool _isBrowsableAttributeAvailable;
     private TargetType _targetType = null!;
     private TargetTypeProperties _targetTypeProperties = null!;
 
@@ -27,8 +28,9 @@ internal ref struct SemanticAnalyzer(GeneratorAttributeSyntaxContext context)
 
         return new SemanticTarget(
             _languageVersion,
-            _mixinOptions, 
-            _targetType, 
+            _mixinOptions,
+            _isBrowsableAttributeAvailable,
+            _targetType,
             _targetTypeProperties);
     }
 
@@ -51,6 +53,8 @@ internal ref struct SemanticAnalyzer(GeneratorAttributeSyntaxContext context)
     {
         if (context.SemanticModel.Compilation.GetTypeByMetadataName("System.IAsyncDisposable") == null)
             _mixinOptions |= MixinOptions.WithoutAsyncDisposable;
+
+        _isBrowsableAttributeAvailable = context.SemanticModel.Compilation.GetTypeByMetadataName("System.ComponentModel.BrowsableAttribute") != null;
     }
 
     private void ConfigureMixin()
