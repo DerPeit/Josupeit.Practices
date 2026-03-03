@@ -180,6 +180,9 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
             if (method.Modifiers.Any(SyntaxKind.StaticKeyword))
                 continue;
 
+            if (method.ParameterList.Parameters.Count != 0 || method.TypeParameterList != null)
+                continue;
+
             if (names.IndexOf(method.Identifier.Text) is not (var i and > -1))
                 continue;
 
@@ -201,7 +204,7 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
             // generator's own stubs, which are part of the compilation at this point.
             var methodSymbol = classSemantics.GetMembers(names[i])
                 .OfType<IMethodSymbol>()
-                .FirstOrDefault(m => !m.IsStatic && !m.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "System.CodeDom.Compiler.GeneratedCodeAttribute"));
+                .FirstOrDefault(m => !m.IsStatic && !m.IsGenericMethod && m.Parameters.Length == 0 && !m.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "System.CodeDom.Compiler.GeneratedCodeAttribute"));
 
             if (methodSymbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is MethodDeclarationSyntax methodSyntax)
                 result[i] = methodSyntax;

@@ -264,6 +264,90 @@ namespace TestNamespace
     }
 
     [Test]
+    public async Task FindCallbacks_ignores_methods_with_parameters()
+    {
+        var test = new CSharpAnalyzerVerifier.Test
+        {
+            CompilerDiagnostics = CompilerDiagnostics.None,
+            TestCode = @"
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace
+{
+    [DisposableMixin]
+    public partial class {|#0:TestClass|}
+    {
+        protected virtual void DisposeManagedResources(int x) { }
+    }
+}
+",
+
+            ExpectedDiagnostics =
+            {
+                new DiagnosticResult("JPMD031", DiagnosticSeverity.Info)
+                    .WithLocation(0)
+                    .WithArguments("TestClass"),
+
+                new DiagnosticResult("JPMD032", DiagnosticSeverity.Hidden)
+                    .WithLocation(0)
+                    .WithArguments("TestClass"),
+
+                new DiagnosticResult("JPMD033", DiagnosticSeverity.Hidden)
+                    .WithLocation(0)
+                    .WithArguments("TestClass"),
+
+                new DiagnosticResult("JPMD034", DiagnosticSeverity.Hidden)
+                    .WithLocation(0)
+                    .WithArguments("TestClass"),
+            },
+        };
+
+        await test.RunAsync();
+    }
+
+    [Test]
+    public async Task FindCallbacks_ignores_generic_methods()
+    {
+        var test = new CSharpAnalyzerVerifier.Test
+        {
+            CompilerDiagnostics = CompilerDiagnostics.None,
+            TestCode = @"
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace
+{
+    [DisposableMixin]
+    public partial class {|#0:TestClass|}
+    {
+        protected virtual void DisposeManagedResources<T>() { }
+    }
+}
+",
+
+            ExpectedDiagnostics =
+            {
+                new DiagnosticResult("JPMD031", DiagnosticSeverity.Info)
+                    .WithLocation(0)
+                    .WithArguments("TestClass"),
+
+                new DiagnosticResult("JPMD032", DiagnosticSeverity.Hidden)
+                    .WithLocation(0)
+                    .WithArguments("TestClass"),
+
+                new DiagnosticResult("JPMD033", DiagnosticSeverity.Hidden)
+                    .WithLocation(0)
+                    .WithArguments("TestClass"),
+
+                new DiagnosticResult("JPMD034", DiagnosticSeverity.Hidden)
+                    .WithLocation(0)
+                    .WithArguments("TestClass"),
+            },
+        };
+
+        await test.RunAsync();
+    }
+
+    [Test]
     public async Task FindCallbacks_ignores_static_methods()
     {
         var test = new CSharpAnalyzerVerifier.Test
