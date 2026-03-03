@@ -1,0 +1,32 @@
+<Solution>
+  <Folder Name="/src/">
+    <File Path="src/Directory.Build.props" />
+    <File Path="src/Directory.Build.targets" />
+    <Project Path="src/Josupeit.Practices.Commands.Abstractions/Josupeit.Practices.Commands.Abstractions.csproj" />
+    <Project Path="src/Josupeit.Practices.Commands/Josupeit.Practices.Commands.csproj" />
+    <Project Path="src/Josupeit.Practices.Disposables.Abstractions/Josupeit.Practices.Disposables.Abstractions.csproj" />
+    <Project Path="src/Josupeit.Practices.Disposables/Josupeit.Practices.Disposables.csproj" />
+    <Project Path="src/Josupeit.Practices.Jobs.Abstractions/Josupeit.Practices.Jobs.Abstractions.csproj" />
+    <Project Path="src/Josupeit.Practices.Jobs.Scheduler/Josupeit.Practices.Jobs.Scheduler.csproj" />
+    <Project Path="src/Josupeit.Practices.Jobs.TaskPool/Josupeit.Practices.Jobs.TaskPool.csproj" />
+    <Project Path="src/Josupeit.Practices.Jobs/Josupeit.Practices.Jobs.csproj" />
+    <Project Path="src/Josupeit.Practices.Mixins.Disposable.Analyzer/Josupeit.Practices.Mixins.Disposable.Analyzer.csproj" />
+    <Project Path="src/Josupeit.Practices.Mixins.Disposable.Generator/Josupeit.Practices.Mixins.Disposable.Generator.csproj" />
+    <Project Path="src/Josupeit.Practices.Mixins.Disposable/Josupeit.Practices.Mixins.Disposable.csproj" />
+    <Project Path="src/Josupeit.Practices.Polyfills.Tasks/Josupeit.Practices.Polyfills.Tasks.csproj" />
+    <Project Path="src/Josupeit.Practices.Schedulers.Abstractions/Josupeit.Practices.Schedulers.Abstractions.csproj" />
+    <Project Path="src/Josupeit.Practices.Schedulers.Channel/Josupeit.Practices.Schedulers.Channel.csproj" />
+    <Project Path="src/Josupeit.Practices.Schedulers.TaskPool/Josupeit.Practices.Schedulers.TaskPool.csproj" />
+    <Project Path="src/Josupeit.Practices.Schedulers/Josupeit.Practices.Schedulers.csproj" />
+    <Project Path="src/Josupeit.Practices.Services.Abstractions/Josupeit.Practices.Services.Abstractions.csproj" />
+    <Project Path="src/Josupeit.Practices.Services/Josupeit.Practices.Services.csproj" />
+    <Project Path="src/Josupeit.Practices.Specifications/Josupeit.Practices.Specifications.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Josupeit.Practices.Commands.Tests/Josupeit.Practices.Commands.Tests.csproj" />
+    <Project Path="test/Josupeit.Practices.Disposables.Tests/Josupeit.Practices.Disposables.Tests.csproj" />
+    <Project Path="test/Josupeit.Practices.Mixins.Disposable.Tests/Josupeit.Practices.Mixins.Disposable.Tests.csproj" />
+    <Project Path="test/Josupeit.Practices.Schedulers.Tests/Josupeit.Practices.Schedulers.Tests.csproj" />
+    <Project Path="test/Josupeit.Practices.Services.Tests/Josupeit.Practices.Services.Tests.csproj" />
+  </Folder>
+</Solution>
