@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Josupeit.Practices.Mixins.Disposable.Generator", "1.0.0.0")]
     [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-    internal sealed class EmbeddedAttribute : global::System.Attribute
+    internal sealed partial class EmbeddedAttribute : global::System.Attribute
     {
     }
 }
