@@ -1,4 +1,4 @@
-﻿using Josupeit.Practices.Disposables;
+using System;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -8,10 +8,10 @@ namespace Josupeit.Practices.Schedulers.Tests;
 public class DisposableAsyncSchedulerTests : SchedulerTests<DisposableAsyncScheduler>
 {
     [Test]
-    public void Scheduler_inherits_from_ImplicitDisposable()
+    public void Scheduler_implements_IDisposable()
     {
         var subject = Substitute.ForPartsOf<DisposableScheduler>();
 
-        Assert.That(subject, Is.AssignableTo<ImplicitDisposable>());
+        Assert.That(subject, Is.AssignableTo<IDisposable>());
     }
 }

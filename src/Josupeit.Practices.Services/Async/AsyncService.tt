@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Josupeit.Practices.Disposables;
+using Josupeit.Practices.Mixins.Disposable;
 
 namespace Josupeit.Practices.Services;
 
@@ -29,7 +29,7 @@ foreach (var className in new[] { "AsyncService", "DisposableAsyncService", "Asy
 /// </summary>
 /// <seealso cref="IAsyncService" />
 [PublicAPI]
-public abstract partial class <#= className #> : <#= className switch { "DisposableAsyncService" => "ImplicitDisposable, ", "AsyncDisposableAsyncService" => "ImplicitAsyncDisposable, ", _ => "" } #>IAsyncService
+<#= className switch { "DisposableAsyncService" => "[DisposableMixin(DisposableMixinOptions.WithProperty | DisposableMixinOptions.WithEvent | DisposableMixinOptions.WithoutAsyncDisposable)]\r\n", "AsyncDisposableAsyncService" => "[DisposableMixin(DisposableMixinOptions.WithProperty | DisposableMixinOptions.WithEvent)]\r\n", _ => "" } #>public abstract partial class <#= className #> : IAsyncService
 {
     private volatile IAsyncServiceState _state;
 

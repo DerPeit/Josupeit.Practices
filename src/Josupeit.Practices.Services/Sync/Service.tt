@@ -4,7 +4,7 @@
 <#@ import namespace="System.IO" #>
 using System;
 using JetBrains.Annotations;
-using Josupeit.Practices.Disposables;
+using Josupeit.Practices.Mixins.Disposable;
 
 namespace Josupeit.Practices.Services;
 
@@ -27,7 +27,7 @@ foreach (var className in new[] { "Service", "DisposableService", "AsyncDisposab
 /// </summary>
 /// <seealso cref="IService" />
 [PublicAPI]
-public abstract partial class <#= className #> : <#= className switch { "DisposableService" => "ImplicitDisposable, ", "AsyncDisposableService" => "ImplicitAsyncDisposable, ", _ => "" } #>IService
+<#= className switch { "DisposableService" => "[DisposableMixin(DisposableMixinOptions.WithProperty | DisposableMixinOptions.WithEvent | DisposableMixinOptions.WithoutAsyncDisposable)]\r\n", "AsyncDisposableService" => "[DisposableMixin(DisposableMixinOptions.WithProperty | DisposableMixinOptions.WithEvent)]\r\n", _ => "" } #>public abstract partial class <#= className #> : IService
 {
     private volatile IServiceState _state;
 

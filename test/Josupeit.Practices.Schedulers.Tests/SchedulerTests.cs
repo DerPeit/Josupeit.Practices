@@ -389,7 +389,9 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
 
     private static IEnumerable<MethodInfo> EnumerateMethods()
     {
-        return typeof(TScheduler).GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+        return typeof(TScheduler)
+            .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
+            .Where(mi => mi.Name.StartsWith("Schedule", StringComparison.Ordinal) || mi.Name.StartsWith("UnsafeSchedule", StringComparison.Ordinal));
     }
 
     private static IEnumerable<MethodInfo> EnumerateSafeMethods()

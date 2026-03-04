@@ -1,6 +1,6 @@
-﻿#if NETSTANDARD2_1 || NETCOREAPP3_0_OR_GREATER
+#if NETSTANDARD2_1 || NETCOREAPP3_0_OR_GREATER
 
-using Josupeit.Practices.Disposables;
+using System;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -10,11 +10,11 @@ namespace Josupeit.Practices.Services.Tests;
 public class AsyncDisposableServiceTests : ServiceTests<AsyncDisposableService>
 {
     [Test]
-    public void AsyncDisposableAsyncService_inherits_from_ImplicitAsyncDisposable()
+    public void AsyncDisposableService_implements_IAsyncDisposable()
     {
         var subject = Substitute.ForPartsOf<AsyncDisposableService>();
 
-        Assert.That(subject, Is.AssignableTo<ImplicitAsyncDisposable>());
+        Assert.That(subject, Is.AssignableTo<IAsyncDisposable>());
     }
 }
 

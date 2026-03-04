@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Josupeit.Practices.Disposables;
+using Josupeit.Practices.Mixins.Disposable;
 using Josupeit.Practices.Services;
 
 namespace Josupeit.Practices.Schedulers;
@@ -17,11 +17,11 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
     var baseTypes = className switch
     {
         "Scheduler" => "IScheduler",
-        "DisposableScheduler" => "ImplicitDisposable, IScheduler",
-        "AsyncDisposableScheduler" => "ImplicitAsyncDisposable, IScheduler",
+        "DisposableScheduler" => "IScheduler",
+        "AsyncDisposableScheduler" => "IScheduler",
         "AsyncScheduler" => "IScheduler",
-        "DisposableAsyncScheduler" => "ImplicitDisposable, IScheduler",
-        "AsyncDisposableAsyncScheduler" => "ImplicitAsyncDisposable, IScheduler",
+        "DisposableAsyncScheduler" => "IScheduler",
+        "AsyncDisposableAsyncScheduler" => "IScheduler",
         "SchedulerService" => "Service, IScheduler",
         "DisposableSchedulerService" => "DisposableService, IScheduler",
         "AsyncDisposableSchedulerService" => "AsyncDisposableService, IScheduler",
@@ -30,6 +30,8 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         "AsyncDisposableAsyncSchedulerService" => "AsyncDisposableAsyncService, IScheduler",
         _ => throw new NotImplementedException(),
     };
+
+    var needsMixin = className is "DisposableScheduler" or "AsyncDisposableScheduler" or "DisposableAsyncScheduler" or "AsyncDisposableAsyncScheduler";
 
     var wantsAsyncEnqueueMethod = className.IndexOf("AsyncScheduler", StringComparison.Ordinal) > -1;
     var implementsAsyncDisposable = className.StartsWith("AsyncDisposable", StringComparison.Ordinal);
@@ -59,7 +61,7 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
 /// </summary>
 /// <seealso cref="IScheduler" />
 [PublicAPI]
-public abstract class <#= className #> : <#= baseTypes #>
+<#= needsMixin ? "[DisposableMixin(DisposableMixinOptions.WithProperty | DisposableMixinOptions.WithEvent" + (implementsAsyncDisposable ? "" : " | DisposableMixinOptions.WithoutAsyncDisposable") + ")]\r\n" : "" #>public abstract<#= needsMixin ? " partial" : "" #> class <#= className #> : <#= baseTypes #>
 {
     private readonly IScheduledFactory _scheduledFactory;
     private readonly IEnqueueBehavior _enqueueBehavior;

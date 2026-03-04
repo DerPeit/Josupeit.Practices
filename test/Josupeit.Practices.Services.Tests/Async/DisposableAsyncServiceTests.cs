@@ -1,4 +1,4 @@
-﻿using Josupeit.Practices.Disposables;
+using System;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -8,10 +8,10 @@ namespace Josupeit.Practices.Services.Tests;
 public class DisposableAsyncServiceTests : AsyncServiceTests<DisposableAsyncService>
 {
     [Test]
-    public void DisposableAsyncService_inherits_from_ImplicitDisposable()
+    public void DisposableAsyncService_implements_IDisposable()
     {
         var subject = Substitute.ForPartsOf<DisposableAsyncService>();
 
-        Assert.That(subject, Is.AssignableTo<ImplicitDisposable>());
+        Assert.That(subject, Is.AssignableTo<IDisposable>());
     }
 }

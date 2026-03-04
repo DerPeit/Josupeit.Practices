@@ -16,7 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Josupeit.Practices.Disposables\Josupeit.Practices.Disposables.csproj" />
+    <ProjectReference Include="..\Josupeit.Practices.Mixins.Disposable.Generator\Josupeit.Practices.Mixins.Disposable.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Josupeit.Practices.Mixins.Disposable.Analyzer\Josupeit.Practices.Mixins.Disposable.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Josupeit.Practices.Schedulers.Abstractions\Josupeit.Practices.Schedulers.Abstractions.csproj" />
     <ProjectReference Include="..\Josupeit.Practices.Services\Josupeit.Practices.Services.csproj" />
   </ItemGroup>

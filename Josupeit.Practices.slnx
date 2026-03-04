@@ -4,8 +4,6 @@
     <File Path="src/Directory.Build.targets" />
     <Project Path="src/Josupeit.Practices.Commands.Abstractions/Josupeit.Practices.Commands.Abstractions.csproj" />
     <Project Path="src/Josupeit.Practices.Commands/Josupeit.Practices.Commands.csproj" />
-    <Project Path="src/Josupeit.Practices.Disposables.Abstractions/Josupeit.Practices.Disposables.Abstractions.csproj" />
-    <Project Path="src/Josupeit.Practices.Disposables/Josupeit.Practices.Disposables.csproj" />
     <Project Path="src/Josupeit.Practices.Jobs.Abstractions/Josupeit.Practices.Jobs.Abstractions.csproj" />
     <Project Path="src/Josupeit.Practices.Jobs.Scheduler/Josupeit.Practices.Jobs.Scheduler.csproj" />
     <Project Path="src/Josupeit.Practices.Jobs.TaskPool/Josupeit.Practices.Jobs.TaskPool.csproj" />
@@ -23,7 +21,6 @@
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/Josupeit.Practices.Commands.Tests/Josupeit.Practices.Commands.Tests.csproj" />
-    <Project Path="test/Josupeit.Practices.Disposables.Tests/Josupeit.Practices.Disposables.Tests.csproj" />
     <Project Path="test/Josupeit.Practices.Mixins.Disposable.Tests/Josupeit.Practices.Mixins.Disposable.Tests.csproj" />
     <Project Path="test/Josupeit.Practices.Schedulers.Tests/Josupeit.Practices.Schedulers.Tests.csproj" />
     <Project Path="test/Josupeit.Practices.Services.Tests/Josupeit.Practices.Services.Tests.csproj" />

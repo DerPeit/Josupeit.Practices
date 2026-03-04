@@ -1,6 +1,6 @@
-﻿#if NET8_0_OR_GREATER
+#if NET8_0_OR_GREATER
 
-using Josupeit.Practices.Disposables;
+using System;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -10,11 +10,11 @@ namespace Josupeit.Practices.Schedulers.Tests;
 public class AsyncDisposableSchedulerTests : SchedulerTests<AsyncDisposableScheduler>
 {
     [Test]
-    public void Scheduler_inherits_from_ImplicitAsyncDisposable()
+    public void Scheduler_implements_IAsyncDisposable()
     {
         var subject = Substitute.ForPartsOf<AsyncDisposableScheduler>();
 
-        Assert.That(subject, Is.AssignableTo<ImplicitAsyncDisposable>());
+        Assert.That(subject, Is.AssignableTo<IAsyncDisposable>());
     }
 }
 
