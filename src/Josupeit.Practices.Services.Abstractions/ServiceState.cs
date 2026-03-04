@@ -1,8 +1,11 @@
-﻿namespace Josupeit.Practices.Services;
+﻿using JetBrains.Annotations;
+
+namespace Josupeit.Practices.Services;
 
 /// <summary>
 /// This enum describes all states of a <see cref="IService"/>.
 /// </summary>
+[PublicAPI]
 public enum ServiceState
 {
     /// <summary>

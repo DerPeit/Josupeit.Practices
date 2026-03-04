@@ -1,11 +1,13 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Commands;
 
 /// <summary>
 /// This interface represents a parameterless command without return value.
 /// </summary>
+[PublicAPI]
 public interface ICommand
 {
     /// <summary>

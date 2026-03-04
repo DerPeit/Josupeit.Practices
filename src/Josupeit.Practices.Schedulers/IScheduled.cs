@@ -1,8 +1,10 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Schedulers;
 
+[PublicAPI]
 public interface IScheduled
 {
     /// <summary>

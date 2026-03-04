@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Commands;
 
@@ -15,6 +16,7 @@ namespace Josupeit.Practices.Commands;
 /// implementations of it are not expected to apply any observable state changes, i.e. implementations of the
 /// execution methods must be pure.
 /// </remarks>
+[PublicAPI]
 public abstract class Query<TInput, TOutput> : Executable, IQuery<TInput, TOutput>
 {
     /// <summary>

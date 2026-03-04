@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Jobs;
 
@@ -10,6 +11,7 @@ namespace Josupeit.Practices.Jobs;
 /// </summary>
 /// <typeparam name="TProgress">The type of the progress.</typeparam>
 /// <seealso cref="Josupeit.Practices.Jobs.JobWithProgress{TProgress}" />
+[PublicAPI]
 public class TaskPoolJobWithProgress<TProgress> : JobWithProgress<TProgress>
 {
     private readonly Func<IProgress<TProgress>, CancellationToken, Task> _startFunc;

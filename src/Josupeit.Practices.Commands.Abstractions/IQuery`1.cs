@@ -1,6 +1,6 @@
-﻿using System.Diagnostics.Contracts;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Commands;
 
@@ -13,20 +13,21 @@ namespace Josupeit.Practices.Commands;
 /// implementations of it are not expected to apply any observable state changes, i.e. implementations of the
 /// execution methods must be pure.
 /// </remarks>
+[PublicAPI]
 public interface IQuery<TOutput>
 {
     /// <summary>
     /// Executes this instance synchronously.
     /// </summary>
     /// <returns>A result.</returns>
-    [Pure]
+    [System.Diagnostics.Contracts.Pure]
     TOutput Execute();
 
     /// <summary>
     /// Executes this instance asynchronously.
     /// </summary>
     /// <returns>The <see cref="Task{TOutput}"/> that represents the asynchronous progress encapsulating a result.</returns>
-    [Pure]
+    [System.Diagnostics.Contracts.Pure]
     Task<TOutput> ExecuteAsync();
 
     /// <summary>
@@ -34,6 +35,6 @@ public interface IQuery<TOutput>
     /// </summary>
     /// <param name="cancellationToken">A token that cancels the asynchronous execution.</param>
     /// <returns>The <see cref="Task{TOutput}"/> that represents the asynchronous progress encapsulating a result.</returns>
-    [Pure]
+    [System.Diagnostics.Contracts.Pure]
     Task<TOutput> ExecuteAsync(CancellationToken cancellationToken);
 }

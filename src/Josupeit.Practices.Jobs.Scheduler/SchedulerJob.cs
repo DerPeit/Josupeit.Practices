@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Josupeit.Practices.Schedulers;
 
 namespace Josupeit.Practices.Jobs;
@@ -10,6 +11,7 @@ namespace Josupeit.Practices.Jobs;
 /// Implements the <see cref="Josupeit.Practices.Jobs.Job" />
 /// </summary>
 /// <seealso cref="Josupeit.Practices.Jobs.Job" />
+[PublicAPI]
 public class SchedulerJob : Job
 {
     private readonly IScheduler _scheduler;

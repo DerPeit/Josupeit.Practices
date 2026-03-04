@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This interface represents a job factory.
 /// </summary>
+[PublicAPI]
 public interface IJobFactory
 {
     /// <summary>

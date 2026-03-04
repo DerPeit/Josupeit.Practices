@@ -1,10 +1,12 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Services;
 
 /// <summary>
 /// This interface represents a service that processes tasks in background.
 /// </summary>
+[PublicAPI]
 public interface IService
 {
     /// <summary>

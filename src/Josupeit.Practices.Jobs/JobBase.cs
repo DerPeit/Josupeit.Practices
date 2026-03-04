@@ -1,11 +1,13 @@
-﻿using System.Threading;
-using System;
+﻿using System;
+using System.Threading;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This class is a base class for all kind of jobs.
 /// </summary>
+[PublicAPI]
 public abstract class JobBase
 {
     private readonly CancellationTokenSource _cancellation = new();

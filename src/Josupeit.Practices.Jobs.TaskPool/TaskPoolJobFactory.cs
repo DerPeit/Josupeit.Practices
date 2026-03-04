@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Jobs;
 
@@ -9,6 +10,7 @@ namespace Josupeit.Practices.Jobs;
 /// Implements the <see cref="Josupeit.Practices.Jobs.IJobFactory" />
 /// </summary>
 /// <seealso cref="Josupeit.Practices.Jobs.IJobFactory" />
+[PublicAPI]
 public class TaskPoolJobFactory : IJobFactory
 {
     /// <inheritdoc />

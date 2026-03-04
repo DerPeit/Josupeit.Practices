@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Disposables;
 
@@ -12,6 +13,7 @@ namespace Josupeit.Practices.Disposables;
 /// method to release resources, like Close or Stop and delegate these exposed implementations
 /// to the protected members <see cref="Dispose()" />, <see cref="IsDisposed" /> and
 /// <see cref="Disposing" /> respectively.</remarks>
+[PublicAPI]
 public abstract class ExplicitDisposable : INotifyingDisposable
 {
     private volatile bool _isDisposed;

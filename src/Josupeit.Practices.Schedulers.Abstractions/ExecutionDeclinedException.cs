@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Schedulers;
 
@@ -7,6 +8,7 @@ namespace Josupeit.Practices.Schedulers;
 /// Implements the <see cref="InvalidOperationException" />
 /// </summary>
 /// <seealso cref="InvalidOperationException" />
+[PublicAPI]
 public class ExecutionDeclinedException : InvalidOperationException
 {
     private const string MESSAGE = "After enqueuing, but prior to execution, the scheduler declined to process the operation. " +

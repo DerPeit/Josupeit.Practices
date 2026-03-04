@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Runtime.ExceptionServices;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This class contains extension methods for an <seealso cref="IJob"/>.
 /// </summary>
+[PublicAPI]
 public static class RethrowExtensions
 {
     /// <summary>

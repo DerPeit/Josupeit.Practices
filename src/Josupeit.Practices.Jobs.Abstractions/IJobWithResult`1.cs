@@ -1,4 +1,6 @@
-﻿namespace Josupeit.Practices.Jobs;
+﻿using JetBrains.Annotations;
+
+namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This interface represents a job with a result.<para />
@@ -8,6 +10,7 @@
 /// <typeparam name="TResult">The type of the result.</typeparam>
 /// <seealso cref="Josupeit.Practices.Jobs.IJob" />
 /// <seealso cref="Josupeit.Practices.Jobs.IHasResult{TResult}" />
+[PublicAPI]
 public interface IJobWithResult<out TResult> : IJob, IHasResult<TResult>
 {
 }

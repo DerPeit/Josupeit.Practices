@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Diagnostics.Contracts;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This class contains extension methods for an <seealso cref="IJob"/>.
 /// </summary>
+[PublicAPI]
 public static class AwaitableExtensions
 {
     /// <summary>
@@ -14,7 +15,7 @@ public static class AwaitableExtensions
     /// <param name="job">The job.</param>
     /// <returns>A job awaiter.</returns>
     /// <exception cref="System.ArgumentNullException">The <param name="job" /> must not be <c>null</c>.</exception>
-    [Pure]
+    [System.Diagnostics.Contracts.Pure]
     public static IJobAwaiter GetAwaiter(this IJob job)
     {
         if (job == null)

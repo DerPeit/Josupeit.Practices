@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Schedulers;
 
@@ -7,6 +8,7 @@ namespace Josupeit.Practices.Schedulers;
 /// Implements the <see cref="Josupeit.Practices.Schedulers.Scheduler" />
 /// </summary>
 /// <seealso cref="Josupeit.Practices.Schedulers.Scheduler" />
+[PublicAPI]
 public class TaskPoolScheduler : Scheduler
 {
     /// <inheritdoc />

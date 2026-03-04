@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Jobs;
 
@@ -7,6 +8,7 @@ namespace Josupeit.Practices.Jobs;
 /// Implements the <see cref="INotifyCompletion" />
 /// </summary>
 /// <seealso cref="INotifyCompletion" />
+[PublicAPI]
 public interface IJobAwaiter : INotifyCompletion
 {
     /// <summary>

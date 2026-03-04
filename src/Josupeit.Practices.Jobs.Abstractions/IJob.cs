@@ -1,10 +1,12 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This interface represents a job.
 /// </summary>
+[PublicAPI]
 public interface IJob
 {
     /// <summary>

@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Commands;
 
@@ -7,6 +8,7 @@ namespace Josupeit.Practices.Commands;
 /// This interface represents a command without return value.
 /// </summary>
 /// <typeparam name="TInput">The type of the input parameter.</typeparam>
+[PublicAPI]
 public interface ICommand<in TInput>
 {
     /// <summary>

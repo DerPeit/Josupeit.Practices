@@ -1,4 +1,6 @@
-﻿namespace Josupeit.Practices.Jobs;
+﻿using JetBrains.Annotations;
+
+namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This interface represents an instance which has a particular progress.<para />
@@ -6,6 +8,7 @@
 /// </summary>
 /// <typeparam name="TProgress">The type of the progress.</typeparam>
 /// <seealso cref="Josupeit.Practices.Jobs.IHasProgress" />
+[PublicAPI]
 public interface IHasProgress<out TProgress> : IHasProgress
 {
     /// <summary>

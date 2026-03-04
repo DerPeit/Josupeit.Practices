@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Commands;
 
@@ -8,6 +9,7 @@ namespace Josupeit.Practices.Commands;
 /// This class is a base class and represents a parameterless command without return value.
 /// </summary>
 /// <seealso cref="ICommand" />
+[PublicAPI]
 public abstract class Command : Executable, ICommand
 {
     /// <summary>

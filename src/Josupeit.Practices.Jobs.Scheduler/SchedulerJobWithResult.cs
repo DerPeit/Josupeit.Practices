@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Josupeit.Practices.Schedulers;
 
 namespace Josupeit.Practices.Jobs;
@@ -11,6 +12,7 @@ namespace Josupeit.Practices.Jobs;
 /// </summary>
 /// <typeparam name="TResult">The type of the result.</typeparam>
 /// <seealso cref="Josupeit.Practices.Jobs.JobWithResult{TResult}" />
+[PublicAPI]
 public class SchedulerJobWithResult<TResult> : JobWithResult<TResult>
 {
     private readonly IScheduler _scheduler;

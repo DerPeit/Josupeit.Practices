@@ -1,10 +1,12 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Schedulers;
 
 /// <summary>
 /// This class represents configuration options for the <see cref="ChannelScheduler"/>.
 /// </summary>
+[PublicAPI]
 public class ChannelSchedulerOptions
 {
     /// <summary>

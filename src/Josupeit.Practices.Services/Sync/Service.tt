@@ -3,6 +3,7 @@
 <#@ import namespace="System" #>
 <#@ import namespace="System.IO" #>
 using System;
+using JetBrains.Annotations;
 using Josupeit.Practices.Disposables;
 
 namespace Josupeit.Practices.Services;
@@ -25,6 +26,7 @@ foreach (var className in new[] { "Service", "DisposableService", "AsyncDisposab
 } #>
 /// </summary>
 /// <seealso cref="IService" />
+[PublicAPI]
 public abstract partial class <#= className #> : <#= className switch { "DisposableService" => "ImplicitDisposable, ", "AsyncDisposableService" => "ImplicitAsyncDisposable, ", _ => "" } #>IService
 {
     private volatile IServiceState _state;

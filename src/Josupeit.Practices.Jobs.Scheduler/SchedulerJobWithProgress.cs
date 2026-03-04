@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Josupeit.Practices.Schedulers;
 
 namespace Josupeit.Practices.Jobs;
@@ -11,6 +12,7 @@ namespace Josupeit.Practices.Jobs;
 /// </summary>
 /// <typeparam name="TProgress">The type of the progress.</typeparam>
 /// <seealso cref="Josupeit.Practices.Jobs.JobWithProgress{TProgress}" />
+[PublicAPI]
 public class SchedulerJobWithProgress<TProgress> : JobWithProgress<TProgress>
 {
     private readonly IScheduler _scheduler;

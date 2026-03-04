@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Disposables;
 
@@ -8,6 +9,7 @@ namespace Josupeit.Practices.Disposables;
 /// interface.
 /// </summary>
 /// <seealso cref="ExplicitDisposable" />
+[PublicAPI]
 public abstract class ImplicitDisposable : ExplicitDisposable
 {
     /// <summary>

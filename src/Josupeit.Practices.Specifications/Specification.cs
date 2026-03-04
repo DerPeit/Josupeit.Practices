@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Specifications;
 
@@ -9,6 +10,7 @@ namespace Josupeit.Practices.Specifications;
 /// Represents a specification that can be satisfied or not satisfied by a candidate.
 /// </summary>
 /// <typeparam name="TCandidate">The type of the candidate.</typeparam>
+[PublicAPI]
 public abstract class Specification<TCandidate>
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]

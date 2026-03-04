@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Josupeit.Practices.Disposables;
 using Josupeit.Practices.Services;
 
@@ -57,6 +58,7 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
 } #>
 /// </summary>
 /// <seealso cref="IScheduler" />
+[PublicAPI]
 public abstract class <#= className #> : <#= baseTypes #>
 {
     private readonly IScheduledFactory _scheduledFactory;

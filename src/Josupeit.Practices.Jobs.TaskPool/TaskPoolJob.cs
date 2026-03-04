@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Jobs;
 
@@ -9,6 +10,7 @@ namespace Josupeit.Practices.Jobs;
 /// Implements the <see cref="Josupeit.Practices.Jobs.Job" />
 /// </summary>
 /// <seealso cref="Josupeit.Practices.Jobs.Job" />
+[PublicAPI]
 public class TaskPoolJob : Job
 {
     private readonly Func<CancellationToken, Task> _startFunc;

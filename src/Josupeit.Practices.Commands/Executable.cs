@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Commands;
 
 /// <summary>
 /// This class represents artifacts that can be executed.
 /// </summary>
+[PublicAPI]
 public abstract class Executable
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]

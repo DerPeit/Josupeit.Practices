@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Disposables;
 
@@ -8,6 +9,7 @@ namespace Josupeit.Practices.Disposables;
 /// observers of releasing resources.
 /// </summary>
 /// <seealso cref="IDisposable" />
+[PublicAPI]
 public interface INotifyingAsyncDisposable : INotifyingDisposable, IAsyncDisposable
 {
 }

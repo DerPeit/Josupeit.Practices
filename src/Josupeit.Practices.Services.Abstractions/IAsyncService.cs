@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Services;
 
 /// <summary>
 /// This interface represents an async service that processes tasks in background.
 /// </summary>
+[PublicAPI]
 public interface IAsyncService
 {
     /// <summary>

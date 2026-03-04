@@ -1,4 +1,6 @@
-﻿namespace Josupeit.Practices.Jobs;
+﻿using JetBrains.Annotations;
+
+namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This interface represents an instance which has a particular result.<para />
@@ -6,6 +8,7 @@
 /// </summary>
 /// <typeparam name="TResult">The type of the result.</typeparam>
 /// <seealso cref="Josupeit.Practices.Jobs.IHasResult" />
+[PublicAPI]
 public interface IHasResult<out TResult> : IHasResult
 {
     /// <summary>

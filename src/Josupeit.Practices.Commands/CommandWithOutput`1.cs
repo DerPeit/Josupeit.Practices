@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Commands;
 
@@ -9,6 +10,7 @@ namespace Josupeit.Practices.Commands;
 /// </summary>
 /// <typeparam name="TOutput">The type of the result.</typeparam>
 /// <seealso cref="ICommandWithOutput{TOutput}" />
+[PublicAPI]
 public abstract class CommandWithOutput<TOutput> : Executable, ICommandWithOutput<TOutput>
 {
     /// <summary>

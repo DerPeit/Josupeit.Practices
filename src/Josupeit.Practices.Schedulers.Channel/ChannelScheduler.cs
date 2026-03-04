@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Nito.AsyncEx;
 
 namespace Josupeit.Practices.Schedulers;
@@ -13,6 +14,7 @@ namespace Josupeit.Practices.Schedulers;
 /// Implements the <see cref="Josupeit.Practices.Schedulers.AsyncSchedulerService" />
 /// </summary>
 /// <seealso cref="Josupeit.Practices.Schedulers.AsyncSchedulerService" />
+[PublicAPI]
 public class ChannelScheduler : AsyncSchedulerService
 {
     private readonly AsyncMonitor _pauseMonitor = new();

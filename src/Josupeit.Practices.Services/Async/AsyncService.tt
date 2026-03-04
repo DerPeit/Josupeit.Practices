@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Josupeit.Practices.Disposables;
 
 namespace Josupeit.Practices.Services;
@@ -27,6 +28,7 @@ foreach (var className in new[] { "AsyncService", "DisposableAsyncService", "Asy
 } #>
 /// </summary>
 /// <seealso cref="IAsyncService" />
+[PublicAPI]
 public abstract partial class <#= className #> : <#= className switch { "DisposableAsyncService" => "ImplicitDisposable, ", "AsyncDisposableAsyncService" => "ImplicitAsyncDisposable, ", _ => "" } #>IAsyncService
 {
     private volatile IAsyncServiceState _state;

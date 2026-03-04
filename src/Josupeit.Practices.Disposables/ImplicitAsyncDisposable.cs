@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Disposables;
 
@@ -9,6 +10,7 @@ namespace Josupeit.Practices.Disposables;
 /// interface.
 /// </summary>
 /// <seealso cref="ExplicitAsyncDisposable" />
+[PublicAPI]
 public abstract class ImplicitAsyncDisposable : ExplicitAsyncDisposable
 {
     /// <summary>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Disposables;
 
@@ -9,6 +10,7 @@ namespace Josupeit.Practices.Disposables;
 /// <see cref="INotifyingAsyncDisposable" /> interface.
 /// </summary>
 /// <seealso cref="INotifyingAsyncDisposable" />
+[PublicAPI]
 public abstract class ExplicitAsyncDisposable : INotifyingAsyncDisposable
 {
     private volatile bool _isDisposed;

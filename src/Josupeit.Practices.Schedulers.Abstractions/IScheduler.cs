@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Schedulers;
 
@@ -8,6 +9,7 @@ namespace Josupeit.Practices.Schedulers;
 /// This interface represents a scheduler that schedules certain operations
 /// for execution.
 /// </summary>
+[PublicAPI]
 public interface IScheduler
 {
     /// <summary>

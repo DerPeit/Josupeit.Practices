@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Commands;
 
@@ -8,6 +9,7 @@ namespace Josupeit.Practices.Commands;
 /// </summary>
 /// <typeparam name="TInput">The type of the input parameter.</typeparam>
 /// <typeparam name="TOutput">The type of the result.</typeparam>
+[PublicAPI]
 public interface ICommandWithOutput<in TInput, TOutput>
 {
     /// <summary>

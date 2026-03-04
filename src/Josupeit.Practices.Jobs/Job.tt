@@ -2,6 +2,8 @@
 <#@ assembly name="System.Core" #>
 <#@ import namespace="System" #>
 <#@ import namespace="System.IO" #>
+using JetBrains.Annotations;
+
 #nullable enable
 
 namespace Josupeit.Practices.Jobs;
@@ -56,6 +58,7 @@ foreach (var (isProgress, isResult) in new[] { (false, false), (false, true), (t
 
     }
 #>
+[PublicAPI]
 public abstract class <#= className #> : JobBase, I<#= className #>
 {
 <#

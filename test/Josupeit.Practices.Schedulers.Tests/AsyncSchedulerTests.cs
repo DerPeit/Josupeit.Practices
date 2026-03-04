@@ -1,6 +1,6 @@
-﻿using NUnit.Framework;
+﻿using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Schedulers.Tests;
 
-[TestOf(typeof(AsyncScheduler))]
+[TestOf(typeof(AsyncScheduler)), UsedImplicitly]
 public class AsyncSchedulerTests : SchedulerTests<AsyncScheduler>;
