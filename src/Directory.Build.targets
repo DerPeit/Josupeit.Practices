@@ -22,7 +22,7 @@
     <TextTemplate Include="**\*.tt">
       <SourceFilename>%(Filename).tt</SourceFilename>
       <SourceRelativePath>%(RelativeDir)%(SourceFilename)</SourceRelativePath>
-      <DestinationRelativePath>%(RelativeDir)%(Filename).Generated.cs</DestinationRelativePath>
+      <DestinationRelativePath>%(RelativeDir)%(Filename).g.cs</DestinationRelativePath>
     </TextTemplate>
 
     <Compile Update="@(TextTemplate->'%(DestinationRelativePath)')">

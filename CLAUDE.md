@@ -40,7 +40,7 @@ Libraries target netstandard2.0 as minimum, with netstandard2.1 where IAsyncDisp
 
 ### Code Generation
 
-**T4 Templates:** Several projects (Services, Schedulers, Jobs) use `.tt` text templates that produce `*.Generated.cs` files. These are transformed at build time via `dotnet t4` (configured in `src/Directory.Build.targets`). Generated files are git-ignored.
+**T4 Templates:** Several projects (Services, Schedulers, Jobs) use `.tt` text templates that produce `*.g.cs` files. These are transformed at build time via `dotnet t4` (configured in `src/Directory.Build.targets`). Generated files are git-ignored.
 
 **Roslyn Source Generator (Disposable Mixins):** The `Mixins.Disposable.Generator` project is an incremental source generator that auto-implements `IDisposable`/`IAsyncDisposable` on classes decorated with `[DisposableMixin]`. It has a multi-stage rewriting pipeline in `Generation/` and semantic analysis in `Analysis/`. The companion `Mixins.Disposable.Analyzer` project provides compile-time diagnostics. The `Mixins.Disposable` project is the NuGet package wrapper that bundles both as a development dependency. The `Mixins.Disposable.Tests` project is *not* a runtime test project — it's a netstandard2.0 compilation-only project that verifies the generator/analyzer output by referencing them as `<ProjectReference OutputItemType="Analyzer">`.
 
