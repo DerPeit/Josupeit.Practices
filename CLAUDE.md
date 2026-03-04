@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Bash Commands
+
+- `cd` into the project directory first, then run git/dotnet commands as separate invocations. Don't use compound commands (`cd ... && git ...`) — they break permission pattern matching.
+
 ## Build & Test Commands
 
 ```bash
@@ -28,11 +32,11 @@ NuGet packages are generated on build (`GeneratePackageOnBuild`).
 
 ## Architecture
 
-This is a .NET class library solution providing reusable patterns. It is organized into `src/` (19 library projects) and `test/` (5 test projects).
+This is a .NET class library solution providing reusable patterns. It is organized into `src/` (18 library projects) and `test/` (5 test projects).
 
 ### Multi-targeting
 
-Libraries target a wide range of frameworks (net40 through net46, netstandard1.0 through netstandard2.1). Framework-specific behavior uses conditional compilation. Test projects target equivalence classes of these frameworks (e.g. net481 covers net40, netcoreapp2.2 covers netstandard1.0, net80 covers netstandard2.1).
+Libraries target netstandard2.0 as minimum, with netstandard2.1 where IAsyncDisposable support is needed. Schedulers.Channel additionally targets netcoreapp3.0 to avoid an unnecessary System.Threading.Channels NuGet dependency. Framework-specific behavior uses conditional compilation. Test projects target equivalence classes of these frameworks (e.g. net481 covers netstandard2.0 on .NET Framework, netcoreapp2.2 covers netstandard2.0 on .NET Core, net80 covers netstandard2.1).
 
 ### Code Generation
 
@@ -48,7 +52,6 @@ Libraries target a wide range of frameworks (net40 through net46, netstandard1.0
 - **Schedulers / Schedulers.Abstractions** — Type-safe scheduler with sync/async/cancellable variants (T4-generated). Includes TaskPool and Channel implementations.
 - **Jobs / Jobs.Abstractions** — Background job execution (T4-generated). Includes TaskPool and Scheduler implementations.
 - **Specifications** — Specification pattern.
-- **Polyfills.Tasks** — Task polyfills for older .NET frameworks.
 
 ## Testing Conventions
 
