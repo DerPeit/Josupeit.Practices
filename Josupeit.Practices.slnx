@@ -20,6 +20,7 @@
     <Project Path="src/Josupeit.Practices.Specifications/Josupeit.Practices.Specifications.csproj" />
   </Folder>
   <Folder Name="/test/">
+    <File Path="test/Directory.Build.props" />
     <Project Path="test/Josupeit.Practices.Commands.Tests/Josupeit.Practices.Commands.Tests.csproj" />
     <Project Path="test/Josupeit.Practices.Mixins.Disposable.Tests/Josupeit.Practices.Mixins.Disposable.Tests.csproj" />
     <Project Path="test/Josupeit.Practices.Schedulers.Tests/Josupeit.Practices.Schedulers.Tests.csproj" />

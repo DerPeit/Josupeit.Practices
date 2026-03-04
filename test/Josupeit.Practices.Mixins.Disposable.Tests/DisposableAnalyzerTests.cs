@@ -3,7 +3,6 @@ using Josupeit.Practices.Mixins.Disposable.Analyzer;
 using Josupeit.Practices.Mixins.Disposable.Tests.Verifiers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
-using NUnit.Framework;
 
 namespace Josupeit.Practices.Mixins.Disposable.Tests;
 

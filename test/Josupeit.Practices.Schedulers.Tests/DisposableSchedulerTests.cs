@@ -1,7 +1,3 @@
-using System;
-using NSubstitute;
-using NUnit.Framework;
-
 namespace Josupeit.Practices.Schedulers.Tests;
 
 [TestOf(typeof(DisposableScheduler))]

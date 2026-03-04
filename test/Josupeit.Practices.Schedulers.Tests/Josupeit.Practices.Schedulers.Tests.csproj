@@ -6,17 +6,8 @@
       net80 <!--Equivalence class for netstandard2.1 -->
     </TargetFrameworks>
 
-    <LangVersion>12</LangVersion>
-    <Nullable>enable</Nullable>
     <NoWarn>NETSDK1138;NU1603;NU1902;NU1903</NoWarn>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
-    <PackageReference Include="NSubstitute" Version="2.0.3" />
-    <PackageReference Include="NUnit" Version="3.14.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Josupeit.Practices.Schedulers\Josupeit.Practices.Schedulers.csproj" />

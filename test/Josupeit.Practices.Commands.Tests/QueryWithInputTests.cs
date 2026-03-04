@@ -1,9 +1,5 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using NSubstitute;
-using NUnit.Framework;
 
 namespace Josupeit.Practices.Commands.Tests;
 

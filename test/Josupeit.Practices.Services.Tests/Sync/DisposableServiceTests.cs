@@ -1,7 +1,3 @@
-using System;
-using NSubstitute;
-using NUnit.Framework;
-
 namespace Josupeit.Practices.Services.Tests;
 
 [TestOf(typeof(DisposableService))]

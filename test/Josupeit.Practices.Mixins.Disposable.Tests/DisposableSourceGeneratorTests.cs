@@ -1,13 +1,11 @@
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Josupeit.Practices.Mixins.Disposable.Generator;
 using Josupeit.Practices.Mixins.Disposable.Tests.Verifiers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
-using NUnit.Framework;
 
 namespace Josupeit.Practices.Mixins.Disposable.Tests;
 

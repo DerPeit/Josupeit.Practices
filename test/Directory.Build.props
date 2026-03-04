@@ -1,0 +1,42 @@
+<Project>
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Threading" />
+    <Using Include="NSubstitute" />
+    <Using Include="NUnit.Framework" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="*">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- netcoreapp2.2: alias CancelAfterAttribute to TimeoutAttribute (NUnit 3.x compat) -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.2'">
+    <Using Include="NUnit.Framework.TimeoutAttribute" Alias="CancelAfterAttribute" />
+  </ItemGroup>
+
+  <!-- netcoreapp2.2: pin to latest compatible versions -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.2'">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageReference Include="NSubstitute" Version="2.0.3" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
+  </ItemGroup>
+
+  <!-- All other frameworks -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp2.2'">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
+    <PackageReference Include="NSubstitute" Version="*" />
+    <PackageReference Include="NUnit" Version="*" />
+    <PackageReference Include="NUnit3TestAdapter" Version="*" />
+  </ItemGroup>
+
+</Project>

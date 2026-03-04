@@ -1,6 +1,4 @@
 ﻿using Josupeit.Practices.Services;
-using NSubstitute;
-using NUnit.Framework;
 
 namespace Josupeit.Practices.Schedulers.Tests;
 
