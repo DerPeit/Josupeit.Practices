@@ -26,5 +26,7 @@
     <Project Path="test/Josupeit.Practices.Schedulers.Tests/Josupeit.Practices.Schedulers.Tests.csproj" />
     <Project Path="test/Josupeit.Practices.Services.Tests/Josupeit.Practices.Services.Tests.csproj" />
     <Project Path="test/Josupeit.Practices.Jobs.Tests/Josupeit.Practices.Jobs.Tests.csproj" />
+    <Project Path="test/Josupeit.Practices.Jobs.TaskPool.Tests/Josupeit.Practices.Jobs.TaskPool.Tests.csproj" />
+    <Project Path="test/Josupeit.Practices.Jobs.Scheduler.Tests/Josupeit.Practices.Jobs.Scheduler.Tests.csproj" />
   </Folder>
 </Solution>
