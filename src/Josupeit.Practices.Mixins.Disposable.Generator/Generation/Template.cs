@@ -35,7 +35,7 @@ partial class Class : global::System.IDisposable, global::System.IAsyncDisposabl
     /// <inheritdoc cref="global::System.IAsyncDisposable.DisposeAsync"/>
     public async global::System.Threading.Tasks.ValueTask DisposeAsync()
     {
-        await this.DisposeAsyncCore();
+        await this.DisposeAsyncCore().ConfigureAwait(false);
         global::System.GC.SuppressFinalize(this);
     }
 
@@ -119,7 +119,7 @@ partial class Class : global::System.IDisposable, global::System.IAsyncDisposabl
         }
         finally
         {
-            await this.DisposeManagedResourcesAsync();
+            await this.DisposeManagedResourcesAsync().ConfigureAwait(false);
             this.DisposeUnmanagedResources();
         }
     }

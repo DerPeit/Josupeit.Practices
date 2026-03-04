@@ -57,6 +57,9 @@ internal sealed class StubRemovingRewriter : CSharpSyntaxRewriter
         if (node.Expression is MemberAccessExpressionSyntax memberAccess && _deleted!.Any(x => x.Identifier.IsEquivalentTo(memberAccess.Name.Identifier)))
             return null;
 
+        if (node.Expression is MemberAccessExpressionSyntax { Expression: InvocationExpressionSyntax inner } && VisitInvocationExpression(inner) == null)
+            return null;
+
         return base.VisitInvocationExpression(node);
     }
 

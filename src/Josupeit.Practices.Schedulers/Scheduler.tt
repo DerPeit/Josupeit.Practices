@@ -251,7 +251,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableAction, executionContext, cancellationToken);
 
-        await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken);
+        await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
 
         await scheduled.Promise.ConfigureAwait(false);
     }

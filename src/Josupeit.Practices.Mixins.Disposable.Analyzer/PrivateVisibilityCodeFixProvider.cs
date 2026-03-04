@@ -51,7 +51,7 @@ public sealed class PrivateVisibilityCodeFixProvider : CodeFixProvider
                     .Prepend(Token(SyntaxKind.PrivateKeyword))))
             .WithTriviaFrom(methodDeclaration);
 
-        var root = await document.GetSyntaxRootAsync(cancellationToken);
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var newRoot = root!.ReplaceNode(methodDeclaration, newMethodDeclaration);
 
         return document.WithSyntaxRoot(newRoot);

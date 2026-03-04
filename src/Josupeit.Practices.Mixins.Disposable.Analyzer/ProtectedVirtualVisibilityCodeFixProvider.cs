@@ -52,7 +52,7 @@ public sealed class ProtectedVirtualVisibilityCodeFixProvider : CodeFixProvider
                     .Prepend(Token(SyntaxKind.ProtectedKeyword))))
             .WithTriviaFrom(methodDeclaration);
 
-        var root = await document.GetSyntaxRootAsync(cancellationToken);
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var newRoot = root!.ReplaceNode(methodDeclaration, newMethodDeclaration);
 
         return document.WithSyntaxRoot(newRoot);

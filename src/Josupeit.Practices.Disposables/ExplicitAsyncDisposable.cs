@@ -132,7 +132,7 @@ public abstract class ExplicitAsyncDisposable : INotifyingAsyncDisposable
         }
         finally
         {
-            await DisposeManagedResourcesAsync();
+            await DisposeManagedResourcesAsync().ConfigureAwait(false);
             DisposeUnmanagedResources();
         }
     }

@@ -68,7 +68,7 @@ public sealed class DisposeManagedResourcesCodeFixProvider : CodeFixProvider
 
         var newClassDeclaration = classDeclaration.AddMembers(method);
 
-        var root = await document.GetSyntaxRootAsync(cancellationToken);
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var newRoot = root!.ReplaceNode(classDeclaration, newClassDeclaration);
 
         return document.WithSyntaxRoot(newRoot);

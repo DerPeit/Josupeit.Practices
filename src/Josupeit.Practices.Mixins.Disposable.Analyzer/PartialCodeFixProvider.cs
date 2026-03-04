@@ -47,7 +47,7 @@ public sealed class PartialCodeFixProvider : CodeFixProvider
         var newClassDeclaration = typeDeclaration.WithModifiers(
             typeDeclaration.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword)));
      
-        var root = await document.GetSyntaxRootAsync(cancellationToken);
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var newRoot = root!.ReplaceNode(typeDeclaration, newClassDeclaration);
 
         return document.WithSyntaxRoot(newRoot);
