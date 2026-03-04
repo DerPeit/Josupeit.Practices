@@ -1,12 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net40;net45;netstandard1.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Commands</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Diagnostics.Contracts" Version="[4.0.1,5)" Condition="'$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'netstandard1.0'" />
-  </ItemGroup>
 
 </Project>

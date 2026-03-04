@@ -11,7 +11,7 @@ namespace Josupeit.Practices.Services;
 foreach (var className in new[] { "Service", "DisposableService", "AsyncDisposableService" })
 {
     if (className == "AsyncDisposableService")
-        #>#if NETSTANDARD2_1 || NETCOREAPP3_0_OR_GREATER
+        #>#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
 
 <#
 #>

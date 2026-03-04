@@ -6,7 +6,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Josupeit.Practices.Disposables;
-using Josupeit.Practices.Polyfills.Tasks;
 
 namespace Josupeit.Practices.Services;
 
@@ -14,7 +13,7 @@ namespace Josupeit.Practices.Services;
 foreach (var className in new[] { "AsyncService", "DisposableAsyncService", "AsyncDisposableAsyncService" })
 {
     if (className == "AsyncDisposableAsyncService")
-        #>#if NETSTANDARD2_1 || NETCOREAPP3_0_OR_GREATER
+        #>#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
 
 <#
 #>
@@ -101,7 +100,7 @@ public abstract partial class <#= className #> : <#= className switch { "Disposa
     /// <returns>Task.</returns>
     protected internal virtual Task OnPauseAsync(CancellationToken cancellationToken)
     {
-        return TaskPolyfill.CompletedTask;
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -111,7 +110,7 @@ public abstract partial class <#= className #> : <#= className switch { "Disposa
     /// <returns>Task.</returns>
     protected internal virtual Task OnResumeAsync(CancellationToken cancellationToken)
     {
-        return TaskPolyfill.CompletedTask;
+        return Task.CompletedTask;
     }
 
     /// <summary>

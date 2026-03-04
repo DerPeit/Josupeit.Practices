@@ -2,11 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>
-      net40; <!--Equivalence class for net40 -->
-      net452; <!--Equivalence class for net45 -->
-      net481; <!--Equivalence class for net46 -->
-      <!-- netcore451; --> <!--Equivalence class for netstandard1.0 -->
-      net80 <!--Equivalence class for netstandard1.3 -->
+      net481; <!--Equivalence class for netstandard2.0 on .NET Framework -->
+      net80 <!--Equivalence class for netstandard2.0 on .NET -->
     </TargetFrameworks>
 
     <LangVersion>12</LangVersion>
@@ -15,7 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Bcl.Build" Version="1.0.21" Condition="'$(TargetFramework)' == 'net40'" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" Condition="'$(TargetFramework)' == 'net80'" />
     <PackageReference Include="NSubstitute" Version="2.0.3" />
     <PackageReference Include="NUnit" Version="3.14.0" />

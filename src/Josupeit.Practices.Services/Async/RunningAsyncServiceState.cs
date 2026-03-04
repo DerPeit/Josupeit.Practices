@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Josupeit.Practices.Polyfills.Tasks;
 
 namespace Josupeit.Practices.Services;
 
@@ -44,7 +43,7 @@ internal class RunningAsyncServiceState : IAsyncServiceState
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        return TaskPolyfill.CompletedTask;
+        return Task.CompletedTask;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

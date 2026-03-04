@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>
-      netcoreapp2.2; <!--Equivalence class for netstandard1.3 -->
+      netcoreapp2.2; <!--Equivalence class for netstandard2.0 -->
       net80 <!--Equivalence class for netstandard2.1 -->
     </TargetFrameworks>
 

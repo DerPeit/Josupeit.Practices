@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Josupeit.Practices.Polyfills.Tasks;
 using Nito.AsyncEx;
 
 namespace Josupeit.Practices.Schedulers;
@@ -71,7 +70,7 @@ public class ChannelScheduler : AsyncSchedulerService
                         TaskScheduler.Default)
                     .Unwrap()));
 
-        return TaskPolyfill.CompletedTask;
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />

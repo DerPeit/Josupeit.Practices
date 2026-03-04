@@ -34,7 +34,7 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
     var implementsAsyncDisposable = className.StartsWith("AsyncDisposable", StringComparison.Ordinal);
 
     if (implementsAsyncDisposable)
-#>#if NETSTANDARD2_1 || NETCOREAPP3_0_OR_GREATER
+#>#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
 
 <#
 #>
@@ -104,10 +104,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (action == null)
             throw new ArgumentNullException(nameof(action));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(action, executionContext);
 
         _enqueueBehavior.Enqueue(scheduled);
@@ -124,10 +121,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (cancellableAction == null)
             throw new ArgumentNullException(nameof(cancellableAction));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableAction, executionContext, cancellationToken);
 
         _enqueueBehavior.Enqueue(scheduled, cancellationToken);
@@ -141,10 +135,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (asyncAction == null)
             throw new ArgumentNullException(nameof(asyncAction));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(asyncAction, executionContext);
 
         _enqueueBehavior.Enqueue(scheduled);
@@ -161,10 +152,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (cancellableAsyncAction == null)
             throw new ArgumentNullException(nameof(cancellableAsyncAction));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableAsyncAction, executionContext, cancellationToken);
 
         _enqueueBehavior.Enqueue(scheduled, cancellationToken);
@@ -178,10 +166,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (func == null)
             throw new ArgumentNullException(nameof(func));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(func, executionContext);
 
         _enqueueBehavior.Enqueue(scheduled);
@@ -198,10 +183,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (cancellableFunc == null)
             throw new ArgumentNullException(nameof(cancellableFunc));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableFunc, executionContext, cancellationToken);
 
         _enqueueBehavior.Enqueue(scheduled, cancellationToken);
@@ -215,10 +197,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (asyncFunc == null)
             throw new ArgumentNullException(nameof(asyncFunc));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(asyncFunc, executionContext);
 
         _enqueueBehavior.Enqueue(scheduled);
@@ -235,10 +214,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (cancellableAsyncFunc == null)
             throw new ArgumentNullException(nameof(cancellableAsyncFunc));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableAsyncFunc, executionContext, cancellationToken);
 
         _enqueueBehavior.Enqueue(scheduled, cancellationToken);
@@ -255,10 +231,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (action == null)
             throw new ArgumentNullException(nameof(action));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(action, executionContext);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
@@ -275,10 +248,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (cancellableAction == null)
             throw new ArgumentNullException(nameof(cancellableAction));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableAction, executionContext, cancellationToken);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken);
@@ -295,10 +265,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (asyncAction == null)
             throw new ArgumentNullException(nameof(asyncAction));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(asyncAction, executionContext);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
@@ -315,10 +282,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (cancellableAsyncAction == null)
             throw new ArgumentNullException(nameof(cancellableAsyncAction));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableAsyncAction, executionContext, cancellationToken);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
@@ -335,10 +299,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (func == null)
             throw new ArgumentNullException(nameof(func));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(func, executionContext);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
@@ -355,10 +316,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (cancellableFunc == null)
             throw new ArgumentNullException(nameof(cancellableFunc));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableFunc, executionContext, cancellationToken);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
@@ -375,10 +333,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (asyncFunc == null)
             throw new ArgumentNullException(nameof(asyncFunc));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(asyncFunc, executionContext);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
@@ -395,10 +350,7 @@ public abstract class <#= className #> : <#= baseTypes #>
         if (cancellableAsyncFunc == null)
             throw new ArgumentNullException(nameof(cancellableAsyncFunc));
 
-#if !NETSTANDARD1_3
-        using
-#endif
-        var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableAsyncFunc, executionContext, cancellationToken);
 
         await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);

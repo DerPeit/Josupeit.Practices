@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Josupeit.Practices.Polyfills.Tasks;
 
 namespace Josupeit.Practices.Services;
 
@@ -36,12 +35,12 @@ internal class StoppingFromRunningAsyncServiceState : IAsyncServiceState
     {
         _stopAttempt.Cancel();
 
-        return TaskPolyfill.CompletedTask;
+        return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        return TaskPolyfill.CompletedTask;
+        return Task.CompletedTask;
     }
 
     public void ThrowIfPausing()

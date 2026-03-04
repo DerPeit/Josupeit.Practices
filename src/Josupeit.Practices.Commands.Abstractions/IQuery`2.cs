@@ -1,9 +1,6 @@
-﻿using System.Threading;
+﻿using System.Diagnostics.Contracts;
+using System.Threading;
 using System.Threading.Tasks;
-
-#if !NET40
-using System.Diagnostics.Contracts;
-#endif
 
 namespace Josupeit.Practices.Commands;
 
@@ -24,9 +21,7 @@ public interface IQuery<in TInput, TOutput>
     /// </summary>
     /// <param name="input">An input parameter.</param>
     /// <returns>A result.</returns>
-#if !NET40
     [Pure]
-#endif
     TOutput Execute(TInput input);
 
     /// <summary>
@@ -34,9 +29,7 @@ public interface IQuery<in TInput, TOutput>
     /// </summary>
     /// <param name="input">An input parameter.</param>
     /// <returns>The <see cref="Task{TOutput}"/> that represents the asynchronous progress encapsulating a result.</returns>
-#if !NET40
     [Pure]
-#endif
     Task<TOutput> ExecuteAsync(TInput input);
 
     /// <summary>
@@ -45,8 +38,6 @@ public interface IQuery<in TInput, TOutput>
     /// <param name="input">An input parameter.</param>
     /// <param name="cancellationToken">A token that cancels the asynchronous execution.</param>
     /// <returns>The <see cref="Task{TOutput}"/> that represents the asynchronous progress encapsulating a result.</returns>
-#if !NET40
     [Pure]
-#endif
     Task<TOutput> ExecuteAsync(TInput input, CancellationToken cancellationToken);
 }

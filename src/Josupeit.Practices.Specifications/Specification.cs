@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Josupeit.Practices.Polyfills.Tasks;
 
 namespace Josupeit.Practices.Specifications;
 
@@ -69,17 +68,17 @@ public abstract class Specification<TCandidate>
         using (CreateRecursionScope())
         {
             if (cancellationToken.IsCancellationRequested)
-                return TaskPolyfill.FromCanceled<bool>(cancellationToken);
+                return Task.FromCanceled<bool>(cancellationToken);
 
             try
             {
                 var isSatisfied = IsSatisfiedBy(candidate);
 
-                return TaskPolyfill.FromResult(isSatisfied);
+                return Task.FromResult(isSatisfied);
             }
             catch (Exception ex)
             {
-                return TaskPolyfill.FromException<bool>(ex);
+                return Task.FromException<bool>(ex);
             }
         }
     }

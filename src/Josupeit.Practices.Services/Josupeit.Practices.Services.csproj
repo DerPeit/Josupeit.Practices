@@ -1,16 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net40;net45;net46;netstandard1.0;netstandard1.3;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Services</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Bcl.Build" Version="[1.0.14,2)" Condition="'$(TargetFramework)' == 'net40'" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Josupeit.Practices.Polyfills.Tasks\Josupeit.Practices.Polyfills.Tasks.csproj" />
     <ProjectReference Include="..\Josupeit.Practices.Disposables\Josupeit.Practices.Disposables.csproj" />
     <ProjectReference Include="..\Josupeit.Practices.Services.Abstractions\Josupeit.Practices.Services.Abstractions.csproj" />
   </ItemGroup>

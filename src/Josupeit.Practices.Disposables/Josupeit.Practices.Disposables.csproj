@@ -1,20 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net40;netstandard1.0;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Disposables</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="ExcludeFromCodeCoverageAttribute.cs" />
+  </ItemGroup>
 
   <ItemGroup  Condition="'$(TargetFramework)' != 'netstandard2.1'">
     <Compile Remove="ExplicitAsyncDisposable.cs" />
     <Compile Remove="ImplicitAsyncDisposable.cs" />
-    <None Include="ExplicitAsyncDisposable.cs" />
-    <None Include="ImplicitAsyncDisposable.cs" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' != 'netstandard1.0'">
-    <Compile Remove="ExcludeFromCodeCoverageAttribute.cs" />
-    <None Include="ExcludeFromCodeCoverageAttribute.cs" />
   </ItemGroup>
 
   <ItemGroup>

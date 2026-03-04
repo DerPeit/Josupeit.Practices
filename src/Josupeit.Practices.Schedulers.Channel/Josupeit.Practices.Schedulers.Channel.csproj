@@ -1,15 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net46;net461;net462;netcoreapp3.0;netstandard1.3;netstandard2.0;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.0;netstandard2.0;netstandard2.1</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Schedulers</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Nito.AsyncEx.Coordination" Version="[5, 6)" />
-    <PackageReference Include="System.Threading.Channels" Version="[4.5.0, 6)" Condition="'$(TargetFramework)' == 'netstandard1.3' or '$(TargetFramework)' == 'net46'" />
-    <PackageReference Include="System.Threading.Channels" Version="[4.5.0, 7)" Condition="'$(TargetFramework)' == 'net461'" />
-    <PackageReference Include="System.Threading.Channels" Version="[4.5.0, 8)" Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netstandard2.1' or '$(TargetFramework)' == 'net462'" />
+    <PackageReference Include="System.Threading.Channels" Version="[4.5.0, 8)" Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netstandard2.1'" />
   </ItemGroup>
 
   <ItemGroup>

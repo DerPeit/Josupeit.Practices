@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.3;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Schedulers</RootNamespace>
     <PackageId>Josupeit.Practices.Schedulers.Core</PackageId>
   </PropertyGroup>
@@ -13,10 +13,6 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
     </AssemblyAttribute>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="System.ValueTuple" Version="[4.3.0, 5)" Condition="'$(TargetFramework)' == 'netstandard1.3'" />
   </ItemGroup>
 
   <ItemGroup>

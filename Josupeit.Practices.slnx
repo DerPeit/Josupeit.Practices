@@ -13,7 +13,6 @@
     <Project Path="src/Josupeit.Practices.Mixins.Disposable.Analyzer/Josupeit.Practices.Mixins.Disposable.Analyzer.csproj" />
     <Project Path="src/Josupeit.Practices.Mixins.Disposable.Generator/Josupeit.Practices.Mixins.Disposable.Generator.csproj" />
     <Project Path="src/Josupeit.Practices.Mixins.Disposable/Josupeit.Practices.Mixins.Disposable.csproj" />
-    <Project Path="src/Josupeit.Practices.Polyfills.Tasks/Josupeit.Practices.Polyfills.Tasks.csproj" />
     <Project Path="src/Josupeit.Practices.Schedulers.Abstractions/Josupeit.Practices.Schedulers.Abstractions.csproj" />
     <Project Path="src/Josupeit.Practices.Schedulers.Channel/Josupeit.Practices.Schedulers.Channel.csproj" />
     <Project Path="src/Josupeit.Practices.Schedulers.TaskPool/Josupeit.Practices.Schedulers.TaskPool.csproj" />

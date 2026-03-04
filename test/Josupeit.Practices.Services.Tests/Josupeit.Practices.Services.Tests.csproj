@@ -2,11 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>
-      net40; <!--Equivalence class for net40 -->
-      net452; <!--Equivalence class for net45 -->
-      net481; <!--Equivalence class for net46 -->
-      <!-- netcore451; --> <!--Equivalence class for netstandard1.0 -->
-      netcoreapp2.2; <!--Equivalence class for netstandard1.3 -->
+      net481; <!--Equivalence class for netstandard2.0 on .NET Framework -->
+      netcoreapp2.2; <!--Equivalence class for netstandard2.0 on .NET Core -->
       net80 <!--Equivalence class for netstandard2.1 -->
     </TargetFrameworks>
 
@@ -16,12 +13,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Bcl.Build" Version="1.0.21" Condition="'$(TargetFramework)' == 'net40'" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" Condition="'$(TargetFramework)' == 'net80' or '$(TargetFramework)' == 'netcoreapp2.2'" />
     <PackageReference Include="NSubstitute" Version="2.0.3" />
     <PackageReference Include="NUnit" Version="3.14.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
-    <PackageReference Include="Theraot.Core" Version="3.2.11" Condition="'$(TargetFramework)' == 'net40'" Aliases="Theraot" />
   </ItemGroup>
 
   <ItemGroup>

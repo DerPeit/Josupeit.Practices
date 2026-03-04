@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Josupeit.Practices.Polyfills.Tasks;
 
 namespace Josupeit.Practices.Commands;
 
@@ -60,16 +59,16 @@ public abstract class CommandWithOutput<TInput, TOutput> : Executable, ICommandW
         using (CreateExecuteScope())
         {
             if (cancellationToken.IsCancellationRequested)
-                return TaskPolyfill.FromCanceled<TOutput>(cancellationToken);
+                return Task.FromCanceled<TOutput>(cancellationToken);
 
             try
             {
                 var result = Execute(input);
-                return TaskPolyfill.FromResult(result);
+                return Task.FromResult(result);
             }
             catch (Exception ex)
             {
-                return TaskPolyfill.FromException<TOutput>(ex);
+                return Task.FromException<TOutput>(ex);
             }
         }
     }
