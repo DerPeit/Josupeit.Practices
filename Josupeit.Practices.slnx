@@ -28,5 +28,7 @@
     <Project Path="test/Josupeit.Practices.Jobs.Tests/Josupeit.Practices.Jobs.Tests.csproj" />
     <Project Path="test/Josupeit.Practices.Jobs.TaskPool.Tests/Josupeit.Practices.Jobs.TaskPool.Tests.csproj" />
     <Project Path="test/Josupeit.Practices.Jobs.Scheduler.Tests/Josupeit.Practices.Jobs.Scheduler.Tests.csproj" />
+    <Project Path="test/Josupeit.Practices.Schedulers.TaskPool.Tests/Josupeit.Practices.Schedulers.TaskPool.Tests.csproj" />
+    <Project Path="test/Josupeit.Practices.Schedulers.Channel.Tests/Josupeit.Practices.Schedulers.Channel.Tests.csproj" />
   </Folder>
 </Solution>

@@ -60,7 +60,7 @@ Libraries target netstandard2.0 as minimum, with netstandard2.1 where IAsyncDisp
 - **Test class naming:** `{ClassUnderTest}Tests` (e.g. `CommandTests`, `ExplicitDisposableTests`). File names match class names.
 - **Test method naming:** Sentence-style with underscores: `{Method}_does_something_when_condition` (e.g. `Execute_calls_overridden_ExecuteAsync`, `Dispose_sets_IsDisposed_to_true`).
 - **`[TestOf]` attribute:** Every test class is decorated with `[TestOf(typeof(ClassUnderTest))]`.
-- **No `[SetUp]`/`[TearDown]`:** Each test arranges its own state inline (no shared fixtures or setup methods).
+- **Test arrangement:** Each test arranges its own state inline where possible. Tests for stateful components with lifecycle (e.g. `ChannelScheduler`) may use `[SetUp]`/`[TearDown]` to manage start/stop.
 - **Assertions:** Use NUnit's constraint model (`Assert.That(…, Is.…)`, `Throws.InstanceOf<T>()`, `Throws.Nothing`). Legacy `Assert.Throws<T>` / `Assert.ThrowsAsync<T>` are also used where appropriate.
 - **Async tests:** Return `Task` and use `async`/`await` directly.
 - **Generic test inheritance:** Some test suites use a generic base class pattern — a concrete class inherits from an abstract `Tests<TService>` to test a type hierarchy (e.g. `ServiceTests : ServiceTests<Service>`).

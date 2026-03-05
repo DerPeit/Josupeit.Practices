@@ -6,7 +6,7 @@ public class DisposableAsyncSchedulerTests : SchedulerTests<DisposableAsyncSched
     [Test]
     public void Scheduler_implements_IDisposable()
     {
-        var subject = Substitute.ForPartsOf<DisposableScheduler>();
+        var subject = Substitute.ForPartsOf<DisposableAsyncScheduler>();
 
         Assert.That(subject, Is.AssignableTo<IDisposable>());
     }
