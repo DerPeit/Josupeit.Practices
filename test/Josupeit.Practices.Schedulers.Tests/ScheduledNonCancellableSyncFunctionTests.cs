@@ -357,6 +357,18 @@ public class ScheduledNonCancellableSyncFunctionTests
         Assert.That(((IScheduled)subject).IsCancellationRequested, Is.False);
     }
 
+    [Test]
+    public void TaskCompletionSource_runs_continuations_asynchronously()
+    {
+        var callback = Substitute.For<Func<int>>();
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext: null);
+
+        var tcsField = subject.GetType().GetField("_taskCompletionSource", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        var tcs = (TaskCompletionSource<int>)tcsField.GetValue(subject)!;
+
+        Assert.That(tcs.Task.CreationOptions & TaskCreationOptions.RunContinuationsAsynchronously, Is.EqualTo(TaskCreationOptions.RunContinuationsAsynchronously));
+    }
+
     private static Delegate Execute(IScheduled subject, MethodInfo mi, CancellationToken cancellationToken)
     {
         var call = Expression.Call(Expression.Constant(subject), mi, Expression.Constant(cancellationToken));

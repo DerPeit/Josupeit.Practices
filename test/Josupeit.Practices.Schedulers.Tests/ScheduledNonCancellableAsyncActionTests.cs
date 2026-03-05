@@ -386,6 +386,18 @@ public class ScheduledNonCancellableAsyncActionTests
         Assert.That(((IScheduled)subject).IsCancellationRequested, Is.False);
     }
 
+    [Test]
+    public void TaskCompletionSource_runs_continuations_asynchronously()
+    {
+        var callback = Substitute.For<Func<Task>>();
+        var subject = new ScheduledNonCancellableAsyncAction(callback, executionContext: null);
+
+        var tcsField = subject.GetType().GetField("_taskCompletionSource", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        var tcs = (TaskCompletionSource<object?>)tcsField.GetValue(subject)!;
+
+        Assert.That(tcs.Task.CreationOptions & TaskCreationOptions.RunContinuationsAsynchronously, Is.EqualTo(TaskCreationOptions.RunContinuationsAsynchronously));
+    }
+
     [Test, CancelAfter(500)]
     public async Task ExecuteAsync_with_incomplete_task_succeeds()
     {
