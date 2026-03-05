@@ -71,7 +71,7 @@ public class TaskPoolJobWithProgressTests
     [Test]
     public void Start_passes_CancellationToken_to_delegate()
     {
-        CancellationToken receivedToken = default;
+        var receivedToken = CancellationToken.None;
         var completed = new ManualResetEventSlim();
 
         var job = new TaskPoolJobWithProgress<string>((_, ct) =>

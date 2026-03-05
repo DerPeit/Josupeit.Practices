@@ -23,7 +23,7 @@ internal static class CSharpAnalyzerVerifier
         protected override ParseOptions CreateParseOptions()
             => ((CSharpParseOptions)base.CreateParseOptions()).WithLanguageVersion(LanguageVersion);
 
-        protected override IEnumerable<System.Type> GetSourceGenerators()
+        protected override IEnumerable<Type> GetSourceGenerators()
         {
             yield return typeof(DisposableSourceGenerator);
         }

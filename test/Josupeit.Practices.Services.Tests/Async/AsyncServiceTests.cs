@@ -1,16 +1,11 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using NSubstitute;
+﻿using System.Threading.Tasks;
+using JetBrains.Annotations;
 using NSubstitute.Core;
-using NUnit.Framework;
 
 namespace Josupeit.Practices.Services.Tests;
 
-[TestOf(typeof(AsyncService))]
-public class AsyncServiceTests : AsyncServiceTests<AsyncService>
-{
-}
+[TestOf(typeof(AsyncService)), UsedImplicitly]
+public class AsyncServiceTests : AsyncServiceTests<AsyncService>;
 
 public abstract class AsyncServiceTests<TService> where TService : class, IAsyncService
 {

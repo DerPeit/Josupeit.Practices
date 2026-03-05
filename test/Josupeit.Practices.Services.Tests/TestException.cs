@@ -1,7 +1,3 @@
-﻿using System;
+﻿namespace Josupeit.Practices.Services.Tests;
 
-namespace Josupeit.Practices.Services.Tests;
-
-internal sealed class TestException : Exception
-{    
-}
+internal sealed class TestException : Exception;

@@ -1,16 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Josupeit.Practices.Mixins.Disposable.Generator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
-using NUnit.Framework;
 
 namespace Josupeit.Practices.Mixins.Disposable.Tests;
 
@@ -93,7 +90,7 @@ namespace TestNamespace
 
         Assert.That(
             (IList<string>)instance.CallLog,
-            Is.EqualTo(new[] { "Disposing", "DisposeManagedResources", "DisposeUnmanagedResources" }));
+            Is.EqualTo(["Disposing", "DisposeManagedResources", "DisposeUnmanagedResources"]));
     }
 
     [TestCaseSource(nameof(GetLanguageVersions))]
@@ -107,7 +104,7 @@ namespace TestNamespace
 
         Assert.That(
             (IList<string>)instance.CallLog,
-            Is.EqualTo(new[] { "Disposing", "DisposeManagedResources", "DisposeUnmanagedResources" }));
+            Is.EqualTo(["Disposing", "DisposeManagedResources", "DisposeUnmanagedResources"]));
     }
 
     [TestCaseSource(nameof(GetLanguageVersions))]
@@ -133,7 +130,7 @@ namespace TestNamespace
 
         Assert.That(
             (IList<string>)instance.CallLog,
-            Is.EqualTo(new[] { "Disposing", "DisposeManagedResourcesAsync", "DisposeUnmanagedResources" }));
+            Is.EqualTo(["Disposing", "DisposeManagedResourcesAsync", "DisposeUnmanagedResources"]));
     }
 
     [TestCaseSource(nameof(GetLanguageVersions))]
@@ -147,7 +144,7 @@ namespace TestNamespace
 
         Assert.That(
             (IList<string>)instance.CallLog,
-            Is.EqualTo(new[] { "Disposing", "DisposeManagedResourcesAsync", "DisposeUnmanagedResources" }));
+            Is.EqualTo(["Disposing", "DisposeManagedResourcesAsync", "DisposeUnmanagedResources"]));
     }
 
     [TestCaseSource(nameof(GetLanguageVersions))]

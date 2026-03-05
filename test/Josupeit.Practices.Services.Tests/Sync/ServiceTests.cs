@@ -1,13 +1,7 @@
-﻿using System;
-using NSubstitute;
-using NUnit.Framework;
-
-namespace Josupeit.Practices.Services.Tests;
+﻿namespace Josupeit.Practices.Services.Tests;
 
 [TestOf(typeof(Service))]
-public class ServiceTests : ServiceTests<Service>
-{
-}
+public class ServiceTests : ServiceTests<Service>;
 
 public abstract class ServiceTests<TService> where TService : class, IService
 {

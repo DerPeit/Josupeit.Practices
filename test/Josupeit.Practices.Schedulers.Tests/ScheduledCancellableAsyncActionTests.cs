@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
-using NSubstitute;
-using NUnit.Framework;
 
 namespace Josupeit.Practices.Schedulers.Tests;
 
@@ -582,7 +578,7 @@ public class ScheduledCancellableAsyncActionTests
     }
 
     [Test]
-    public async Task ExecuteAsync_with_incomplete_canceled_task_and_execute_token_declines()
+    public void ExecuteAsync_with_incomplete_canceled_task_and_execute_token_declines()
     {
         var tcs = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
         var callback = Substitute.For<Func<CancellationToken, Task>>();

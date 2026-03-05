@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
-using NSubstitute;
-using NUnit.Framework;
 
 namespace Josupeit.Practices.Schedulers.Tests;
 
@@ -68,7 +64,7 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
             if (parameter.ParameterType == typeof(CancellationToken))
                 args.Add(new CancellationTokenSource().Token);
             else
-                args.Add(Substitute.For([parameter.ParameterType], Array.Empty<object>()));
+                args.Add(Substitute.For([parameter.ParameterType], []));
         }
 
         if (method.Invoke(_subject, args.ToArray()) is Task promise)
@@ -106,7 +102,7 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
             if (parameter.ParameterType == typeof(CancellationToken))
                 args.Add(new CancellationTokenSource().Token);
             else
-                args.Add(Substitute.For([parameter.ParameterType], Array.Empty<object>()));
+                args.Add(Substitute.For([parameter.ParameterType], []));
         }
 
         var expectedTestHelperValue = new object();
@@ -167,7 +163,7 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
             if (parameter.ParameterType == typeof(CancellationToken))
                 args.Add(new CancellationTokenSource().Token);
             else
-                args.Add(Substitute.For([parameter.ParameterType], Array.Empty<object>()));
+                args.Add(Substitute.For([parameter.ParameterType], []));
         }
 
         if (method.Invoke(_subject, args.ToArray()) is Task promise)
@@ -210,9 +206,9 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
             .Select(p =>
             {
                 if (p.ParameterType == typeof(CancellationToken))
-                    return default(CancellationToken);
+                    return CancellationToken.None;
 
-                return Substitute.For([p.ParameterType], constructorArguments: Array.Empty<object>());
+                return Substitute.For([p.ParameterType], constructorArguments: []);
             })
             .ToArray();
 
@@ -247,9 +243,9 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
             .Select(p =>
             {
                 if (p.ParameterType == typeof(CancellationToken))
-                    return default(CancellationToken);
+                    return CancellationToken.None;
 
-                return Substitute.For([p.ParameterType], constructorArguments: Array.Empty<object>());
+                return Substitute.For([p.ParameterType], constructorArguments: []);
             })
             .ToArray();
 
@@ -294,9 +290,9 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
             .Select(p =>
             {
                 if (p.ParameterType == typeof(CancellationToken))
-                    return default(CancellationToken);
+                    return CancellationToken.None;
 
-                return Substitute.For([p.ParameterType], constructorArguments: Array.Empty<object>());
+                return Substitute.For([p.ParameterType], constructorArguments: []);
             })
             .ToArray();
 
@@ -304,8 +300,8 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
 
         _ = scheduledActionMock.Received().Promise;
 
-        const int never = -1;
-        using var timer = new Timer(_ => promiseSource.SetCanceled(), state: null, dueTime: 100, period: never);
+        const int NEVER = -1;
+        using var timer = new Timer(_ => promiseSource.SetCanceled(), state: null, dueTime: 100, period: NEVER);
 
         try
         {
@@ -346,9 +342,9 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
             .Select(p =>
             {
                 if (p.ParameterType == typeof(CancellationToken))
-                    return default(CancellationToken);
+                    return CancellationToken.None;
 
-                return Substitute.For([p.ParameterType], constructorArguments: Array.Empty<object>());
+                return Substitute.For([p.ParameterType], constructorArguments: []);
             })
             .ToArray();
 
@@ -356,8 +352,8 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
 
         _ = scheduledFunctionMock.Received().Promise;
 
-        const int never = -1;
-        using var timer = new Timer(_ => promiseSource.SetResult(expectedResult), state: null, dueTime: 100, period: never);
+        const int NEVER = -1;
+        using var timer = new Timer(_ => promiseSource.SetResult(expectedResult), state: null, dueTime: 100, period: NEVER);
 
         var observedResult = await observedPromise;
 
@@ -372,7 +368,7 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
 
         var arguments = method
             .GetParameters()
-            .Select(p => p.ParameterType.IsClass ? Substitute.For([p.ParameterType], Array.Empty<object>()) : Activator.CreateInstance(p.ParameterType))
+            .Select(p => p.ParameterType.IsClass ? Substitute.For([p.ParameterType], []) : Activator.CreateInstance(p.ParameterType))
             .ToArray();
 
         if (method.Invoke(_subject, arguments) is Task promise)
@@ -425,7 +421,7 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
     }
 
     [Test]
-    public async Task All_schedule_methods_throw_if_disposed([ValueSource(nameof(EnumerateMethods))] MethodInfo method)
+    public void All_schedule_methods_throw_if_disposed([ValueSource(nameof(EnumerateMethods))] MethodInfo method)
     {
         if (_subject is not IDisposable disposable)
         {
@@ -441,7 +437,7 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
 
         var args = method.GetParameters()
             .Select(p => p.ParameterType.IsClass
-                ? Substitute.For([p.ParameterType], Array.Empty<object>())
+                ? Substitute.For([p.ParameterType], [])
                 : Activator.CreateInstance(p.ParameterType))
             .ToArray();
 

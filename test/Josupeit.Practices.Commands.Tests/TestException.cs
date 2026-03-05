@@ -1,7 +1,3 @@
-﻿using System;
+﻿namespace Josupeit.Practices.Commands.Tests;
 
-namespace Josupeit.Practices.Commands.Tests;
-
-internal sealed class TestException : Exception
-{    
-}
+internal sealed class TestException : Exception;
