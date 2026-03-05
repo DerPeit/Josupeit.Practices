@@ -423,4 +423,37 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
     {
         return EnumerateMethods().Where(mi => mi.IsGenericMethod && mi.ReturnType == typeof(Task<>).MakeGenericType(mi.GetGenericArguments()[0]));
     }
+
+    [Test]
+    public async Task All_schedule_methods_throw_if_disposed([ValueSource(nameof(EnumerateMethods))] MethodInfo method)
+    {
+        if (_subject is not IDisposable disposable)
+        {
+            Assert.Ignore("Scheduler is not disposable.");
+
+            return;
+        }
+
+        disposable.Dispose();
+
+        if (method.ContainsGenericParameters)
+            method = method.MakeGenericMethod(typeof(object));
+
+        var args = method.GetParameters()
+            .Select(p => p.ParameterType.IsClass
+                ? Substitute.For([p.ParameterType], Array.Empty<object>())
+                : Activator.CreateInstance(p.ParameterType))
+            .ToArray();
+
+        Assert.That(
+            async () =>
+            {
+                var result = method.Invoke(_subject, args);
+                if (result is Task promise)
+                    await promise.ConfigureAwait(false);
+            },
+            Throws.TypeOf<TargetInvocationException>()
+                .With.InnerException.TypeOf<ObjectDisposedException>()
+                .Or.TypeOf<ObjectDisposedException>());
+    }
 }

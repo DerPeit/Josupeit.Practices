@@ -32,6 +32,7 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
     };
 
     var needsMixin = className is "DisposableScheduler" or "AsyncDisposableScheduler" or "DisposableAsyncScheduler" or "AsyncDisposableAsyncScheduler";
+    var isDisposable = className.Contains("Disposable");
 
     var wantsAsyncEnqueueMethod = className.IndexOf("AsyncScheduler", StringComparison.Ordinal) > -1;
     var implementsAsyncDisposable = className.StartsWith("AsyncDisposable", StringComparison.Ordinal);
@@ -108,6 +109,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (action == null)
             throw new ArgumentNullException(nameof(action));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(action, executionContext);
 
@@ -125,6 +130,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (cancellableAction == null)
             throw new ArgumentNullException(nameof(cancellableAction));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableAction, executionContext, cancellationToken);
 
@@ -139,6 +148,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (asyncAction == null)
             throw new ArgumentNullException(nameof(asyncAction));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(asyncAction, executionContext);
 
@@ -156,6 +169,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (cancellableAsyncAction == null)
             throw new ArgumentNullException(nameof(cancellableAsyncAction));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableAsyncAction, executionContext, cancellationToken);
 
@@ -170,6 +187,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (func == null)
             throw new ArgumentNullException(nameof(func));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(func, executionContext);
 
@@ -187,6 +208,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (cancellableFunc == null)
             throw new ArgumentNullException(nameof(cancellableFunc));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableFunc, executionContext, cancellationToken);
 
@@ -201,6 +226,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (asyncFunc == null)
             throw new ArgumentNullException(nameof(asyncFunc));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(asyncFunc, executionContext);
 
@@ -218,6 +247,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (cancellableAsyncFunc == null)
             throw new ArgumentNullException(nameof(cancellableAsyncFunc));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableAsyncFunc, executionContext, cancellationToken);
 
@@ -235,6 +268,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (action == null)
             throw new ArgumentNullException(nameof(action));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(action, executionContext);
 
@@ -252,6 +289,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (cancellableAction == null)
             throw new ArgumentNullException(nameof(cancellableAction));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableAction, executionContext, cancellationToken);
 
@@ -269,6 +310,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (asyncAction == null)
             throw new ArgumentNullException(nameof(asyncAction));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(asyncAction, executionContext);
 
@@ -286,6 +331,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (cancellableAsyncAction == null)
             throw new ArgumentNullException(nameof(cancellableAsyncAction));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableAsyncAction, executionContext, cancellationToken);
 
@@ -303,6 +352,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (func == null)
             throw new ArgumentNullException(nameof(func));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(func, executionContext);
 
@@ -320,6 +373,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (cancellableFunc == null)
             throw new ArgumentNullException(nameof(cancellableFunc));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableFunc, executionContext, cancellationToken);
 
@@ -337,6 +394,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (asyncFunc == null)
             throw new ArgumentNullException(nameof(asyncFunc));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(asyncFunc, executionContext);
 
@@ -354,6 +415,10 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
         if (cancellableAsyncFunc == null)
             throw new ArgumentNullException(nameof(cancellableAsyncFunc));
 
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
         using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
         var scheduled = _scheduledFactory.Create(cancellableAsyncFunc, executionContext, cancellationToken);
 
