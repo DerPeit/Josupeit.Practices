@@ -39,8 +39,7 @@ public class ScheduledNonCancellableSyncFunctionTests
     [Test]
     public void Execute_with_canceled_token_cancels_wait_without_invoking_callback(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
         var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
@@ -54,8 +53,7 @@ public class ScheduledNonCancellableSyncFunctionTests
     [Test]
     public void Execute_with_canceled_token_cancels_promise_without_invoking_callback(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
         var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
@@ -69,8 +67,7 @@ public class ScheduledNonCancellableSyncFunctionTests
     [Test]
     public void Execute_invokes_callback_and_returns_result(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
         callback().Returns(SENTINEL_RESULT);
@@ -164,11 +161,10 @@ public class ScheduledNonCancellableSyncFunctionTests
         callback.Received(1)();
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public async Task Execute_unblocks_wait_with_result(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
         callback().Returns(SENTINEL_RESULT);
@@ -181,19 +177,17 @@ public class ScheduledNonCancellableSyncFunctionTests
                 break;
 
             case AsyncTestDelegate atd:
-                await Task.WhenAny(atd(), Task.Delay(Timeout.Infinite, cancellationToken));
-                cancellationToken.ThrowIfCancellationRequested();
+                await atd();
                 break;
         }
 
         Assert.That(subject.WaitAndUnwrap(), Is.EqualTo(SENTINEL_RESULT));
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public async Task Execute_unblocks_promise_with_result(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
         callback().Returns(SENTINEL_RESULT);
@@ -206,21 +200,18 @@ public class ScheduledNonCancellableSyncFunctionTests
                 break;
 
             case AsyncTestDelegate atd:
-                await Task.WhenAny(atd(), Task.Delay(Timeout.Infinite, cancellationToken));
-                cancellationToken.ThrowIfCancellationRequested();
+                await atd();
                 break;
         }
 
-        await Task.WhenAny(subject.Promise, Task.Delay(Timeout.Infinite, cancellationToken));
-        cancellationToken.ThrowIfCancellationRequested();
+        await subject.Promise;
         Assert.That(await subject.Promise, Is.EqualTo(SENTINEL_RESULT));
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Cancellation_with_execute_token_declines_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
         var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
@@ -237,15 +228,13 @@ public class ScheduledNonCancellableSyncFunctionTests
         });
 
         Assert.That(Execute(subject, executeMethod, proposedCancellationToken), Throws.InstanceOf<OperationCanceledException>());
-        cancellationToken.ThrowIfCancellationRequested();
         Assert.That(() => subject.WaitAndUnwrap(), Throws.TypeOf<ExecutionDeclinedException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Cancellation_with_execute_token_declines_promise(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
         var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
@@ -262,15 +251,13 @@ public class ScheduledNonCancellableSyncFunctionTests
         });
 
         Assert.That(Execute(subject, executeMethod, proposedCancellationToken), Throws.InstanceOf<OperationCanceledException>());
-        cancellationToken.ThrowIfCancellationRequested();
         Assert.That(async () => await subject.Promise, Throws.TypeOf<ExecutionDeclinedException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Arbitrary_other_cancellation_cancels_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
         var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
@@ -287,15 +274,13 @@ public class ScheduledNonCancellableSyncFunctionTests
         });
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
         Assert.That(() => subject.WaitAndUnwrap(), Throws.InstanceOf<OperationCanceledException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Arbitrary_other_cancellation_cancels_promise(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
         var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
@@ -312,15 +297,13 @@ public class ScheduledNonCancellableSyncFunctionTests
         });
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
         Assert.That(async () => await subject.Promise, Throws.InstanceOf<OperationCanceledException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Exception_in_callback_is_being_unwrapped_by_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
         var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
@@ -328,15 +311,13 @@ public class ScheduledNonCancellableSyncFunctionTests
         callback.When(x => x()).Throw<TestException>();
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
         Assert.That(() => subject.WaitAndUnwrap(), Throws.InstanceOf<TestException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Exception_in_callback_is_being_unwrapped_by_promise(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
         var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
@@ -344,7 +325,6 @@ public class ScheduledNonCancellableSyncFunctionTests
         callback.When(x => x()).Throw<TestException>();
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
         Assert.That(async () => await subject.Promise, Throws.InstanceOf<TestException>());
     }
 

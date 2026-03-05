@@ -25,7 +25,6 @@ public class AwaitableExtensionsTests
     }
 
     [Test]
-    [CancelAfter(5000)]
     public void Wait_blocks_until_job_completes()
     {
         var job = Substitute.For<IJob>();

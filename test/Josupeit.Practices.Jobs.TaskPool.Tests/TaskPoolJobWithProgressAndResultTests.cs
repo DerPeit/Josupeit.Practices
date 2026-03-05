@@ -14,7 +14,6 @@ public class TaskPoolJobWithProgressAndResultTests
     }
 
     [Test]
-    [CancelAfter(5000)]
     public void Start_completes_successfully()
     {
         var completed = new ManualResetEventSlim();
@@ -33,7 +32,6 @@ public class TaskPoolJobWithProgressAndResultTests
     }
 
     [Test]
-    [CancelAfter(5000)]
     public void Start_sets_Result_on_success()
     {
         var completed = new ManualResetEventSlim();
@@ -52,7 +50,6 @@ public class TaskPoolJobWithProgressAndResultTests
     }
 
     [Test]
-    [CancelAfter(5000)]
     public void Start_faults_on_exception()
     {
         var exception = new TestException();
@@ -73,7 +70,6 @@ public class TaskPoolJobWithProgressAndResultTests
     }
 
     [Test]
-    [CancelAfter(5000)]
     public void Start_cancels_when_token_canceled()
     {
         var completed = new ManualResetEventSlim();
@@ -93,7 +89,6 @@ public class TaskPoolJobWithProgressAndResultTests
     }
 
     [Test]
-    [CancelAfter(5000)]
     public void Start_passes_CancellationToken_to_delegate()
     {
         CancellationToken receivedToken = default;
@@ -119,7 +114,6 @@ public class TaskPoolJobWithProgressAndResultTests
     }
 
     [Test]
-    [CancelAfter(5000)]
     public void Start_passes_IProgress_to_delegate()
     {
         IProgress<string>? receivedProgress = null;

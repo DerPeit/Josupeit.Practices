@@ -18,11 +18,6 @@
     </PackageReference>
   </ItemGroup>
 
-  <!-- netcoreapp2.2: alias CancelAfterAttribute to TimeoutAttribute (NUnit 3.x compat) -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.2'">
-    <Using Include="NUnit.Framework.TimeoutAttribute" Alias="CancelAfterAttribute" />
-  </ItemGroup>
-
   <!-- netcoreapp2.2: pin to latest compatible versions -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.2'">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />

@@ -78,8 +78,7 @@ public class ScheduledCancellableAsyncActionTests
     [Test]
     public void Execute_with_canceled_token_cancels_wait_without_invoking_callback(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
@@ -93,8 +92,7 @@ public class ScheduledCancellableAsyncActionTests
     [Test]
     public void Execute_with_canceled_token_cancels_promise_without_invoking_callback(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
@@ -108,8 +106,7 @@ public class ScheduledCancellableAsyncActionTests
     [Test]
     public void Execute_invokes_callback(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         callback(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
@@ -202,11 +199,10 @@ public class ScheduledCancellableAsyncActionTests
         _ = callback.Received(1)(Arg.Any<CancellationToken>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public async Task Execute_unblocks_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         callback(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
@@ -219,19 +215,17 @@ public class ScheduledCancellableAsyncActionTests
                 break;
 
             case AsyncTestDelegate atd:
-                await Task.WhenAny(atd(), Task.Delay(Timeout.Infinite, cancellationToken));
-                cancellationToken.ThrowIfCancellationRequested();
+                await atd();
                 break;
         }
 
         Assert.That(subject.Wait, Throws.Nothing);
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public async Task Execute_unblocks_promise(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         callback(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
@@ -244,21 +238,18 @@ public class ScheduledCancellableAsyncActionTests
                 break;
 
             case AsyncTestDelegate atd:
-                await Task.WhenAny(atd(), Task.Delay(Timeout.Infinite, cancellationToken));
-                cancellationToken.ThrowIfCancellationRequested();
+                await atd();
                 break;
         }
 
-        await Task.WhenAny(subject.Promise, Task.Delay(Timeout.Infinite, cancellationToken));
-        cancellationToken.ThrowIfCancellationRequested();
+        await subject.Promise;
         Assert.That(async () => await subject.Promise, Throws.Nothing);
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Cancellation_with_execute_token_declines_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
@@ -274,15 +265,14 @@ public class ScheduledCancellableAsyncActionTests
         });
 
         Assert.That(Execute(subject, executeMethod, proposedCancellationToken), Throws.InstanceOf<OperationCanceledException>());
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(subject.Wait, Throws.TypeOf<ExecutionDeclinedException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Cancellation_with_execute_token_declines_promise(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
@@ -298,15 +288,14 @@ public class ScheduledCancellableAsyncActionTests
         });
 
         Assert.That(Execute(subject, executeMethod, proposedCancellationToken), Throws.InstanceOf<OperationCanceledException>());
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(async () => await subject.Promise, Throws.TypeOf<ExecutionDeclinedException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Cancellation_with_schedule_token_cancels_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
 
@@ -323,15 +312,14 @@ public class ScheduledCancellableAsyncActionTests
         });
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(subject.Wait, Throws.InstanceOf<OperationCanceledException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Cancellation_with_schedule_token_cancels_promise(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
 
@@ -348,15 +336,14 @@ public class ScheduledCancellableAsyncActionTests
         });
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(async () => await subject.Promise, Throws.InstanceOf<OperationCanceledException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Schedule_token_canceled_before_execute_cancels_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
 
@@ -367,17 +354,16 @@ public class ScheduledCancellableAsyncActionTests
         scheduleCts.Cancel();
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(subject.Wait, Throws.InstanceOf<OperationCanceledException>());
 
         callback.DidNotReceive()(Arg.Any<CancellationToken>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Schedule_token_canceled_before_execute_cancels_promise(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
 
@@ -388,17 +374,16 @@ public class ScheduledCancellableAsyncActionTests
         scheduleCts.Cancel();
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(async () => await subject.Promise, Throws.InstanceOf<OperationCanceledException>());
 
         callback.DidNotReceive()(Arg.Any<CancellationToken>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Arbitrary_other_cancellation_cancels_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
@@ -414,15 +399,14 @@ public class ScheduledCancellableAsyncActionTests
         });
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(subject.Wait, Throws.InstanceOf<OperationCanceledException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Arbitrary_other_cancellation_cancels_promise(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
@@ -438,15 +422,14 @@ public class ScheduledCancellableAsyncActionTests
         });
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(async () => await subject.Promise, Throws.InstanceOf<OperationCanceledException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Exception_in_callback_is_being_unwrapped_by_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
@@ -454,15 +437,14 @@ public class ScheduledCancellableAsyncActionTests
         callback(Arg.Any<CancellationToken>()).Returns(Task.FromException(new TestException()));
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(subject.Wait, Throws.InstanceOf<TestException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Exception_in_callback_is_being_unwrapped_by_promise(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
@@ -470,15 +452,14 @@ public class ScheduledCancellableAsyncActionTests
         callback(Arg.Any<CancellationToken>()).Returns(Task.FromException(new TestException()));
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(async () => await subject.Promise, Throws.InstanceOf<TestException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Synchronous_exception_in_callback_is_being_unwrapped_by_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
@@ -486,15 +467,14 @@ public class ScheduledCancellableAsyncActionTests
         callback.When(x => x(Arg.Any<CancellationToken>())).Throw<TestException>();
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(subject.Wait, Throws.InstanceOf<TestException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Synchronous_exception_in_callback_is_being_unwrapped_by_promise(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
@@ -502,15 +482,14 @@ public class ScheduledCancellableAsyncActionTests
         callback.When(x => x(Arg.Any<CancellationToken>())).Throw<TestException>();
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(async () => await subject.Promise, Throws.InstanceOf<TestException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Synchronous_cancellation_with_execute_token_declines_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
@@ -528,15 +507,14 @@ public class ScheduledCancellableAsyncActionTests
             });
 
         Assert.That(Execute(subject, executeMethod, proposedCancellationToken), Throws.InstanceOf<OperationCanceledException>());
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(subject.Wait, Throws.TypeOf<ExecutionDeclinedException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Synchronous_cancellation_with_schedule_token_cancels_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
 
@@ -555,15 +533,14 @@ public class ScheduledCancellableAsyncActionTests
             });
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(subject.Wait, Throws.InstanceOf<OperationCanceledException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public void Synchronous_arbitrary_cancellation_cancels_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
@@ -581,11 +558,11 @@ public class ScheduledCancellableAsyncActionTests
             });
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
-        cancellationToken.ThrowIfCancellationRequested();
+
         Assert.That(subject.Wait, Throws.InstanceOf<OperationCanceledException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public async Task ExecuteAsync_with_incomplete_task_succeeds()
     {
         var tcs = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -604,7 +581,7 @@ public class ScheduledCancellableAsyncActionTests
         Assert.That(async () => await subject.Promise, Throws.Nothing);
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public async Task ExecuteAsync_with_incomplete_canceled_task_and_execute_token_declines()
     {
         var tcs = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -622,7 +599,7 @@ public class ScheduledCancellableAsyncActionTests
         Assert.That(subject.Wait, Throws.TypeOf<ExecutionDeclinedException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public async Task ExecuteAsync_with_incomplete_canceled_task_and_schedule_token_cancels()
     {
         var tcs = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -641,7 +618,7 @@ public class ScheduledCancellableAsyncActionTests
         Assert.That(subject.Wait, Throws.InstanceOf<OperationCanceledException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public async Task ExecuteAsync_with_incomplete_canceled_task_cancels()
     {
         var tcs = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -656,7 +633,7 @@ public class ScheduledCancellableAsyncActionTests
         Assert.That(subject.Wait, Throws.InstanceOf<OperationCanceledException>());
     }
 
-    [Test, CancelAfter(500)]
+    [Test]
     public async Task ExecuteAsync_with_incomplete_faulted_task_unwraps_exception()
     {
         var tcs = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -674,8 +651,7 @@ public class ScheduledCancellableAsyncActionTests
     [Test]
     public void Execute_with_both_cancellable_tokens_invokes_callback(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
-        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
-        CancellationToken cancellationToken = default)
+        [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         callback(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);

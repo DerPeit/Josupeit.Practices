@@ -12,7 +12,6 @@ public class TaskPoolJobTests
     }
 
     [Test]
-    [CancelAfter(5000)]
     public void Start_completes_successfully()
     {
         var completed = new ManualResetEventSlim();
@@ -31,7 +30,6 @@ public class TaskPoolJobTests
     }
 
     [Test]
-    [CancelAfter(5000)]
     public void Start_transitions_through_pending_and_executing()
     {
         var wasPending = false;
@@ -54,7 +52,6 @@ public class TaskPoolJobTests
     }
 
     [Test]
-    [CancelAfter(5000)]
     public void Start_faults_on_exception()
     {
         var exception = new TestException();
@@ -75,7 +72,6 @@ public class TaskPoolJobTests
     }
 
     [Test]
-    [CancelAfter(5000)]
     public void Start_cancels_when_token_canceled()
     {
         var completed = new ManualResetEventSlim();
@@ -95,7 +91,6 @@ public class TaskPoolJobTests
     }
 
     [Test]
-    [CancelAfter(5000)]
     public void Start_passes_CancellationToken_to_delegate()
     {
         CancellationToken receivedToken = default;

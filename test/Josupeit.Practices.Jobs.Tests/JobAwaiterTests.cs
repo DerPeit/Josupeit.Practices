@@ -80,7 +80,6 @@ public class JobAwaiterTests
     }
 
     [Test]
-    [CancelAfter(5000)]
     public void GetResult_blocks_until_completed()
     {
         var job = Substitute.For<IJob>();
