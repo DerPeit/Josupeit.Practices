@@ -2,19 +2,19 @@
 
   <PropertyGroup>
     <!--
-      It is very hard to ensure that particular targets only run once per project. Usually, they run once per target framework
-      which leads to errors due to locked files or to race conditions. One can check for a so-called "outer build" which is
-      the project's build when multi-targeted. Unfortunately, in BeforeBuild targets the outer build comes last. Thus, the
-      inner builds are triggered first and afterwards the outer build runs. So, if we attempt to transform tt files to generated
-      code we cannot do this in the outer build. Thus, we utilize the DispatchToInnerBuilds target for this case. However, this
-      target only runs in multi-targeted projects. That's the reason for the complicated setup. However, the outer build stuff
-      works the other way around in the "after" targets. They run first there so we can rely on this in the clean target.
+      It is difficult to ensure that particular targets only run once per project. Usually, they run once per target framework,
+      which leads to errors due to locked files or race conditions. One can check for a so-called "outer build," which is
+      the project's build when multi-targeted. Unfortunately, in BeforeBuild targets the outer build comes last: the
+      inner builds are triggered first, and afterward the outer build runs. So, if we attempt to transform tt files to generated
+      code, we cannot do this in the outer build. Instead, we use the DispatchToInnerBuilds target for this case. This target
+      only runs in multi-targeted projects, which is the reason for the complicated setup. The outer build order is reversed
+      in the "after" targets — they run first there, so we can rely on this in the clean target.
     -->
 
     <IsMultiTargeted>false</IsMultiTargeted>
     <IsOuterBuild>false</IsOuterBuild>
 
-    <IsMultiTargeted Condition="'$(TargetFrameworks)' != '' AND $(TargetFrameworks.IndexOf(';')) &gt; -1 AND $(TargetFrameworks.IndexOf(';')) != $([MSBuild]::Add($(TargetFrameworks.Length), 1))">true</IsMultiTargeted>
+    <IsMultiTargeted Condition="'$(TargetFrameworks)' != '' AND $(TargetFrameworks.IndexOf(';')) &gt; -1 AND $(TargetFrameworks.IndexOf(';')) != $([MSBuild]::Subtract($(TargetFrameworks.Length), 1))">true</IsMultiTargeted>
     <IsOuterBuild Condition="!$(IsMultiTargeted) OR '$(TargetFramework)' == ''">true</IsOuterBuild>
   </PropertyGroup>
 

@@ -27,16 +27,16 @@ public interface IJob
     Exception? Exception { get; }
 
     /// <summary>
-    /// Gets a value indicating whether this job is cancelled.
+    /// Gets a value indicating whether this job is canceled.
     /// </summary>
-    /// <value><c>true</c> if this job is cancelled; otherwise, <c>false</c>.</value>
-    bool IsCancelled { get; }
+    /// <value><c>true</c> if this job is canceled; otherwise, <c>false</c>.</value>
+    bool IsCanceled { get; }
 
     /// <summary>
     /// Gets a value indicating whether this job is completed.
     /// </summary>
     /// <remarks>
-    /// A job is completed when it is cancelled, faulted or completed successfully.
+    /// A job is completed when it is canceled, faulted or completed successfully.
     /// </remarks>
     /// <value><c>true</c> if this job is completed; otherwise, <c>false</c>.</value>
     bool IsCompleted { get; }

@@ -92,7 +92,7 @@ public interface IScheduler
     /// after the function has been completed and returns the result of the supplied
     /// function. When this instance is stopped or the supplied
     /// <paramref name="cancellationToken"/> is canceled, the
-    /// <see cref="CancellationToken"/> supplied to the function will be cancelled.
+    /// <see cref="CancellationToken"/> supplied to the function will be canceled.
     /// </summary>
     /// <typeparam name="TResult">The type of the result.</typeparam>
     /// <param name="cancellableFunc">The synchronous function to execute.</param>
@@ -126,7 +126,7 @@ public interface IScheduler
     /// after the function has been completed and returns the result of the supplied
     /// function. When this instance is stopped or the supplied
     /// <paramref name="cancellationToken"/> is canceled, the
-    /// <see cref="CancellationToken"/> supplied to the function will be cancelled.
+    /// <see cref="CancellationToken"/> supplied to the function will be canceled.
     /// </summary>
     /// <typeparam name="TResult">The type of the result.</typeparam>
     /// <param name="cancellableAsyncFunc">The asynchronous function to execute.</param>
@@ -276,7 +276,7 @@ public interface IScheduler
     /// <summary>
     /// Schedules the specified function to be executed. This method terminates
     /// after the function has been completed and returns the result of the supplied
-    /// function. When this instance is stopped  the <see cref="CancellationToken"/>
+    /// function. When this instance is stopped, the <see cref="CancellationToken"/>
     /// supplied to the function will be canceled.
     /// </summary>
     /// <typeparam name="TResult">The type of the result.</typeparam>
@@ -384,7 +384,7 @@ public interface IScheduler
     /// after the function has been completed and returns the result of the supplied
     /// function. When this instance is stopped or the supplied
     /// <paramref name="cancellationToken"/> is canceled, the
-    /// <see cref="CancellationToken"/> supplied to the function will be cancelled.
+    /// <see cref="CancellationToken"/> supplied to the function will be canceled.
     /// </summary>
     /// <remarks>This method does not capture the current execution context.</remarks>
     /// <typeparam name="TResult">The type of the result.</typeparam>
@@ -421,7 +421,7 @@ public interface IScheduler
     /// after the function has been completed and returns the result of the supplied
     /// function. When this instance is stopped or the supplied
     /// <paramref name="cancellationToken"/> is canceled, the
-    /// <see cref="CancellationToken"/> supplied to the function will be cancelled.
+    /// <see cref="CancellationToken"/> supplied to the function will be canceled.
     /// </summary>
     /// <remarks>This method does not capture the current execution context.</remarks>
     /// <typeparam name="TResult">The type of the result.</typeparam>
@@ -586,7 +586,7 @@ public interface IScheduler
     /// <summary>
     /// Schedules the specified function to be executed. This method terminates
     /// after the function has been completed and returns the result of the supplied
-    /// function. When this instance is stopped  the <see cref="CancellationToken"/>
+    /// function. When this instance is stopped, the <see cref="CancellationToken"/>
     /// supplied to the function will be canceled.
     /// </summary>
     /// <remarks>This method does not capture the current execution context.</remarks>

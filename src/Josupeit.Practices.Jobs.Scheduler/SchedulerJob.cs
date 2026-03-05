@@ -21,7 +21,7 @@ public class SchedulerJob : Job
     /// Initializes a new instance of the <see cref="SchedulerJob"/> class.
     /// </summary>
     /// <param name="scheduler">The scheduler.</param>
-    /// <param name="startFunc">The start function that is being invoked when the job is started.</param>
+    /// <param name="startFunc">The start function that is invoked when the job is started.</param>
     /// <exception cref="System.ArgumentNullException">The <paramref name="scheduler"/> must not be <c>null</c>.</exception>
     /// <exception cref="System.ArgumentNullException">The <paramref name="startFunc"/> must not be <c>null</c>.</exception>
     public SchedulerJob(IScheduler scheduler, Func<CancellationToken, Task> startFunc)
@@ -41,7 +41,7 @@ public class SchedulerJob : Job
     }
 
     /// <summary>
-    /// This method is being called when the scheduler picks up and attempts to start this job.
+    /// This method is called when the scheduler picks up and attempts to start this job.
     /// </summary>
     protected virtual async Task StartCore()
     {
@@ -53,7 +53,7 @@ public class SchedulerJob : Job
         }
         catch (OperationCanceledException) when (CancellationToken.IsCancellationRequested)
         {
-            NotifyCancelled();
+            NotifyCanceled();
 
             return;
         }

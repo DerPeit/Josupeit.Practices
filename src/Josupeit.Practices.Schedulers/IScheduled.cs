@@ -12,7 +12,7 @@ public interface IScheduled
     /// </summary>
     /// <remarks>
     /// If cancellation has been requested before the scheduler started with the execution, the underlying
-    /// task was already transitioned to a cancelled state. So, scheduler should skip execution altogether
+    /// task was already transitioned to a canceled state. So, scheduler should skip execution altogether
     /// in this case.
     /// </remarks>
     /// <value><c>true</c> if cancellation is requested; otherwise, <c>false</c>.</value>

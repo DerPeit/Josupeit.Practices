@@ -11,7 +11,7 @@ public class ScheduledCancellableSyncFunctionTests
     private const int SENTINEL_RESULT = 42;
 
     [Test]
-    public void Precancelled_schedule_token_cancels_promise()
+    public void Precanceled_schedule_token_cancels_promise()
     {
         var callback = Substitute.For<Func<CancellationToken, int>>();
         var subject = new ScheduledCancellableSyncFunction<int>(callback, new CancellationToken(canceled: true), ExecutionContext.Capture());
@@ -22,7 +22,7 @@ public class ScheduledCancellableSyncFunctionTests
     }
 
     [Test]
-    public void Precancelled_schedule_token_makes_Decline_noop()
+    public void Precanceled_schedule_token_makes_Decline_noop()
     {
         var callback = Substitute.For<Func<CancellationToken, int>>();
         var subject = new ScheduledCancellableSyncFunction<int>(callback, new CancellationToken(canceled: true), ExecutionContext.Capture());
@@ -35,7 +35,7 @@ public class ScheduledCancellableSyncFunctionTests
     }
 
     [Test]
-    public void Precancelled_schedule_token_makes_Execute_noop(
+    public void Precanceled_schedule_token_makes_Execute_noop(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod)
     {
         var callback = Substitute.For<Func<CancellationToken, int>>();
@@ -74,7 +74,7 @@ public class ScheduledCancellableSyncFunctionTests
     }
 
     [Test]
-    public void Execute_with_cancelled_token_cancels_wait_without_invoking_callback(
+    public void Execute_with_canceled_token_cancels_wait_without_invoking_callback(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
         CancellationToken cancellationToken = default)
@@ -89,7 +89,7 @@ public class ScheduledCancellableSyncFunctionTests
     }
 
     [Test]
-    public void Execute_with_cancelled_token_cancels_promise_without_invoking_callback(
+    public void Execute_with_canceled_token_cancels_promise_without_invoking_callback(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
         CancellationToken cancellationToken = default)
@@ -356,7 +356,7 @@ public class ScheduledCancellableSyncFunctionTests
     }
 
     [Test, CancelAfter(500)]
-    public void Schedule_token_cancelled_before_execute_cancels_wait(
+    public void Schedule_token_canceled_before_execute_cancels_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
         CancellationToken cancellationToken = default)
@@ -377,7 +377,7 @@ public class ScheduledCancellableSyncFunctionTests
     }
 
     [Test, CancelAfter(500)]
-    public void Schedule_token_cancelled_before_execute_cancels_promise(
+    public void Schedule_token_canceled_before_execute_cancels_promise(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
         CancellationToken cancellationToken = default)

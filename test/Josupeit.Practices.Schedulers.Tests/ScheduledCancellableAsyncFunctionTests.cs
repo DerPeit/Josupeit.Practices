@@ -15,7 +15,7 @@ public class ScheduledCancellableAsyncFunctionTests
     private const int SENTINEL_RESULT = 42;
 
     [Test]
-    public void Precancelled_schedule_token_cancels_promise()
+    public void Precanceled_schedule_token_cancels_promise()
     {
         var callback = Substitute.For<Func<CancellationToken, Task<int>>>();
         var subject = new ScheduledCancellableAsyncFunction<int>(callback, new CancellationToken(canceled: true), ExecutionContext.Capture());
@@ -26,7 +26,7 @@ public class ScheduledCancellableAsyncFunctionTests
     }
 
     [Test]
-    public void Precancelled_schedule_token_makes_Decline_noop()
+    public void Precanceled_schedule_token_makes_Decline_noop()
     {
         var callback = Substitute.For<Func<CancellationToken, Task<int>>>();
         var subject = new ScheduledCancellableAsyncFunction<int>(callback, new CancellationToken(canceled: true), ExecutionContext.Capture());
@@ -39,7 +39,7 @@ public class ScheduledCancellableAsyncFunctionTests
     }
 
     [Test]
-    public void Precancelled_schedule_token_makes_Execute_noop(
+    public void Precanceled_schedule_token_makes_Execute_noop(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod)
     {
         var callback = Substitute.For<Func<CancellationToken, Task<int>>>();
@@ -78,7 +78,7 @@ public class ScheduledCancellableAsyncFunctionTests
     }
 
     [Test]
-    public void Execute_with_cancelled_token_cancels_wait_without_invoking_callback(
+    public void Execute_with_canceled_token_cancels_wait_without_invoking_callback(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
         CancellationToken cancellationToken = default)
@@ -93,7 +93,7 @@ public class ScheduledCancellableAsyncFunctionTests
     }
 
     [Test]
-    public void Execute_with_cancelled_token_cancels_promise_without_invoking_callback(
+    public void Execute_with_canceled_token_cancels_promise_without_invoking_callback(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
         CancellationToken cancellationToken = default)
@@ -356,7 +356,7 @@ public class ScheduledCancellableAsyncFunctionTests
     }
 
     [Test, CancelAfter(500)]
-    public void Schedule_token_cancelled_before_execute_cancels_wait(
+    public void Schedule_token_canceled_before_execute_cancels_wait(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
         CancellationToken cancellationToken = default)
@@ -377,7 +377,7 @@ public class ScheduledCancellableAsyncFunctionTests
     }
 
     [Test, CancelAfter(500)]
-    public void Schedule_token_cancelled_before_execute_cancels_promise(
+    public void Schedule_token_canceled_before_execute_cancels_promise(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
         CancellationToken cancellationToken = default)
@@ -608,7 +608,7 @@ public class ScheduledCancellableAsyncFunctionTests
     }
 
     [Test, CancelAfter(500)]
-    public async Task ExecuteAsync_with_incomplete_cancelled_task_and_execute_token_declines()
+    public async Task ExecuteAsync_with_incomplete_canceled_task_and_execute_token_declines()
     {
         var tcs = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
         var callback = Substitute.For<Func<CancellationToken, Task<int>>>();
@@ -626,7 +626,7 @@ public class ScheduledCancellableAsyncFunctionTests
     }
 
     [Test, CancelAfter(500)]
-    public async Task ExecuteAsync_with_incomplete_cancelled_task_and_schedule_token_cancels()
+    public async Task ExecuteAsync_with_incomplete_canceled_task_and_schedule_token_cancels()
     {
         var tcs = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
         var callback = Substitute.For<Func<CancellationToken, Task<int>>>();
@@ -645,7 +645,7 @@ public class ScheduledCancellableAsyncFunctionTests
     }
 
     [Test, CancelAfter(500)]
-    public async Task ExecuteAsync_with_incomplete_cancelled_task_cancels()
+    public async Task ExecuteAsync_with_incomplete_canceled_task_cancels()
     {
         var tcs = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
         var callback = Substitute.For<Func<CancellationToken, Task<int>>>();

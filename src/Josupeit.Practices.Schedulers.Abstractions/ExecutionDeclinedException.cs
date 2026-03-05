@@ -12,8 +12,8 @@ namespace Josupeit.Practices.Schedulers;
 public class ExecutionDeclinedException : InvalidOperationException
 {
     private const string MESSAGE = "After enqueuing, but prior to execution, the scheduler declined to process the operation. " +
-                                   "Likely, the scheduler has transitioned to a state which does no longer allow further processing. " +
-                                   "Maybe it was stopped meanwhile.";
+                                   "Likely, the scheduler has transitioned to a state that no longer allows further processing. " +
+                                   "It may have been stopped in the meantime.";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExecutionDeclinedException"/> class.

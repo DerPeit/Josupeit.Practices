@@ -19,7 +19,7 @@ public class TaskPoolJobWithProgress<TProgress> : JobWithProgress<TProgress>
     /// <summary>
     /// Initializes a new instance of the <see cref="TaskPoolJobWithProgress{TProgress}"/> class.
     /// </summary>
-    /// <param name="startFunc">The start function that is being invoked when the job is started.</param>
+    /// <param name="startFunc">The start function that is invoked when the job is started.</param>
     /// <exception cref="System.ArgumentNullException">The <paramref name="startFunc"/> must not be <c>null</c>.</exception>
     public TaskPoolJobWithProgress(Func<IProgress<TProgress>, CancellationToken, Task> startFunc)
     {
@@ -45,7 +45,7 @@ public class TaskPoolJobWithProgress<TProgress> : JobWithProgress<TProgress>
         }
         catch (TaskCanceledException) when (CancellationToken.IsCancellationRequested)
         {
-            NotifyCancelled();
+            NotifyCanceled();
 
             return;
         }

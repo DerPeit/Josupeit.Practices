@@ -83,7 +83,7 @@ public class QueryWithInputTests
     }
 
     [Test]
-    public void ExecuteAsync_does_not_call_Execute_when_cancelled_early()
+    public void ExecuteAsync_does_not_call_Execute_when_canceled_early()
     {
         var query = Substitute.ForPartsOf<Query<object, object>>();
 

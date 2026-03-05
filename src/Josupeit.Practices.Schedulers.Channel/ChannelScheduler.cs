@@ -175,7 +175,7 @@ public class ChannelScheduler : AsyncSchedulerService
     /// Consume items from the channel as an asynchronous operation.
     /// </summary>
     /// <remarks>
-    /// This method is being called when the scheduler is being started, once for every configured
+    /// This method is called when the scheduler is being started, once for every configured
     /// <see cref="ChannelSchedulerOptions.DegreeOfParallelism"/>.
     /// </remarks>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>

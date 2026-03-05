@@ -23,7 +23,7 @@ public abstract class JobBaseTests<TJob> where TJob : JobBase
         Assert.That(job.IsCompleted, Is.False);
         Assert.That(job.IsCompletedSuccessfully, Is.False);
         Assert.That(job.IsFaulted, Is.False);
-        Assert.That(job.IsCancelled, Is.False);
+        Assert.That(job.IsCanceled, Is.False);
         Assert.That(job.Exception, Is.Null);
     }
 
@@ -95,25 +95,25 @@ public abstract class JobBaseTests<TJob> where TJob : JobBase
     }
 
     [Test]
-    public void NotifyCancelled_sets_IsCancelled_IsCompleted_and_clears_IsPending_IsExecuting()
+    public void NotifyCanceled_sets_IsCanceled_IsCompleted_and_clears_IsPending_IsExecuting()
     {
         var job = CreateJob();
 
         job.InvokeMember("NotifyPending");
-        job.InvokeMember("NotifyCancelled");
+        job.InvokeMember("NotifyCanceled");
 
-        Assert.That(job.IsCancelled, Is.True);
+        Assert.That(job.IsCanceled, Is.True);
         Assert.That(job.IsCompleted, Is.True);
         Assert.That(job.IsPending, Is.False);
         Assert.That(job.IsExecuting, Is.False);
     }
 
     [Test]
-    public void NotifyCancelled_raises_Changed()
+    public void NotifyCanceled_raises_Changed()
     {
         var job = CreateJob();
 
-        job.InvokeMember("NotifyCancelled");
+        job.InvokeMember("NotifyCanceled");
 
         job.Received().InvokeMember("OnChanged");
     }
@@ -151,7 +151,7 @@ public abstract class JobBaseTests<TJob> where TJob : JobBase
     {
         var job = CreateJob();
 
-        job.InvokeMember("NotifyCancelled");
+        job.InvokeMember("NotifyCanceled");
 
         Assert.That(() => job.InvokeMember("ThrowIfCannotStart"), Throws.InstanceOf<InvalidOperationException>());
     }
@@ -169,7 +169,7 @@ public abstract class JobBaseTests<TJob> where TJob : JobBase
     {
         var job = CreateJob();
 
-        job.InvokeMember("NotifyCancelled");
+        job.InvokeMember("NotifyCanceled");
 
         Assert.That(() => job.InvokeMember("ThrowIfCannotCancel"), Throws.InstanceOf<InvalidOperationException>());
     }
@@ -187,7 +187,7 @@ public abstract class JobBaseTests<TJob> where TJob : JobBase
     {
         var job = CreateJob();
 
-        job.InvokeMember("NotifyCancelled");
+        job.InvokeMember("NotifyCanceled");
 
         Assert.That(() => job.Cancel(), Throws.InstanceOf<InvalidOperationException>());
     }
@@ -197,12 +197,12 @@ public abstract class JobBaseTests<TJob> where TJob : JobBase
     {
         var job = CreateJob();
         var token = (CancellationToken)job.InvokeMember("CancellationToken")!;
-        var cancelled = new ManualResetEventSlim();
+        var canceled = new ManualResetEventSlim();
 
-        token.Register(() => cancelled.Set());
+        token.Register(() => canceled.Set());
         job.Cancel();
 
-        Assert.That(cancelled.Wait(TimeSpan.FromSeconds(5)), Is.True);
+        Assert.That(canceled.Wait(TimeSpan.FromSeconds(5)), Is.True);
     }
 
     [Test]

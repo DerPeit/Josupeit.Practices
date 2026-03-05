@@ -37,7 +37,7 @@ public class ScheduledNonCancellableSyncFunctionTests
     }
 
     [Test]
-    public void Execute_with_cancelled_token_cancels_wait_without_invoking_callback(
+    public void Execute_with_canceled_token_cancels_wait_without_invoking_callback(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
         CancellationToken cancellationToken = default)
@@ -52,7 +52,7 @@ public class ScheduledNonCancellableSyncFunctionTests
     }
 
     [Test]
-    public void Execute_with_cancelled_token_cancels_promise_without_invoking_callback(
+    public void Execute_with_canceled_token_cancels_promise_without_invoking_callback(
         [ValueSource(nameof(ReturnExecuteThenExecuteAsync))] MethodInfo executeMethod,
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext,
         CancellationToken cancellationToken = default)

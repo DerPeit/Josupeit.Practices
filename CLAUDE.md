@@ -71,4 +71,5 @@ Libraries target netstandard2.0 as minimum, with netstandard2.1 where IAsyncDisp
 - Follow the rules in [CODING_STANDARDS.md](CODING_STANDARDS.md) for naming, style, member ordering, and general practices.
 - C# latest language version, nullable reference types enabled, implicit usings disabled.
 - Abstractions are in separate `*.Abstractions` projects with interface-only definitions.
+- Use American English spelling (e.g. "canceled", not "cancelled").
 - License: EUPL-1.2.

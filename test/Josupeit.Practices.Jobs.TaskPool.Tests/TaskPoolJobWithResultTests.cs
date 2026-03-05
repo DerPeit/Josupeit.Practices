@@ -72,7 +72,7 @@ public class TaskPoolJobWithResultTests
 
     [Test]
     [CancelAfter(5000)]
-    public void Start_cancels_when_token_cancelled()
+    public void Start_cancels_when_token_canceled()
     {
         var completed = new ManualResetEventSlim();
         var job = new TaskPoolJobWithResult<string>(Task.FromCanceled<string>);
@@ -87,7 +87,7 @@ public class TaskPoolJobWithResultTests
         job.Start();
 
         Assert.That(completed.Wait(TimeSpan.FromSeconds(5)), Is.True);
-        Assert.That(job.IsCancelled, Is.True);
+        Assert.That(job.IsCanceled, Is.True);
     }
 
     [Test]

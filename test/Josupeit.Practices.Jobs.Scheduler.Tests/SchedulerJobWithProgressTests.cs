@@ -49,7 +49,7 @@ public class SchedulerJobWithProgressTests
     }
 
     [Test]
-    public void Start_cancels_when_token_cancelled()
+    public void Start_cancels_when_token_canceled()
     {
         var scheduler = CreateImmediateScheduler();
         var job = new SchedulerJobWithProgress<string>(scheduler, (_, ct) => Task.FromCanceled(ct));
@@ -57,7 +57,7 @@ public class SchedulerJobWithProgressTests
         job.Cancel();
         job.Start();
 
-        Assert.That(job.IsCancelled, Is.True);
+        Assert.That(job.IsCanceled, Is.True);
     }
 
     [Test]

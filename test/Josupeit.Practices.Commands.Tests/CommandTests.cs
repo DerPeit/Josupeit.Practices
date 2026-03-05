@@ -71,7 +71,7 @@ public class CommandTests
     }
 
     [Test]
-    public void ExecuteAsync_does_not_call_Execute_when_cancelled_early()
+    public void ExecuteAsync_does_not_call_Execute_when_canceled_early()
     {
         var command = Substitute.ForPartsOf<Command>();
 

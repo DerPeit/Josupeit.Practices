@@ -32,8 +32,8 @@ internal sealed class ScheduledCancellableAsyncFunction<TResult> : IScheduledFun
 
         // If the cancellation token that was used in the IScheduler.Schedule call signals cancellation
         // before the scheduler picks it up and starts execution, we transition the underlying task
-        // to a cancelled state immediately. Otherwise, the call-site would have to wait until the
-        // scheduler starts executing and likely immediately cancelling it.
+        // to a canceled state immediately. Otherwise, the call-site would have to wait until the
+        // scheduler starts executing and likely immediately canceling it.
         _prematureCancellationRegistration = scheduleCancellationToken.Register(() => _taskCompletionSource!.TrySetCanceled(scheduleCancellationToken));
     }
 
@@ -44,7 +44,7 @@ internal sealed class ScheduledCancellableAsyncFunction<TResult> : IScheduledFun
     public void Decline()
     {
         if (_prematurePromise is not null)
-            return; // because this instance has already been created with a cancelled token.
+            return; // because this instance has already been created with a canceled token.
 
         _prematureCancellationRegistration?.Dispose();
         _prematureCancellationRegistration = null;
@@ -58,7 +58,7 @@ internal sealed class ScheduledCancellableAsyncFunction<TResult> : IScheduledFun
     public Task ExecuteAsync(CancellationToken executionCancellationToken)
     {
         if (_prematurePromise is not null)
-            return Task.CompletedTask; // because this instance has already been created with a cancelled token.
+            return Task.CompletedTask; // because this instance has already been created with a canceled token.
 
         _prematureCancellationRegistration?.Dispose();
         _prematureCancellationRegistration = null;

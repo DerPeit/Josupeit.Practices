@@ -34,7 +34,7 @@ public class ChannelSchedulerOptions
     /// Gets or sets the delay to wait for pending work gracefully when the scheduler is stopped.
     /// </summary>
     /// <remarks>
-    /// When this timeout has elapsed the work will be cancelled.<para />
+    /// When this timeout has elapsed the work will be canceled.<para />
     /// Set this value to zero (<c>0</c>) to cancel running work immediately when stopped.<para />
     /// Set this value to any negative value to wait for running work to complete infinitely.
     /// </remarks>

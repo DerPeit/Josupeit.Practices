@@ -37,7 +37,7 @@ public class SchedulerDefaultConstructorTests
     }
 
     [Test]
-    public void Schedule_with_cancelled_token_throws()
+    public void Schedule_with_canceled_token_throws()
     {
         using var cts = new CancellationTokenSource();
         cts.Cancel();
@@ -48,7 +48,7 @@ public class SchedulerDefaultConstructorTests
     }
 
     [Test]
-    public void ScheduleAsync_with_cancelled_token_is_cancelled()
+    public void ScheduleAsync_with_canceled_token_is_canceled()
     {
         using var cts = new CancellationTokenSource();
         cts.Cancel();

@@ -60,7 +60,7 @@ public class SchedulerJobWithResultTests
     }
 
     [Test]
-    public void Start_cancels_when_token_cancelled()
+    public void Start_cancels_when_token_canceled()
     {
         var scheduler = CreateImmediateScheduler();
         var job = new SchedulerJobWithResult<string>(scheduler, Task.FromCanceled<string>);
@@ -68,7 +68,7 @@ public class SchedulerJobWithResultTests
         job.Cancel();
         job.Start();
 
-        Assert.That(job.IsCancelled, Is.True);
+        Assert.That(job.IsCanceled, Is.True);
     }
 
     private static IScheduler CreateImmediateScheduler()

@@ -19,7 +19,7 @@ public class TaskPoolJobWithResult<TResult> : JobWithResult<TResult>
     /// <summary>
     /// Initializes a new instance of the <see cref="TaskPoolJobWithResult{TResult}"/> class.
     /// </summary>
-    /// <param name="startFunc">The start function that is being invoked when the job is started.</param>
+    /// <param name="startFunc">The start function that is invoked when the job is started.</param>
     /// <exception cref="System.ArgumentNullException">The <paramref name="startFunc"/> must not be <c>null</c>.</exception>
     public TaskPoolJobWithResult(Func<CancellationToken, Task<TResult>> startFunc)
     {
@@ -45,7 +45,7 @@ public class TaskPoolJobWithResult<TResult> : JobWithResult<TResult>
         }
         catch (TaskCanceledException) when (CancellationToken.IsCancellationRequested)
         {
-            NotifyCancelled();
+            NotifyCanceled();
 
             return;
         }

@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 namespace Josupeit.Practices.Jobs;
 
 /// <summary>
-/// This class is a base class for all kind of jobs.
+/// This class is a base class for all kinds of jobs.
 /// </summary>
 [PublicAPI]
 public abstract class JobBase
@@ -33,16 +33,16 @@ public abstract class JobBase
     public Exception? Exception { get; private set; }
 
     /// <summary>
-    /// Gets a value indicating whether this job is cancelled.
+    /// Gets a value indicating whether this job is canceled.
     /// </summary>
-    /// <value><c>true</c> if this job is cancelled; otherwise, <c>false</c>.</value>
-    public bool IsCancelled { get; private set; }
+    /// <value><c>true</c> if this job is canceled; otherwise, <c>false</c>.</value>
+    public bool IsCanceled { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether this job is completed.
     /// </summary>
     /// <value><c>true</c> if this job is completed; otherwise, <c>false</c>.</value>
-    /// <remarks>A job is completed when it is cancelled, faulted or completed successfully.</remarks>
+    /// <remarks>A job is completed when it is canceled, faulted or completed successfully.</remarks>
     public bool IsCompleted { get; private protected set; }
 
     /// <summary>
@@ -70,7 +70,7 @@ public abstract class JobBase
     public bool IsPending { get; private set; }
 
     /// <summary>
-    /// Gets a token that is cancelled when the job is cancelled.
+    /// Gets a token that is canceled when the job is canceled.
     /// </summary>
     /// <value>The cancellation token.</value>
     protected CancellationToken CancellationToken => _cancellation.Token;
@@ -149,27 +149,27 @@ public abstract class JobBase
 
     /// <summary>
     /// Sets the <see cref="IsPending" /> and <see cref="IsExecuting"/> properties to <c>false</c>, the
-    /// <see cref="IsCompleted" /> and <see cref="IsCancelled"/> properties to <c>true</c> and invokes
+    /// <see cref="IsCompleted" /> and <see cref="IsCanceled"/> properties to <c>true</c> and invokes
     /// the <see cref="Changed" /> event.
     /// </summary>
-    protected void NotifyCancelled()
+    protected void NotifyCanceled()
     {
         IsPending = false;
         IsCompleted = true;
         IsExecuting = false;
-        IsCancelled = true;
+        IsCanceled = true;
 
         OnChanged();
     }
 
     /// <summary>
-    /// Throws if the job currently cannot be cancelled.
+    /// Throws if the job currently cannot be canceled.
     /// </summary>
-    /// <exception cref="System.InvalidOperationException">The job cannot be cancelled because it already ran to completion.</exception>
+    /// <exception cref="System.InvalidOperationException">The job cannot be canceled because it already ran to completion.</exception>
     protected void ThrowIfCannotCancel()
     {
         if (IsCompleted)
-            throw new InvalidOperationException("The job cannot be cancelled because it already ran to completion.");
+            throw new InvalidOperationException("The job cannot be canceled because it already ran to completion.");
     }
 
     /// <summary>
