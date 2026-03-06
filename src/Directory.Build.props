@@ -10,7 +10,6 @@
     <Copyright>Manuel Josupeit-Walter</Copyright>
     <PackageLicenseExpression>EUPL-1.2</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateSBOM Condition="'$(IsPackable)' == 'true'">true</GenerateSBOM>
     <NeutralLanguage>en-US</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
@@ -19,6 +18,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.*">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+
     <PackageReference Include="Microsoft.Sbom.Targets" Version="*">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

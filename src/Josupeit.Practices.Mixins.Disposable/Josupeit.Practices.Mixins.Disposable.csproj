@@ -9,7 +9,6 @@
     <DevelopmentDependency>true</DevelopmentDependency>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
     <PackageId>Josupeit.Practices.Mixins.Disposable</PackageId>
-    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

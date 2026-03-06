@@ -7,6 +7,12 @@
       "commands": [
         "t4"
       ]
+    },
+    "nbgv": {
+      "version": "3.9.50",
+      "commands": [
+        "nbgv"
+      ]
     }
   }
 }
