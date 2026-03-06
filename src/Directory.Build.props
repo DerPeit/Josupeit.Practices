@@ -7,12 +7,16 @@
     <Authors>Manuel Josupeit-Walter</Authors>
     <Company>Manuel Josupeit-Walter, Freelancing Developer</Company>
     <Product>Manuel Josupeit-Walter, Practices and Patterns</Product>
-    <Copyright>Manuel Josupeit-Walter</Copyright>
+    <Copyright>© 2026 Manuel Josupeit-Walter</Copyright>
     <PackageLicenseExpression>EUPL-1.2</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>https://codeberg.org/DerPeit/Josupeit.Practices</PackageProjectUrl>
+    <RepositoryUrl>https://codeberg.org/DerPeit/Josupeit.Practices</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <GenerateSBOM Condition="'$(IsPackable)' == 'true'">true</GenerateSBOM>
-    <NeutralLanguage>en-US</NeutralLanguage>
+    <NeutralLanguage>en</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <IncludeSource>true</IncludeSource>
     <NoWarn>$(NoWarn);NETSDK1138;NETSDK1215;NU5104</NoWarn>
   </PropertyGroup>
