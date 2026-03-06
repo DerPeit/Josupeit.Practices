@@ -4,6 +4,8 @@
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Jobs</RootNamespace>
     <PackageId>Josupeit.Practices.Jobs.Core</PackageId>
+    <Description>Abstract base class for custom IJob implementations. Provides stable identity, state management, cancellation, the Changed event, and guard helpers for transition validation.</Description>
+    <PackageTags>job background-task base-classes patterns lifecycle</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

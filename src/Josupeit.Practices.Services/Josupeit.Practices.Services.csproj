@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Services</RootNamespace>
+    <Description>Background service lifecycle base classes with validated state transitions and optional pause support. Sync and async variants, with IDisposable and IAsyncDisposable combinations.</Description>
+    <PackageTags>service lifecycle background-service base-classes patterns disposable</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

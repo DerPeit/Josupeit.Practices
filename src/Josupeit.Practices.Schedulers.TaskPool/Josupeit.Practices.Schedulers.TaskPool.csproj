@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Schedulers</RootNamespace>
+    <Description>Thread pool IScheduler implementation for fire-and-go workloads. No lifecycle overhead — dispatches actions and functions to the thread pool immediately.</Description>
+    <PackageTags>scheduler thread-pool concurrency patterns</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
