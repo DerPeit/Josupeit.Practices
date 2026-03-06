@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Josupeit.Practices.Jobs\Josupeit.Practices.Jobs.csproj" />
+    <ProjectReference Include="..\Josupeit.Practices.Jobs\Josupeit.Practices.Jobs.csproj" PackageVersion="[1-0,2)" />
   </ItemGroup>
 
 </Project>

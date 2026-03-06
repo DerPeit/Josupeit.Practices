@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Josupeit.Practices.Commands.Abstractions\Josupeit.Practices.Commands.Abstractions.csproj" />
+    <ProjectReference Include="..\Josupeit.Practices.Commands.Abstractions\Josupeit.Practices.Commands.Abstractions.csproj" PackageVersion="[1-0,2)" />
   </ItemGroup>
 
 </Project>

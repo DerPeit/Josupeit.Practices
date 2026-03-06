@@ -14,7 +14,7 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
     <IncludeSource>true</IncludeSource>
-    <NoWarn>$(NoWarn);NETSDK1138;NETSDK1215</NoWarn>
+    <NoWarn>$(NoWarn);NETSDK1138;NETSDK1215;NU5104</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

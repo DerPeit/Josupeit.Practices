@@ -42,4 +42,21 @@
     <Delete Files="@(TextTemplate->'%(DestinationRelativePath)')" />
   </Target>
 
+  <!--
+    Applies the PackageVersion attribute from each ProjectReference to the corresponding
+    _ProjectReferencesWithVersions item that NuGet uses when generating the .nuspec file.
+    "~" is a placeholder that is replaced at runtime with the referenced project's resolved version.
+    Source: https://stackoverflow.com/a/73098203
+  -->
+  <Target Name="UseExplicitPackageVersions" BeforeTargets="GenerateNuspec">
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Condition="'%(FullPath)' != ''">
+        <PackageVersion>@(ProjectReference->'%(PackageVersion)')</PackageVersion>
+      </_ProjectReferencesWithVersions>
+      <_ProjectReferencesWithVersions Condition="'%(Identity)' != '' And '%(PackageVersion)' != ''">
+        <ProjectVersion>$([System.String]::new('%(PackageVersion)').Replace('~',%(ProjectVersion)))</ProjectVersion>
+      </_ProjectReferencesWithVersions>
+    </ItemGroup>
+  </Target>
+
 </Project>

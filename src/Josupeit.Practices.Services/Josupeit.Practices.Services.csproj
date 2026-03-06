@@ -8,7 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Josupeit.Practices.Mixins.Disposable.Generator\Josupeit.Practices.Mixins.Disposable.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Josupeit.Practices.Mixins.Disposable.Analyzer\Josupeit.Practices.Mixins.Disposable.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\Josupeit.Practices.Services.Abstractions\Josupeit.Practices.Services.Abstractions.csproj" />
+    <ProjectReference Include="..\Josupeit.Practices.Services.Abstractions\Josupeit.Practices.Services.Abstractions.csproj" PackageVersion="[1-0,2)" />
   </ItemGroup>
 
 </Project>

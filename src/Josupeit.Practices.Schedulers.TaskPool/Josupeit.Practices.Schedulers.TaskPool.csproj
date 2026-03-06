@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Josupeit.Practices.Schedulers\Josupeit.Practices.Schedulers.csproj" />
+    <ProjectReference Include="..\Josupeit.Practices.Schedulers\Josupeit.Practices.Schedulers.csproj" PackageVersion="[1-0,2)" />
   </ItemGroup>
 
 </Project>
