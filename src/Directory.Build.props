@@ -16,6 +16,7 @@
     <RepositoryUrl>https://codeberg.org/DerPeit/Josupeit.Practices</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile Condition="Exists('README.md')">README.md</PackageReadmeFile>
+    <PackageIcon>Icon.png</PackageIcon>
     <GenerateSBOM Condition="'$(IsPackable)' == 'true'">true</GenerateSBOM>
     <NeutralLanguage>en</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
@@ -27,6 +28,7 @@
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')" />
     <None Include="$(MSBuildThisFileDirectory)..\LICENSE.md" Pack="true" PackagePath="\" Link="LICENSE.md" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\Icon.png" Pack="true" PackagePath="\" Link="Icon.png" Visible="false" />
 
     <PackageReference Include="Nerdbank.GitVersioning" Version="3.*">
       <PrivateAssets>all</PrivateAssets>
