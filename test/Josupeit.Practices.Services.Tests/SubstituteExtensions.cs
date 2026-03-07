@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+using System.Linq;
 using System.Reflection;
 
 namespace Josupeit.Practices.Services.Tests;

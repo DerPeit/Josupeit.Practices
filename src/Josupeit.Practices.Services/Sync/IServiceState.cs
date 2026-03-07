@@ -1,4 +1,7 @@
-﻿namespace Josupeit.Practices.Services;
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+namespace Josupeit.Practices.Services;
 
 internal interface IServiceState
 {

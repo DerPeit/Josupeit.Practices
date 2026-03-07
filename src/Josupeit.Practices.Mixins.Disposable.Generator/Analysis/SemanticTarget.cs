@@ -1,4 +1,7 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Josupeit.Practices.Mixins.Disposable.Generator.Analysis;
 

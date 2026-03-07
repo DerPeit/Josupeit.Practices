@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
 #if NETSTANDARD2_1 || NETCOREAPP3_0_OR_GREATER
 
 using System;

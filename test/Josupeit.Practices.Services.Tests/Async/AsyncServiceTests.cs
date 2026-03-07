@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using NSubstitute.Core;
 

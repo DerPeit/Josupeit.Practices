@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
 using System.Threading.Tasks;
 using Josupeit.Practices.Mixins.Disposable.Analyzer;
 using Josupeit.Practices.Mixins.Disposable.Tests.Verifiers;

@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+using System.IO;
 using System.Text;
 using System.Threading;
 using Josupeit.Practices.Mixins.Disposable.Generator.Analysis;
