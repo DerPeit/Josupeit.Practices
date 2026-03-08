@@ -19,25 +19,58 @@ public abstract class Specification<TCandidate>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private volatile bool _isRecursing;
 
+    /// <summary>
+    /// Returns <c>false</c>; enables the use of a specification in a short-circuit boolean <c>&amp;&amp;</c> or <c>||</c> expression.
+    /// </summary>
+    /// <param name="_">The specification (unused).</param>
+    /// <returns><c>false</c>.</returns>
     public static bool operator true(Specification<TCandidate> _) => false;
-    
+
+    /// <summary>
+    /// Returns <c>false</c>; enables the use of a specification in a short-circuit boolean <c>&amp;&amp;</c> or <c>||</c> expression.
+    /// </summary>
+    /// <param name="_">The specification (unused).</param>
+    /// <returns><c>false</c>.</returns>
     public static bool operator false(Specification<TCandidate> _) => false;
 
+    /// <summary>
+    /// Combines two specifications with a logical AND.
+    /// </summary>
+    /// <param name="left">The left specification.</param>
+    /// <param name="right">The right specification.</param>
+    /// <returns>A specification that is satisfied only when both <paramref name="left"/> and <paramref name="right"/> are satisfied.</returns>
     public static Specification<TCandidate> operator &(Specification<TCandidate> left, Specification<TCandidate> right)
         => new AndSpecification<TCandidate>(
             left ?? throw new ArgumentNullException(nameof(left)),
             right ?? throw new ArgumentNullException(nameof(right)));
 
+    /// <summary>
+    /// Combines two specifications with a logical OR.
+    /// </summary>
+    /// <param name="left">The left specification.</param>
+    /// <param name="right">The right specification.</param>
+    /// <returns>A specification that is satisfied when either <paramref name="left"/> or <paramref name="right"/> is satisfied.</returns>
     public static Specification<TCandidate> operator |(Specification<TCandidate> left, Specification<TCandidate> right)
         => new OrSpecification<TCandidate>(
             left ?? throw new ArgumentNullException(nameof(left)),
             right ?? throw new ArgumentNullException(nameof(right)));
 
+    /// <summary>
+    /// Combines two specifications with a logical exclusive OR (XOR).
+    /// </summary>
+    /// <param name="left">The left specification.</param>
+    /// <param name="right">The right specification.</param>
+    /// <returns>A specification that is satisfied when exactly one of <paramref name="left"/> or <paramref name="right"/> is satisfied.</returns>
     public static Specification<TCandidate> operator ^(Specification<TCandidate> left, Specification<TCandidate> right)
         => new XorSpecification<TCandidate>(
             left ?? throw new ArgumentNullException(nameof(left)),
             right ?? throw new ArgumentNullException(nameof(right)));
 
+    /// <summary>
+    /// Negates a specification.
+    /// </summary>
+    /// <param name="operand">The specification to negate.</param>
+    /// <returns>A specification that is satisfied when <paramref name="operand"/> is not satisfied.</returns>
     public static Specification<TCandidate> operator !(Specification<TCandidate> operand)
         => new NotSpecification<TCandidate>(
             operand ?? throw new ArgumentNullException(nameof(operand)));

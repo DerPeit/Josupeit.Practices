@@ -17,7 +17,7 @@ public static class RethrowExtensions
     /// Re-throws the exception, if the particular job is faulted.
     /// </summary>
     /// <param name="job">The job.</param>
-    /// <exception cref="System.ArgumentNullException">The <param name="job" /> must not be <c>null</c>.</exception>
+    /// <exception cref="System.ArgumentNullException">The <paramref name="job" /> must not be <c>null</c>.</exception>
     public static void ThrowIfFaulted(this IJob job)
     {
         if (job == null)

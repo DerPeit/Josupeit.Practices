@@ -71,6 +71,7 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
     if (wantsAsyncEnqueueMethod)
     {
 #>
+    /// <summary>Initializes a new instance of the <see cref="<#= className #>"/> class.</summary>
     protected <#= className #>()
     {
         _scheduledFactory = new ScheduledFactory();
@@ -81,6 +82,7 @@ foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisp
     else
     {
 #>
+    /// <summary>Initializes a new instance of the <see cref="<#= className #>"/> class.</summary>
     protected <#= className #>()
     {
         _scheduledFactory = new ScheduledFactory();

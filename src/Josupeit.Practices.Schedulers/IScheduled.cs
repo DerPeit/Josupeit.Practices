@@ -7,6 +7,9 @@ using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Schedulers;
 
+/// <summary>
+/// Represents a scheduled action that an <see cref="IScheduler"/> will execute or decline.
+/// </summary>
 [PublicAPI]
 public interface IScheduled
 {
