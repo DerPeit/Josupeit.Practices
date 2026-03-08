@@ -3,12 +3,15 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Services</RootNamespace>
+    <Description>Background service lifecycle base classes with validated state transitions and optional pause support. Sync and async variants, with IDisposable and IAsyncDisposable combinations.</Description>
+    <PackageTags>service lifecycle background-service base-classes patterns disposable</PackageTags>
+    <PackageVersionTagPrefix>Services/v</PackageVersionTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Josupeit.Practices.Mixins.Disposable.Generator\Josupeit.Practices.Mixins.Disposable.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Josupeit.Practices.Mixins.Disposable.Analyzer\Josupeit.Practices.Mixins.Disposable.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\Josupeit.Practices.Services.Abstractions\Josupeit.Practices.Services.Abstractions.csproj" />
+    <ProjectReference Include="..\Josupeit.Practices.Services.Abstractions\Josupeit.Practices.Services.Abstractions.csproj" PackageVersion="[1-0,2)" />
   </ItemGroup>
 
 </Project>

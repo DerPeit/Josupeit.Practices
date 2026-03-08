@@ -3,6 +3,9 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Commands</RootNamespace>
+    <Description>CQRS command and query interfaces covering all combinations of input, output, and query purity. Every interface exposes both synchronous and asynchronous execution paths.</Description>
+    <PackageTags>cqrs command query abstractions interfaces patterns</PackageTags>
+    <PackageVersionTagPrefix>Commands.Abstractions/v</PackageVersionTagPrefix>
   </PropertyGroup>
 
 </Project>

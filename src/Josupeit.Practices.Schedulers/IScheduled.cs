@@ -1,9 +1,15 @@
-﻿using System.Threading;
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Schedulers;
 
+/// <summary>
+/// Represents a scheduled action that an <see cref="IScheduler"/> will execute or decline.
+/// </summary>
 [PublicAPI]
 public interface IScheduled
 {

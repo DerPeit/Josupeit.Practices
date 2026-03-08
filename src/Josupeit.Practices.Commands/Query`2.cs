@@ -1,4 +1,7 @@
-﻿using System;
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -12,7 +15,7 @@ namespace Josupeit.Practices.Commands;
 /// <typeparam name="TOutput">The type of the result.</typeparam>
 /// <seealso cref="IQuery{TInput, TOutput}" />
 /// <remarks>
-/// Although this class is almost the same as the <see cref="CommandWithResult{TInput, TOutput}"/> class,
+/// Although this class is almost the same as the <see cref="CommandWithOutput{TInput, TOutput}"/> class,
 /// implementations of it are not expected to apply any observable state changes, i.e. implementations of the
 /// execution methods must be pure.
 /// </remarks>

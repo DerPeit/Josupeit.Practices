@@ -28,8 +28,6 @@ dotnet test --filter "FullyQualifiedName~MyTestName"
 dotnet tool restore
 ```
 
-NuGet packages are generated on build (`GeneratePackageOnBuild`).
-
 ## Architecture
 
 This is a .NET class library solution providing reusable patterns. It is organized into `src/` (18 library projects) and `test/` (5 test projects).

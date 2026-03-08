@@ -1,4 +1,7 @@
-﻿#if !JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_ATTRIBUTES
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+#if !JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_ATTRIBUTES
 
 namespace Microsoft.CodeAnalysis
 {

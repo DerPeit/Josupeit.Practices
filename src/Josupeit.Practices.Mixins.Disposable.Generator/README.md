@@ -1,21 +1,21 @@
-# Josupeit.Practice.Disposables.Mixins
+# Josupeit.Practices.Mixins.Disposable.Generator
 
-This project is a source-generator that creates a disposable implementation to partial classes decorated with the
-`[DisposableMixin]` attribute. Its behavior can be customized.
+This is the Roslyn incremental source generator that powers `[DisposableMixin]`. It reads annotated class declarations at compile time and emits a `partial` class file containing the full `IDisposable` and `IAsyncDisposable` implementation — no runtime reflection, no base class requirement.
+
+You do not reference this project directly. Install the meta-package `Josupeit.Practices.Mixins.Disposable` instead; it bundles this generator and the companion analyzer together as a development dependency.
 
 ## Getting started
 
-1. Add the `[DisposableMixin]` attribute to a class.
-2. Implement the methods `DisposeManagedResources` and `DisposeManagedResourcesAsync` if the class owns managed
-   resources (i.e. other disposable instances).
-3. Implement the method `DisposeUnmanagedResources` if the class owns unmanaged resources (e.g. file handles).
-4. Ensure to call the method `ThrowIfDisposed` on the public api surface.
+1. Add `[DisposableMixin]` to a `partial` class.
+2. Override `DisposeManagedResources` and/or `DisposeManagedResourcesAsync` for managed resources (other disposable instances).
+3. Override `DisposeUnmanagedResources` for unmanaged resources such as file handles or raw pointers.
+4. Call `ThrowIfDisposed()` at the start of every public method to guard against post-disposal use.
 
 ## Example
 
 ```csharp
 [DisposableMixin]
-public class MyService
+public partial class MyService
 {
     private readonly Stream _tempFile = File.OpenWrite(Path.GetTempFileName());
 
@@ -40,33 +40,22 @@ public class MyService
 
 ## Behavior
 
-The generator creates implementations for `IDisposable` *and* `IAsyncDisposable` by default on supported
-platforms. This is an explicit design decision. Nowadays, most of the CLR types implement both interfaces and it
-it quite a hazzle to additionaly add an implemenation for either interface when a base class implements only one
-(see limitations).
+The generator produces implementations for both `IDisposable` and `IAsyncDisposable` by default on platforms that support it (netstandard2.1 and later). This is an explicit design decision. Most BCL types implement both interfaces, and having only one of them forces callers into awkward synchronous fallbacks or `async void` hacks. Generating both by default avoids that problem entirely.
 
 ## Limitations
 
-### The mixin works only on classes.
+### The mixin works only on classes
 
-It was considered to add support for structs, but this has been abandoned, because it implies many caveats
-that lead to strange behavior:
+Struct support was considered and rejected because of several unavoidable issues:
 
-1. **Structs are being copied.** So if you pass it to a method and inside that method attach an event handler, the handler
-    is no longer visible at the call-side. We would have to add a reference to the struct to enable events which
-    would imply heap allocations which might be undesired.
-2. **Structs can be read-only.** This either disabled idempotency entirely or, again, would imply heap allocations.
-3. **Structs can be ref-structs.** These often cannot implement interfaces (dependent to language version).
-    
-All this creates lots of additional code. In contrast, disposable structs are rarely seen in the wild, so they
-are just unsupported.
+1. **Structs are copied.** Event handlers attached inside a called method become invisible at the call site because they operate on a copy.
+2. **Structs can be read-only.** Supporting idempotency on a read-only struct would require heap allocation.
+3. **Structs can be ref structs.** These often cannot implement interfaces at all, depending on the language version.
 
-### The mixin does not work on classes derived from other classes that implement `IDisposable` or `IAsyncDisposable`.
+Disposable structs are rare enough in practice that they are simply unsupported.
 
-There are dozens of `IDisposable` implementations in the wild. If they are done right (which is not always the case)
-they have hooks for deriving classes to cleanup ressources owned by the deriving implementation. However, it's hard
-to detect and hook into multiple implementations. Developers should instead utilize these hooks themselves to achieve
-the desired behavior. Also, if a base class implements only `IDisposable` or `IAsyncDisposable` and you want to implement
-the counterpart it's almost impossible to invoke sync cleanup from an added async implementation and vice versa.
+### The mixin does not work on classes that already inherit a disposable base
 
-Since these cases are considered edge-cases which required much work to implement, this is just unsupported.
+When a base class already implements `IDisposable` or `IAsyncDisposable`, that base class provides hooks (typically `protected virtual void Dispose(bool)`) for derived classes to release their own resources. The generator cannot reliably detect and integrate with the many different hook patterns that exist in the wild. If you are in this situation, use the base class's existing hook directly rather than applying `[DisposableMixin]`.
+
+For diagnostics and code fixes related to these rules, see the [Analyzer README](../Josupeit.Practices.Mixins.Disposable.Analyzer/README.md).

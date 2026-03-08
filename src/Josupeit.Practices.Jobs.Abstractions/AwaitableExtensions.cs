@@ -1,4 +1,7 @@
-﻿using System;
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+using System;
 using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Jobs;
@@ -14,7 +17,7 @@ public static class AwaitableExtensions
     /// </summary>
     /// <param name="job">The job.</param>
     /// <returns>A job awaiter.</returns>
-    /// <exception cref="System.ArgumentNullException">The <param name="job" /> must not be <c>null</c>.</exception>
+    /// <exception cref="System.ArgumentNullException">The <paramref name="job" /> must not be <c>null</c>.</exception>
     [System.Diagnostics.Contracts.Pure]
     public static IJobAwaiter GetAwaiter(this IJob job)
     {
@@ -31,7 +34,7 @@ public static class AwaitableExtensions
     /// This method does not throw if the job is canceled or faulted.
     /// </remarks>
     /// <param name="job">The job.</param>
-    /// <exception cref="System.ArgumentNullException">The <param name="job" /> must not be <c>null</c>.</exception>
+    /// <exception cref="System.ArgumentNullException">The <paramref name="job" /> must not be <c>null</c>.</exception>
     public static void Wait(this IJob job)
     {
         if (job == null)

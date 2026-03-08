@@ -1,4 +1,7 @@
-﻿using Josupeit.Practices.Services;
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+using Josupeit.Practices.Services;
 
 namespace Josupeit.Practices.Schedulers.Tests;
 

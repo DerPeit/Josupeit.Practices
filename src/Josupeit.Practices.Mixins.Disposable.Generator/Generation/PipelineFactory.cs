@@ -1,4 +1,7 @@
-﻿using Josupeit.Practices.Mixins.Disposable.Generator.Analysis;
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+using Josupeit.Practices.Mixins.Disposable.Generator.Analysis;
 
 namespace Josupeit.Practices.Mixins.Disposable.Generator.Generation;
 

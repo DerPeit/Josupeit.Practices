@@ -1,4 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Jobs;

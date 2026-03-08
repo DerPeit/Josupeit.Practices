@@ -1,4 +1,7 @@
-﻿using System.Threading;
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Josupeit.Practices.Schedulers;

@@ -1,4 +1,7 @@
-﻿using JetBrains.Annotations;
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Schedulers.Tests;
 

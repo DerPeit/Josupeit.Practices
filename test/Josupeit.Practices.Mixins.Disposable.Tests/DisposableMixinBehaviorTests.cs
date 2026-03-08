@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;

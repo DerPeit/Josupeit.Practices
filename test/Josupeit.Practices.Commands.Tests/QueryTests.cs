@@ -1,4 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) Manuel Josupeit-Walter
+
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace Josupeit.Practices.Commands.Tests;

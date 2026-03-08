@@ -4,18 +4,40 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Authors>Manuel Josupeit-Walter</Authors>
     <Company>Manuel Josupeit-Walter, Freelancing Developer</Company>
     <Product>Manuel Josupeit-Walter, Practices and Patterns</Product>
-    <Copyright>Manuel Josupeit-Walter</Copyright>
+    <Copyright>© 2026 Manuel Josupeit-Walter</Copyright>
     <PackageLicenseExpression>EUPL-1.2</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <NeutralLanguage>en-US</NeutralLanguage>
+    <PackageProjectUrl>https://codeberg.org/DerPeit/Josupeit.Practices</PackageProjectUrl>
+    <RepositoryUrl>https://codeberg.org/DerPeit/Josupeit.Practices</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile Condition="Exists('README.md')">README.md</PackageReadmeFile>
+    <PackageIcon>Icon.png</PackageIcon>
+    <GenerateSBOM Condition="'$(IsPackable)' == 'true'">true</GenerateSBOM>
+    <NeutralLanguage>en</NeutralLanguage>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Deterministic>true</Deterministic>
     <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <IncludeSource>true</IncludeSource>
-    <NoWarn>$(NoWarn);NETSDK1138;NETSDK1215</NoWarn>
+    <NoWarn>$(NoWarn);NETSDK1138;NETSDK1215;NU5104</NoWarn>
+    <PackageVersionTagPrefix />
+    <PackageReleaseNotesGitPath>. ../Directory.Build.props ../Directory.Build.targets</PackageReleaseNotesGitPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')" />
+    <None Include="$(MSBuildThisFileDirectory)..\LICENSE.md" Pack="true" PackagePath="\" Link="LICENSE.md" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\Icon.png" Pack="true" PackagePath="\" Link="Icon.png" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <SourceLinkGiteaHost Include="codeberg.org" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="*">
@@ -26,7 +48,19 @@
     <PackageReference Include="JetBrains.Annotations" Version="*">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-
+    
+    <PackageReference Include="Microsoft.Sbom.Targets" Version="*">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    
+    <PackageReference Include="Microsoft.SourceLink.Gitea" Version="*">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.*">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    
     <PackageReference Include="PolySharp" Version="*">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
