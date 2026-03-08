@@ -19,6 +19,7 @@
     <PackageIcon>Icon.png</PackageIcon>
     <GenerateSBOM Condition="'$(IsPackable)' == 'true'">true</GenerateSBOM>
     <NeutralLanguage>en</NeutralLanguage>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <IncludeSource>true</IncludeSource>
@@ -29,15 +30,13 @@
     <None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')" />
     <None Include="$(MSBuildThisFileDirectory)..\LICENSE.md" Pack="true" PackagePath="\" Link="LICENSE.md" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\Icon.png" Pack="true" PackagePath="\" Link="Icon.png" Visible="false" />
+  </ItemGroup>
 
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.*">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+  <ItemGroup>
+    <SourceLinkGiteaHost Include="codeberg.org" />
+  </ItemGroup>
 
-    <PackageReference Include="Microsoft.Sbom.Targets" Version="*">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-
+  <ItemGroup>
     <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="*">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -46,7 +45,19 @@
     <PackageReference Include="JetBrains.Annotations" Version="*">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-
+    
+    <PackageReference Include="Microsoft.Sbom.Targets" Version="*">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    
+    <PackageReference Include="Microsoft.SourceLink.Gitea" Version="*">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.*">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    
     <PackageReference Include="PolySharp" Version="*">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
