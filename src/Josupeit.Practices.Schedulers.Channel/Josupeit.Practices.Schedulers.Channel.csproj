@@ -5,6 +5,7 @@
     <RootNamespace>Josupeit.Practices.Schedulers</RootNamespace>
     <Description>Channel-backed IScheduler with FIFO ordering, configurable parallelism, back-pressure, and pause/resume support. Built on System.Threading.Channels.</Description>
     <PackageTags>scheduler channel concurrency fifo background-service patterns</PackageTags>
+    <PackageVersionTagPrefix>Schedulers.Channel/v</PackageVersionTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>

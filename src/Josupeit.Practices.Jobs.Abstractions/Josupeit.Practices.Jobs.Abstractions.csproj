@@ -5,6 +5,7 @@
     <RootNamespace>Josupeit.Practices.Jobs</RootNamespace>
     <Description>Job lifecycle interfaces for observable background operations with results, progress reporting, cancellation, and direct awaiting support.</Description>
     <PackageTags>job background-task observable lifecycle abstractions interfaces patterns</PackageTags>
+    <PackageVersionTagPrefix>Jobs.Abstractions/v</PackageVersionTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>

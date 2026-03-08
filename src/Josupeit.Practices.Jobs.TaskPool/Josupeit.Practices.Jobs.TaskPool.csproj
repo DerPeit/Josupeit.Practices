@@ -5,6 +5,7 @@
     <RootNamespace>Josupeit.Practices.Jobs</RootNamespace>
     <Description>Thread pool IJobFactory implementation. Creates observable jobs with support for results, progress reporting, and cancellation — no scheduler setup required.</Description>
     <PackageTags>job background-task thread-pool observable patterns</PackageTags>
+    <PackageVersionTagPrefix>Jobs.TaskPool/v</PackageVersionTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>

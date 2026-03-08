@@ -6,6 +6,7 @@
     <PackageId>Josupeit.Practices.Schedulers.Core</PackageId>
     <Description>Abstract base classes for building custom IScheduler implementations. Reduces the full IScheduler API to a single Enqueue or EnqueueAsync override with all sync/async bridging handled.</Description>
     <PackageTags>scheduler base-classes patterns concurrency</PackageTags>
+    <PackageVersionTagPrefix>Schedulers.Core/v</PackageVersionTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>

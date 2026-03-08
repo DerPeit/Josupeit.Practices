@@ -5,6 +5,7 @@
     <RootNamespace>Josupeit.Practices.Commands</RootNamespace>
     <Description>CQRS command and query base classes. Implement only one execution path — sync or async — and the other is bridged automatically. Detects and reports unintended mutual recursion.</Description>
     <PackageTags>cqrs command query base-classes patterns</PackageTags>
+    <PackageVersionTagPrefix>Commands/v</PackageVersionTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>

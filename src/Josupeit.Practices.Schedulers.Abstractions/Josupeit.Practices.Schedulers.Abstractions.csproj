@@ -5,6 +5,7 @@
     <RootNamespace>Josupeit.Practices.Schedulers</RootNamespace>
     <Description>IScheduler abstraction for decoupling work submission from execution strategy. Covers sync and async actions, functions, and cancellable variants across three scheduling families.</Description>
     <PackageTags>scheduler abstractions interfaces patterns concurrency</PackageTags>
+    <PackageVersionTagPrefix>Schedulers.Abstractions/v</PackageVersionTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>

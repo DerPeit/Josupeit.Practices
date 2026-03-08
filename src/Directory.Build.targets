@@ -10,7 +10,6 @@
       only runs in multi-targeted projects, which is the reason for the complicated setup. The outer build order is reversed
       in the "after" targets — they run first there, so we can rely on this in the clean target.
     -->
-
     <IsMultiTargeted>false</IsMultiTargeted>
     <IsOuterBuild>false</IsOuterBuild>
 
@@ -40,6 +39,45 @@
 
   <Target Name="TextTemplateClean" AfterTargets="Clean" Condition="$(IsOuterBuild)">
     <Delete Files="@(TextTemplate->'%(DestinationRelativePath)')" />
+  </Target>
+
+  <!--
+    Automatically generates PackageReleaseNotes from git commit subjects
+    touching this project's path(s), scoped to commits since the previous
+    release tag. Requires git in PATH; failures are silently ignored.
+  -->
+  <Target Name="GeneratePackageReleaseNotes" BeforeTargets="GenerateNuspec"
+          Condition="'$(IsPackable)' == 'true' AND '$(PackageVersionTagPrefix)' != ''">
+
+    <PropertyGroup>
+      <_NullDevice Condition="'$(OS)' == 'Windows_NT'">nul</_NullDevice>
+      <_NullDevice Condition="'$(OS)' != 'Windows_NT'">/dev/null</_NullDevice>
+
+      <_GitFormatPercent Condition="'$(OS)' == 'Windows_NT'">%%</_GitFormatPercent>
+      <_GitFormatPercent Condition="'$(OS)' != 'Windows_NT'">%</_GitFormatPercent>
+    </PropertyGroup>
+
+    <Exec Command="git describe --tags --match &quot;$(PackageVersionTagPrefix)*&quot; --abbrev=0 2&gt;$(_NullDevice)"
+          ConsoleToMSBuild="true"
+          IgnoreExitCode="true"
+          WorkingDirectory="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_PreviousReleaseTag" />
+    </Exec>
+
+    <PropertyGroup>
+      <_PreviousReleaseTag>$(_PreviousReleaseTag.Trim())</_PreviousReleaseTag>
+
+      <_ReleaseNotesRange Condition="'$(_PreviousReleaseTag)' != ''">$(_PreviousReleaseTag)..HEAD</_ReleaseNotesRange>
+      <_ReleaseNotesRange Condition="'$(_PreviousReleaseTag)' == ''">HEAD</_ReleaseNotesRange>
+    </PropertyGroup>
+
+    <Exec Command="git log --pretty=format:&quot;- $(_GitFormatPercent)s&quot; $(_ReleaseNotesRange) -- $(PackageReleaseNotesGitPath)"
+          ConsoleToMSBuild="true"
+          IgnoreExitCode="true"
+          WorkingDirectory="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="ConsoleOutput" PropertyName="PackageReleaseNotes" />
+    </Exec>
+
   </Target>
 
   <!--
