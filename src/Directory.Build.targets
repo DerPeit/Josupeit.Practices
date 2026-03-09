@@ -24,7 +24,8 @@
       <DestinationRelativePath>%(RelativeDir)%(Filename).g.cs</DestinationRelativePath>
     </TextTemplate>
 
-    <Compile Update="@(TextTemplate->'%(DestinationRelativePath)')">
+    <Compile Remove="@(TextTemplate->'%(DestinationRelativePath)')" />
+    <Compile Include="@(TextTemplate->'%(DestinationRelativePath)')">
       <DependentUpon>%(TextTemplate.SourceFilename)</DependentUpon>
     </Compile>
   </ItemGroup>
