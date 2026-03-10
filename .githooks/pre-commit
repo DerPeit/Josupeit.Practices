@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook: ensures every staged .cs file has a license header with the
+# current contributor listed. Uses git user.name for the copyright holder.
+#
+# Header format:
+#   // SPDX-License-Identifier: EUPL-1.2
+#   // Copyright (c) <Name>
+#   // Copyright (c) <Another Name>
+#
+#   <code>
+
+SPDX_LINE="// SPDX-License-Identifier: EUPL-1.2"
+COPYRIGHT_PREFIX="// Copyright (c) "
+CONTRIBUTOR=$(git config user.name)
+
+if [ -z "$CONTRIBUTOR" ]; then
+    echo "ERROR: git user.name is not set. Cannot add license header."
+    exit 1
+fi
+
+COPYRIGHT_LINE="${COPYRIGHT_PREFIX}${CONTRIBUTOR}"
+
+staged_files=$(git diff --cached --name-only --diff-filter=ACM -- '*.cs')
+
+for file in $staged_files; do
+    # Skip generated files and obj/ output
+    case "$file" in
+        */obj/*|*.g.cs) continue ;;
+    esac
+
+    # Detect and strip BOM for processing
+    bom=""
+    if xxd -l 3 "$file" | grep -q "efbb bf"; then
+        bom=$'\xEF\xBB\xBF'
+    fi
+
+    line1=$(head -1 "$file" | sed 's/^\xEF\xBB\xBF//')
+
+    if [ "$line1" = "$SPDX_LINE" ]; then
+        # Header exists — check if this contributor is already listed
+        if grep -q "^${COPYRIGHT_LINE}\$" "$file"; then
+            continue
+        fi
+
+        # Add contributor after the last copyright line
+        # Find the line number of the last "// Copyright (c)" line
+        last_copyright=$(grep -n "^${COPYRIGHT_PREFIX}" "$file" | tail -1 | cut -d: -f1)
+
+        sed -i "${last_copyright}a\\${COPYRIGHT_LINE}" "$file"
+
+        git add "$file"
+        echo "Copyright line added for ${CONTRIBUTOR} in $file"
+    else
+        # No header — prepend SPDX + copyright + blank line
+        content=$(cat "$file")
+        if [ -n "$bom" ]; then
+            content=$(echo "$content" | sed '1s/^\xEF\xBB\xBF//')
+        fi
+
+        printf '%s%s\n%s\n\n%s\n' "$bom" "$SPDX_LINE" "$COPYRIGHT_LINE" "$content" > "$file"
+
+        git add "$file"
+        echo "License header added to $file"
+    fi
+done

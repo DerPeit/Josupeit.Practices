@@ -1,0 +1,101 @@
+<Project>
+
+  <PropertyGroup>
+    <!--
+      It is difficult to ensure that particular targets only run once per project. Usually, they run once per target framework,
+      which leads to errors due to locked files or race conditions. One can check for a so-called "outer build," which is
+      the project's build when multi-targeted. Unfortunately, in BeforeBuild targets the outer build comes last: the
+      inner builds are triggered first, and afterward the outer build runs. So, if we attempt to transform tt files to generated
+      code, we cannot do this in the outer build. Instead, we use the DispatchToInnerBuilds target for this case. This target
+      only runs in multi-targeted projects, which is the reason for the complicated setup. The outer build order is reversed
+      in the "after" targets — they run first there, so we can rely on this in the clean target.
+    -->
+    <IsMultiTargeted>false</IsMultiTargeted>
+    <IsOuterBuild>false</IsOuterBuild>
+
+    <IsMultiTargeted Condition="'$(TargetFrameworks)' != '' AND $(TargetFrameworks.IndexOf(';')) &gt; -1 AND $(TargetFrameworks.IndexOf(';')) != $([MSBuild]::Subtract($(TargetFrameworks.Length), 1))">true</IsMultiTargeted>
+    <IsOuterBuild Condition="!$(IsMultiTargeted) OR '$(TargetFramework)' == ''">true</IsOuterBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <TextTemplate Include="**\*.tt">
+      <SourceFilename>%(Filename).tt</SourceFilename>
+      <SourceRelativePath>%(RelativeDir)%(SourceFilename)</SourceRelativePath>
+      <DestinationRelativePath>%(RelativeDir)%(Filename).g.cs</DestinationRelativePath>
+    </TextTemplate>
+
+    <Compile Remove="@(TextTemplate->'%(DestinationRelativePath)')" />
+    <Compile Include="@(TextTemplate->'%(DestinationRelativePath)')">
+      <DependentUpon>%(TextTemplate.SourceFilename)</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <Target Name="TextTemplateTransformSingleTarget" BeforeTargets="BeforeBuild" Condition="!$(IsMultiTargeted)" />
+  <Target Name="TextTemplateTransformMultiTarget" BeforeTargets="DispatchToInnerBuilds" Condition="$(IsMultiTargeted)" />
+
+  <Target Name="TextTemplateTransform" BeforeTargets="TextTemplateTransformSingleTarget;TextTemplateTransformMultiTarget" Inputs="@(TextTemplate)" Outputs="@(TextTemplate->'%(DestinationRelativePath)')">
+    <Message Text="Transforming '%(TextTemplate.SourceRelativePath)' to '%(TextTemplate.DestinationRelativePath)'." Importance="High" />
+    <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet t4 %(TextTemplate.SourceRelativePath) -o %(TextTemplate.DestinationRelativePath)" />
+  </Target>
+
+  <Target Name="TextTemplateClean" AfterTargets="Clean" Condition="$(IsOuterBuild)">
+    <Delete Files="@(TextTemplate->'%(DestinationRelativePath)')" />
+  </Target>
+
+  <!--
+    Automatically generates PackageReleaseNotes from git commit subjects
+    touching this project's path(s), scoped to commits since the previous
+    release tag. Requires git in PATH; failures are silently ignored.
+  -->
+  <Target Name="GeneratePackageReleaseNotes" BeforeTargets="GenerateNuspec"
+          Condition="'$(IsPackable)' == 'true' AND '$(PackageVersionTagPrefix)' != ''">
+
+    <PropertyGroup>
+      <_NullDevice Condition="'$(OS)' == 'Windows_NT'">nul</_NullDevice>
+      <_NullDevice Condition="'$(OS)' != 'Windows_NT'">/dev/null</_NullDevice>
+
+      <_GitFormatPercent Condition="'$(OS)' == 'Windows_NT'">%%</_GitFormatPercent>
+      <_GitFormatPercent Condition="'$(OS)' != 'Windows_NT'">%</_GitFormatPercent>
+    </PropertyGroup>
+
+    <Exec Command="git describe --tags --match &quot;$(PackageVersionTagPrefix)*&quot; --abbrev=0 2&gt;$(_NullDevice)"
+          ConsoleToMSBuild="true"
+          IgnoreExitCode="true"
+          WorkingDirectory="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_PreviousReleaseTag" />
+    </Exec>
+
+    <PropertyGroup>
+      <_PreviousReleaseTag>$(_PreviousReleaseTag.Trim())</_PreviousReleaseTag>
+
+      <_ReleaseNotesRange Condition="'$(_PreviousReleaseTag)' != ''">$(_PreviousReleaseTag)..HEAD</_ReleaseNotesRange>
+      <_ReleaseNotesRange Condition="'$(_PreviousReleaseTag)' == ''">HEAD</_ReleaseNotesRange>
+    </PropertyGroup>
+
+    <Exec Command="git log --pretty=format:&quot;- $(_GitFormatPercent)s&quot; $(_ReleaseNotesRange) -- $(PackageReleaseNotesGitPath)"
+          ConsoleToMSBuild="true"
+          IgnoreExitCode="true"
+          WorkingDirectory="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="ConsoleOutput" PropertyName="PackageReleaseNotes" />
+    </Exec>
+
+  </Target>
+
+  <!--
+    Applies the PackageVersion attribute from each ProjectReference to the corresponding
+    _ProjectReferencesWithVersions item that NuGet uses when generating the .nuspec file.
+    "~" is a placeholder that is replaced at runtime with the referenced project's resolved version.
+    Source: https://stackoverflow.com/a/73098203
+  -->
+  <Target Name="UseExplicitPackageVersions" BeforeTargets="GenerateNuspec">
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Condition="'%(FullPath)' != ''">
+        <PackageVersion>@(ProjectReference->'%(PackageVersion)')</PackageVersion>
+      </_ProjectReferencesWithVersions>
+      <_ProjectReferencesWithVersions Condition="'%(Identity)' != '' And '%(PackageVersion)' != ''">
+        <ProjectVersion>$([System.String]::new('%(PackageVersion)').Replace('~',%(ProjectVersion)))</ProjectVersion>
+      </_ProjectReferencesWithVersions>
+    </ItemGroup>
+  </Target>
+
+</Project>

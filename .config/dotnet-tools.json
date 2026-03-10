@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "dotnet-t4": {
+      "version": "3.0.0",
+      "commands": [
+        "t4"
+      ]
+    },
+    "nbgv": {
+      "version": "3.9.50",
+      "commands": [
+        "nbgv"
+      ]
+    }
+  }
+}

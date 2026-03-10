@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>
+      netcoreapp2.2; <!--Equivalence class for netstandard2.0 -->
+      net80; <!--Equivalence class for netstandard2.1 -->
+      net10.0 <!--CI: runs on .NET 10 SDK without additional runtime install -->
+    </TargetFrameworks>
+
+    <NoWarn>NETSDK1138;NU1603;NU1902;NU1903</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Josupeit.Practices.Schedulers.Channel\Josupeit.Practices.Schedulers.Channel.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <RootNamespace>Josupeit.Practices.Jobs</RootNamespace>
+    <Description>IJobFactory that routes job execution through an IScheduler for sequential ordering, bounded parallelism, and pause support.</Description>
+    <PackageTags>job scheduler background-task observable patterns concurrency</PackageTags>
+    <PackageVersionTagPrefix>Jobs.Scheduler/v</PackageVersionTagPrefix>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Josupeit.Practices.Jobs\Josupeit.Practices.Jobs.csproj" PackageVersion="[1-0,2)" />
+    <ProjectReference Include="..\Josupeit.Practices.Schedulers.Abstractions\Josupeit.Practices.Schedulers.Abstractions.csproj" PackageVersion="[1-0,2)" />
+  </ItemGroup>
+
+</Project>

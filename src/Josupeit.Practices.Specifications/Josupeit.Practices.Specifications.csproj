@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <Description>Specification pattern with operator overloads for composable, named business rules. Supports sync and async evaluation with AND, OR, XOR, and NOT composition.</Description>
+    <PackageTags>specification pattern business-rules ddd composable</PackageTags>
+    <PackageVersionTagPrefix>Specifications/v</PackageVersionTagPrefix>
+  </PropertyGroup>
+
+</Project>

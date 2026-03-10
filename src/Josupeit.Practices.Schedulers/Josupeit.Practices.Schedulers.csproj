@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <RootNamespace>Josupeit.Practices.Schedulers</RootNamespace>
+    <PackageId>Josupeit.Practices.Schedulers.Core</PackageId>
+    <Description>Abstract base classes for building custom IScheduler implementations. Reduces the full IScheduler API to a single Enqueue or EnqueueAsync override with all sync/async bridging handled.</Description>
+    <PackageTags>scheduler base-classes patterns concurrency</PackageTags>
+    <PackageVersionTagPrefix>Schedulers.Core/v</PackageVersionTagPrefix>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Josupeit.Practices.Schedulers.Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Josupeit.Practices.Mixins.Disposable.Generator\Josupeit.Practices.Mixins.Disposable.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Josupeit.Practices.Mixins.Disposable.Analyzer\Josupeit.Practices.Mixins.Disposable.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Josupeit.Practices.Schedulers.Abstractions\Josupeit.Practices.Schedulers.Abstractions.csproj" PackageVersion="[1-0,2)" />
+    <ProjectReference Include="..\Josupeit.Practices.Services\Josupeit.Practices.Services.csproj" PackageVersion="[1-0,2)" />
+  </ItemGroup>
+
+</Project>

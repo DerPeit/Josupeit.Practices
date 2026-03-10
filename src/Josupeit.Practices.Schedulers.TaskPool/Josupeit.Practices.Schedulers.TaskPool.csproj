@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <RootNamespace>Josupeit.Practices.Schedulers</RootNamespace>
+    <Description>Thread pool IScheduler implementation for fire-and-go workloads. No lifecycle overhead — dispatches actions and functions to the thread pool immediately.</Description>
+    <PackageTags>scheduler thread-pool concurrency patterns</PackageTags>
+    <PackageVersionTagPrefix>Schedulers.TaskPool/v</PackageVersionTagPrefix>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Josupeit.Practices.Schedulers\Josupeit.Practices.Schedulers.csproj" PackageVersion="[1-0,2)" />
+  </ItemGroup>
+
+</Project>

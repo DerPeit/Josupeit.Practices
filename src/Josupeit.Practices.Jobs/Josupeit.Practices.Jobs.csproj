@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <RootNamespace>Josupeit.Practices.Jobs</RootNamespace>
+    <PackageId>Josupeit.Practices.Jobs.Core</PackageId>
+    <Description>Abstract base class for custom IJob implementations. Provides stable identity, state management, cancellation, the Changed event, and guard helpers for transition validation.</Description>
+    <PackageTags>job background-task base-classes patterns lifecycle</PackageTags>
+    <PackageVersionTagPrefix>Jobs.Core/v</PackageVersionTagPrefix>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Josupeit.Practices.Jobs.Abstractions\Josupeit.Practices.Jobs.Abstractions.csproj" PackageVersion="[1-0,2)" />
+  </ItemGroup>
+
+</Project>

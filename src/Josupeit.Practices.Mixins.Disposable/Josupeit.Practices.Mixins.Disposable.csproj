@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeSymbols>false</IncludeSymbols>
+    <IncludeSource>false</IncludeSource>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <PackageId>Josupeit.Practices.Mixins.Disposable</PackageId>
+    <Description>Roslyn source generator that implements IDisposable and IAsyncDisposable from a [DisposableMixin] attribute. Generates a correct, idiomatic dispose pattern at compile time with zero runtime overhead. Includes a companion Roslyn analyzer with code fixes.</Description>
+    <PackageTags>source-generator disposable idisposable iasync-disposable roslyn analyzer mixin</PackageTags>
+    <PackageVersionTagPrefix>Mixins.Disposable/v</PackageVersionTagPrefix>
+    <PackageReleaseNotesGitPath>$(PackageReleaseNotesGitPath) ../Josupeit.Practices.Mixins.Disposable.Generator ../Josupeit.Practices.Mixins.Disposable.Analyzer</PackageReleaseNotesGitPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Josupeit.Practices.Mixins.Disposable.Analyzer\Josupeit.Practices.Mixins.Disposable.Analyzer.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\Josupeit.Practices.Mixins.Disposable.Generator\Josupeit.Practices.Mixins.Disposable.Generator.csproj" PrivateAssets="All" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="..\$(AssemblyName).*\$(OutputPath)\$(AssemblyName).*.dll">
+      <PackagePath>analyzers/dotnet/cs/%(Filename)%(Extension)</PackagePath>
+      <Pack>true</Pack>
+      <Visible>false</Visible>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,465 @@
+﻿<#@ template debug="false" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.IO" #>
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
+using Josupeit.Practices.Mixins.Disposable;
+using Josupeit.Practices.Services;
+
+namespace Josupeit.Practices.Schedulers;
+
+<#
+foreach (var className in new[] { "Scheduler", "DisposableScheduler", "AsyncDisposableScheduler", "AsyncScheduler", "DisposableAsyncScheduler", "AsyncDisposableAsyncScheduler", "SchedulerService", "DisposableSchedulerService", "AsyncDisposableSchedulerService", "AsyncSchedulerService", "DisposableAsyncSchedulerService", "AsyncDisposableAsyncSchedulerService" })
+{
+    var baseTypes = className switch
+    {
+        "Scheduler" => "IScheduler",
+        "DisposableScheduler" => "IScheduler",
+        "AsyncDisposableScheduler" => "IScheduler",
+        "AsyncScheduler" => "IScheduler",
+        "DisposableAsyncScheduler" => "IScheduler",
+        "AsyncDisposableAsyncScheduler" => "IScheduler",
+        "SchedulerService" => "Service, IScheduler",
+        "DisposableSchedulerService" => "DisposableService, IScheduler",
+        "AsyncDisposableSchedulerService" => "AsyncDisposableService, IScheduler",
+        "AsyncSchedulerService" => "AsyncService, IScheduler",
+        "DisposableAsyncSchedulerService" => "DisposableAsyncService, IScheduler",
+        "AsyncDisposableAsyncSchedulerService" => "AsyncDisposableAsyncService, IScheduler",
+        _ => throw new NotImplementedException(),
+    };
+
+    var needsMixin = className is "DisposableScheduler" or "AsyncDisposableScheduler" or "DisposableAsyncScheduler" or "AsyncDisposableAsyncScheduler";
+    var isDisposable = className.Contains("Disposable");
+
+    var wantsAsyncEnqueueMethod = className.IndexOf("AsyncScheduler", StringComparison.Ordinal) > -1;
+    var implementsAsyncDisposable = className.StartsWith("AsyncDisposable", StringComparison.Ordinal);
+
+    if (implementsAsyncDisposable)
+#>#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+
+<#
+#>
+/// <summary>
+<#= className switch
+{
+    "Scheduler" => "/// This class is a base class and represents a scheduler that executes particular operations eventually.",
+    "DisposableScheduler" => "/// This class is a base class and represents a scheduler that executes particular operations eventually and which owns resources that needs to be released.",
+    "AsyncDisposableScheduler" => "/// This class is a base class and represents a scheduler that executes particular operations eventually and which owns resources that needs to be released asynchronously.",
+    "AsyncScheduler" => "/// This class is a base class and represents an async scheduler that executes particular operations eventually.",
+    "DisposableAsyncScheduler" => "/// This class is a base class and represents an async scheduler that executes particular operations eventually and which owns resources that needs to be released.",
+    "AsyncDisposableAsyncScheduler" => "/// This class is a base class and represents an async scheduler that executes particular operations eventually and which owns resources that needs to be released asynchronously.",
+    "SchedulerService" => "/// This class is a base class and represents a scheduler service that executes particular operations eventually.",
+    "DisposableSchedulerService" => "/// This class is a base class and represents a scheduler service that executes particular operations eventually and which owns resources that needs to be released.",
+    "AsyncDisposableSchedulerService" => "/// This class is a base class and represents a scheduler service that executes particular operations eventually and which owns resources that needs to be released asynchronously.",
+    "AsyncSchedulerService" => "/// This class is a base class and represents an async scheduler service that executes particular operations eventually.",
+    "DisposableAsyncSchedulerService" => "/// This class is a base class and represents an async scheduler service that executes particular operations eventually and which owns resources that needs to be released.",
+    "AsyncDisposableAsyncSchedulerService" => "/// This class is a base class and represents an async scheduler service that executes particular operations eventually and which owns resources that needs to be released asynchronously.",
+    _ => throw new NotImplementedException(),
+} #>
+/// </summary>
+/// <seealso cref="IScheduler" />
+[PublicAPI]
+<#= needsMixin ? "[DisposableMixin(DisposableMixinOptions.WithProperty | DisposableMixinOptions.WithEvent" + (implementsAsyncDisposable ? "" : " | DisposableMixinOptions.WithoutAsyncDisposable") + ")]\r\n" : "" #>public abstract<#= needsMixin ? " partial" : "" #> class <#= className #> : <#= baseTypes #>
+{
+    private readonly IScheduledFactory _scheduledFactory;
+    private readonly IEnqueueBehavior _enqueueBehavior;
+
+<#
+    if (wantsAsyncEnqueueMethod)
+    {
+#>
+    /// <summary>Initializes a new instance of the <see cref="<#= className #>"/> class.</summary>
+    protected <#= className #>()
+    {
+        _scheduledFactory = new ScheduledFactory();
+        _enqueueBehavior = new AsyncEnqueueBehavior(EnqueueAsync);
+    }
+<#
+    }
+    else
+    {
+#>
+    /// <summary>Initializes a new instance of the <see cref="<#= className #>"/> class.</summary>
+    protected <#= className #>()
+    {
+        _scheduledFactory = new ScheduledFactory();
+        _enqueueBehavior = new SyncEnqueueBehavior(Enqueue);
+    }
+<#
+    }
+#>
+
+    internal <#= className #>(IScheduledFactory scheduledFactory, IEnqueueBehavior enqueueBehavior)
+    {
+        _scheduledFactory = scheduledFactory;
+        _enqueueBehavior = enqueueBehavior;
+    }
+
+<#
+    foreach (var isUnsafe in new[] { false, true })
+    {
+
+        var methodName = isUnsafe ? "UnsafeSchedule" : "Schedule";
+
+#>
+    /// <inheritdoc />
+    public void <#= methodName #>(Action action)
+    {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(action, executionContext);
+
+        _enqueueBehavior.Enqueue(scheduled);
+
+        scheduled.Wait();
+    }
+
+    /// <inheritdoc />
+    public void <#= methodName #>(Action<CancellationToken> cancellableAction) => <#= methodName #>(cancellableAction, CancellationToken.None);
+
+    /// <inheritdoc />
+    public void <#= methodName #>(Action<CancellationToken> cancellableAction, CancellationToken cancellationToken)
+    {
+        if (cancellableAction == null)
+            throw new ArgumentNullException(nameof(cancellableAction));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableAction, executionContext, cancellationToken);
+
+        _enqueueBehavior.Enqueue(scheduled, cancellationToken);
+
+        scheduled.Wait();
+    }
+
+    /// <inheritdoc />
+    public void <#= methodName #>(Func<Task> asyncAction)
+    {
+        if (asyncAction == null)
+            throw new ArgumentNullException(nameof(asyncAction));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(asyncAction, executionContext);
+
+        _enqueueBehavior.Enqueue(scheduled);
+
+        scheduled.Wait();
+    }
+
+    /// <inheritdoc />
+    public void <#= methodName #>(Func<CancellationToken, Task> cancellableAsyncAction) => <#= methodName #>(cancellableAsyncAction, CancellationToken.None);
+
+    /// <inheritdoc />
+    public void <#= methodName #>(Func<CancellationToken, Task> cancellableAsyncAction, CancellationToken cancellationToken)
+    {
+        if (cancellableAsyncAction == null)
+            throw new ArgumentNullException(nameof(cancellableAsyncAction));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableAsyncAction, executionContext, cancellationToken);
+
+        _enqueueBehavior.Enqueue(scheduled, cancellationToken);
+
+        scheduled.Wait();
+    }
+
+    /// <inheritdoc />
+    public TResult <#= methodName #><TResult>(Func<TResult> func)
+    {
+        if (func == null)
+            throw new ArgumentNullException(nameof(func));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(func, executionContext);
+
+        _enqueueBehavior.Enqueue(scheduled);
+
+        return scheduled.WaitAndUnwrap();
+    }
+
+    /// <inheritdoc />
+    public TResult <#= methodName #><TResult>(Func<CancellationToken, TResult> cancellableFunc) => <#= methodName #>(cancellableFunc, CancellationToken.None);
+
+    /// <inheritdoc />
+    public TResult <#= methodName #><TResult>(Func<CancellationToken, TResult> cancellableFunc, CancellationToken cancellationToken)
+    {
+        if (cancellableFunc == null)
+            throw new ArgumentNullException(nameof(cancellableFunc));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableFunc, executionContext, cancellationToken);
+
+        _enqueueBehavior.Enqueue(scheduled, cancellationToken);
+
+        return scheduled.WaitAndUnwrap();
+    }
+
+    /// <inheritdoc />
+    public TResult <#= methodName #><TResult>(Func<Task<TResult>> asyncFunc)
+    {
+        if (asyncFunc == null)
+            throw new ArgumentNullException(nameof(asyncFunc));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(asyncFunc, executionContext);
+
+        _enqueueBehavior.Enqueue(scheduled);
+
+        return scheduled.WaitAndUnwrap();
+    }
+
+    /// <inheritdoc />
+    public TResult <#= methodName #><TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc) => <#= methodName #>(cancellableAsyncFunc, CancellationToken.None);
+
+    /// <inheritdoc />
+    public TResult <#= methodName #><TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc, CancellationToken cancellationToken)
+    {
+        if (cancellableAsyncFunc == null)
+            throw new ArgumentNullException(nameof(cancellableAsyncFunc));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableAsyncFunc, executionContext, cancellationToken);
+
+        _enqueueBehavior.Enqueue(scheduled, cancellationToken);
+
+        return scheduled.WaitAndUnwrap();
+    }
+
+    /// <inheritdoc />
+    public Task <#= methodName #>Async(Action action) => <#= methodName #>Async(action, CancellationToken.None);
+
+    /// <inheritdoc />
+    public async Task <#= methodName #>Async(Action action, CancellationToken cancellationToken)
+    {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(action, executionContext);
+
+        await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
+
+        await scheduled.Promise.ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public Task <#= methodName #>Async(Action<CancellationToken> cancellableAction) => <#= methodName #>Async(cancellableAction, CancellationToken.None);
+
+    /// <inheritdoc />
+    public async Task <#= methodName #>Async(Action<CancellationToken> cancellableAction, CancellationToken cancellationToken)
+    {
+        if (cancellableAction == null)
+            throw new ArgumentNullException(nameof(cancellableAction));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableAction, executionContext, cancellationToken);
+
+        await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
+
+        await scheduled.Promise.ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public Task <#= methodName #>Async(Func<Task> asyncAction) => <#= methodName #>Async(asyncAction, CancellationToken.None);
+
+    /// <inheritdoc />
+    public async Task <#= methodName #>Async(Func<Task> asyncAction, CancellationToken cancellationToken)
+    {
+        if (asyncAction == null)
+            throw new ArgumentNullException(nameof(asyncAction));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(asyncAction, executionContext);
+
+        await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
+
+        await scheduled.Promise.ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public Task <#= methodName #>Async(Func<CancellationToken, Task> cancellableAsyncAction) => <#= methodName #>Async(cancellableAsyncAction, CancellationToken.None);
+
+    /// <inheritdoc />
+    public async Task <#= methodName #>Async(Func<CancellationToken, Task> cancellableAsyncAction, CancellationToken cancellationToken)
+    {
+        if (cancellableAsyncAction == null)
+            throw new ArgumentNullException(nameof(cancellableAsyncAction));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableAsyncAction, executionContext, cancellationToken);
+
+        await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
+
+        await scheduled.Promise.ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public Task<TResult> <#= methodName #>Async<TResult>(Func<TResult> func) => <#= methodName #>Async(func, CancellationToken.None);
+
+    /// <inheritdoc />
+    public async Task<TResult> <#= methodName #>Async<TResult>(Func<TResult> func, CancellationToken cancellationToken)
+    {
+        if (func == null)
+            throw new ArgumentNullException(nameof(func));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(func, executionContext);
+
+        await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
+
+        return await scheduled.Promise.ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public Task<TResult> <#= methodName #>Async<TResult>(Func<CancellationToken, TResult> cancellableFunc) => <#= methodName #>Async(cancellableFunc, CancellationToken.None);
+
+    /// <inheritdoc />
+    public async Task<TResult> <#= methodName #>Async<TResult>(Func<CancellationToken, TResult> cancellableFunc, CancellationToken cancellationToken)
+    {
+        if (cancellableFunc == null)
+            throw new ArgumentNullException(nameof(cancellableFunc));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableFunc, executionContext, cancellationToken);
+
+        await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
+
+        return await scheduled.Promise.ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public Task<TResult> <#= methodName #>Async<TResult>(Func<Task<TResult>> asyncFunc) => <#= methodName #>Async(asyncFunc, CancellationToken.None);
+
+    /// <inheritdoc />
+    public async Task<TResult> <#= methodName #>Async<TResult>(Func<Task<TResult>> asyncFunc, CancellationToken cancellationToken)
+    {
+        if (asyncFunc == null)
+            throw new ArgumentNullException(nameof(asyncFunc));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(asyncFunc, executionContext);
+
+        await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
+
+        return await scheduled.Promise.ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public Task<TResult> <#= methodName #>Async<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc) => <#= methodName #>Async(cancellableAsyncFunc, CancellationToken.None);
+
+    /// <inheritdoc />
+    public async Task<TResult> <#= methodName #>Async<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc, CancellationToken cancellationToken)
+    {
+        if (cancellableAsyncFunc == null)
+            throw new ArgumentNullException(nameof(cancellableAsyncFunc));
+
+<#  if (isDisposable) { #>
+        ThrowIfDisposed();
+
+<#  } #>
+        using var executionContext = <#= isUnsafe ? "(ExecutionContext)null" : "ExecutionContext.Capture()" #>;
+        var scheduled = _scheduledFactory.Create(cancellableAsyncFunc, executionContext, cancellationToken);
+
+        await _enqueueBehavior.EnqueueAsync(scheduled, cancellationToken).ConfigureAwait(false);
+
+        return await scheduled.Promise.ConfigureAwait(false);
+    }
+
+<#
+    }
+    
+    if (wantsAsyncEnqueueMethod)
+    {
+    #>
+    /// <summary>
+    /// Enqueues the specified item asynchronously.
+    /// </summary>
+    /// <param name="scheduled">The item to be enqueued.</param>
+    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+    /// <returns>A task.</returns>
+    protected abstract Task EnqueueAsync(IScheduled scheduled, CancellationToken cancellationToken);
+    <#
+    }
+    else
+    {
+    #>
+    /// <summary>
+    /// Enqueues the specified item.
+    /// </summary>
+    /// <param name="scheduled">The item to be enqueued.</param>
+    protected abstract void Enqueue(IScheduled scheduled);
+<#
+}
+    #>
+}
+
+<#
+    if (implementsAsyncDisposable)
+        #>#endif
+<#
+}
+#>
