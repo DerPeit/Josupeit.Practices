@@ -11,8 +11,8 @@ using static Josupeit.Practices.Jobs.ScheduleErrorHandler;
 namespace Josupeit.Practices.Jobs;
 
 /// <summary>
-/// This class represents a job with a progress that executes on a particular scheduler.<para />
-/// Implements the <see cref="Josupeit.Practices.Jobs.JobWithProgress{TProgress}" />
+/// This class represents a job with progress reporting that executes on a particular scheduler.<para />
+/// Inherits from <see cref="Josupeit.Practices.Jobs.JobWithProgress{TProgress}" />.
 /// </summary>
 /// <typeparam name="TProgress">The type of the progress.</typeparam>
 /// <seealso cref="Josupeit.Practices.Jobs.JobWithProgress{TProgress}" />
@@ -50,7 +50,8 @@ public class SchedulerJobWithProgress<TProgress> : JobWithProgress<TProgress>
     }
 
     /// <summary>
-    /// This method is called when the scheduler picks up and attempts to start this job.
+    /// Invoked by the scheduler to execute this job. Runs the start function and notifies the appropriate
+    /// completion state.
     /// </summary>
     protected virtual async Task StartCore()
     {
