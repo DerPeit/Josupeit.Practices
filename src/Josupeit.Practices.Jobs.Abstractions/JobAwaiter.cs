@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: EUPL-1.2
+// SPDX-License-Identifier: EUPL-1.2
 // Copyright (c) Manuel Josupeit-Walter
 
 using System;
@@ -6,25 +6,37 @@ using System.Threading;
 
 namespace Josupeit.Practices.Jobs;
 
-internal sealed class JobAwaiter : IJobAwaiter
+internal sealed class JobAwaiter(IJob job, bool continueOnCapturedContext = true) : IJobAwaiter
 {
+    private readonly IJob _job = job ?? throw new ArgumentNullException(nameof(job));
     private readonly object _syncRoot = new();
-    private readonly IJob _job;
-
-    public JobAwaiter(IJob job)
-    {
-        _job = job ?? throw new ArgumentNullException(nameof(job));
-        _job.Changed += RunContinuationsIfCompleted;
-    }
+    
+    private bool _isSubscribedToChangeEvent;
 
     private event Action? Continuations;
 
     public bool IsCompleted => _job.IsCompleted;
 
+    public void GetResult()
+    {
+        if (IsCompleted)
+            return;
+
+        lock (_syncRoot)
+        {
+            SubscribeToChangeEvent();
+
+            while (!IsCompleted)
+                Monitor.Wait(_syncRoot);
+        }
+    }
+
     public void OnCompleted(Action continuation)
     {
         if (continuation == null)
             throw new ArgumentNullException(nameof(continuation));
+
+        continuation = CaptureSynchronizationContext(continuation);
 
         if (IsCompleted)
         {
@@ -34,6 +46,8 @@ internal sealed class JobAwaiter : IJobAwaiter
 
         lock (_syncRoot)
         {
+            SubscribeToChangeEvent();
+
             if (!IsCompleted)
             {
                 Continuations += continuation;
@@ -44,11 +58,19 @@ internal sealed class JobAwaiter : IJobAwaiter
         continuation();
     }
 
-    public void GetResult()
+    public void UnsafeOnCompleted(Action continuation) => OnCompleted(continuation);
+    
+    private Action CaptureSynchronizationContext(Action continuation)
     {
-        lock (_syncRoot)
-            while (!IsCompleted)
-                Monitor.Wait(_syncRoot);
+        if (!continueOnCapturedContext)
+            return continuation;
+
+        var context = SynchronizationContext.Current;
+
+        if (context == null)
+            return continuation;
+
+        return () => context.Post(static state => ((Action)state!).Invoke(), continuation);
     }
 
     private void RunContinuationsIfCompleted(object sender, EventArgs e)
@@ -69,5 +91,14 @@ internal sealed class JobAwaiter : IJobAwaiter
         }
 
         continuations?.Invoke();
+    }
+
+    private void SubscribeToChangeEvent()
+    {
+        if (_isSubscribedToChangeEvent)
+            return;
+
+        _isSubscribedToChangeEvent = true;
+        _job.Changed += RunContinuationsIfCompleted;
     }
 }

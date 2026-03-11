@@ -6,12 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Josupeit.Practices.Schedulers;
+using static Josupeit.Practices.Jobs.ScheduleErrorHandler;
 
 namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This class represents a job that executes on a particular scheduler.<para />
-/// Implements the <see cref="Josupeit.Practices.Jobs.Job" />
+/// Inherits from <see cref="Josupeit.Practices.Jobs.Job" />.
 /// </summary>
 /// <seealso cref="Josupeit.Practices.Jobs.Job" />
 [PublicAPI]
@@ -40,11 +41,16 @@ public class SchedulerJob : Job
 
         NotifyPending();
 
-        _ = _scheduler.ScheduleAsync(StartCore);
+        HandleScheduleErrors(
+            _scheduler.ScheduleAsync(StartCore, CancellationToken),
+            CancellationToken,
+            NotifyCanceled,
+            NotifyFailed);
     }
 
     /// <summary>
-    /// This method is called when the scheduler picks up and attempts to start this job.
+    /// Invoked by the scheduler to execute this job. Runs the start function and notifies the appropriate
+    /// completion state.
     /// </summary>
     protected virtual async Task StartCore()
     {

@@ -58,7 +58,7 @@
       <_GitFormatPercent Condition="'$(OS)' != 'Windows_NT'">%</_GitFormatPercent>
     </PropertyGroup>
 
-    <Exec Command="git describe --tags --match &quot;$(PackageVersionTagPrefix)*&quot; --abbrev=0 2&gt;$(_NullDevice)"
+    <Exec Command="git describe --tags --match &quot;$(PackageVersionTagPrefix)*&quot; --abbrev=0 HEAD~1 2&gt;$(_NullDevice)"
           ConsoleToMSBuild="true"
           IgnoreExitCode="true"
           WorkingDirectory="$(MSBuildProjectDirectory)">

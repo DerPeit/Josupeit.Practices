@@ -125,5 +125,87 @@ public class JobAwaiterTests
         Assert.That(() => awaiter.GetResult(), Throws.Nothing);
     }
 
-    private static IJobAwaiter CreateAwaiter(IJob job) => job.GetAwaiter();
+    [Test]
+    public void OnCompleted_posts_to_captured_SynchronizationContext()
+    {
+        var context = new MockSynchronizationContext();
+
+        SynchronizationContext.SetSynchronizationContext(context);
+
+        try
+        {
+            var job = Substitute.For<IJob>();
+
+            job.IsCompleted.Returns(true);
+
+            var awaiter = CreateAwaiter(job, continueOnCapturedContext: true);
+            var ran = false;
+
+            awaiter.OnCompleted(() => ran = true);
+
+            Assert.That(ran, Is.False);
+            Assert.That(context.PostCallCount, Is.EqualTo(1));
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(null);
+        }
+    }
+
+    [Test]
+    public void OnCompleted_does_not_post_when_continueOnCapturedContext_is_false()
+    {
+        var context = new MockSynchronizationContext();
+
+        SynchronizationContext.SetSynchronizationContext(context);
+
+        try
+        {
+            var job = Substitute.For<IJob>();
+
+            job.IsCompleted.Returns(true);
+
+            var awaiter = CreateAwaiter(job, continueOnCapturedContext: false);
+            var ran = false;
+
+            awaiter.OnCompleted(() => ran = true);
+
+            Assert.That(ran, Is.True);
+            Assert.That(context.PostCallCount, Is.EqualTo(0));
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(null);
+        }
+    }
+
+    [Test]
+    public void OnCompleted_runs_inline_when_no_SynchronizationContext()
+    {
+        SynchronizationContext.SetSynchronizationContext(null);
+
+        var job = Substitute.For<IJob>();
+
+        job.IsCompleted.Returns(true);
+
+        var awaiter = CreateAwaiter(job, continueOnCapturedContext: true);
+        var ran = false;
+
+        awaiter.OnCompleted(() => ran = true);
+
+        Assert.That(ran, Is.True);
+    }
+
+    private static IJobAwaiter CreateAwaiter(IJob job, bool continueOnCapturedContext = false) =>
+        new JobAwaiter(job, continueOnCapturedContext);
+
+    private sealed class MockSynchronizationContext : SynchronizationContext
+    {
+        public int PostCallCount { get; private set; }
+
+        public override void Post(SendOrPostCallback d, object? state)
+        {
+            PostCallCount++;
+        }
+    }
 }

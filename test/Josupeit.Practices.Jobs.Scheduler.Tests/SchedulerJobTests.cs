@@ -32,13 +32,13 @@ public class SchedulerJobTests
     {
         var scheduler = Substitute.For<IScheduler>();
 
-        scheduler.ScheduleAsync(Arg.Any<Func<Task>>()).Returns(Task.CompletedTask);
+        scheduler.ScheduleAsync(Arg.Any<Func<Task>>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
         var job = new SchedulerJob(scheduler, _ => Task.CompletedTask);
 
         job.Start();
 
-        scheduler.Received(1).ScheduleAsync(Arg.Any<Func<Task>>());
+        scheduler.Received(1).ScheduleAsync(Arg.Any<Func<Task>>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -48,7 +48,7 @@ public class SchedulerJobTests
         var scheduler = Substitute.For<IScheduler>();
         var job = new SchedulerJob(scheduler, _ => Task.CompletedTask);
 
-        scheduler.ScheduleAsync(Arg.Any<Func<Task>>()).Returns(callInfo =>
+        scheduler.ScheduleAsync(Arg.Any<Func<Task>>(), Arg.Any<CancellationToken>()).Returns(callInfo =>
         {
             wasPendingDuringSchedule = job.IsPending;
 
@@ -96,11 +96,65 @@ public class SchedulerJobTests
         Assert.That(job.IsCanceled, Is.True);
     }
 
+    [Test]
+    public void Start_faults_when_scheduling_throws()
+    {
+        var exception = new TestException();
+        var scheduler = Substitute.For<IScheduler>();
+
+        scheduler.ScheduleAsync(Arg.Any<Func<Task>>(), Arg.Any<CancellationToken>()).Returns(Task.FromException(exception));
+
+        var job = new SchedulerJob(scheduler, _ => Task.CompletedTask);
+
+        job.Start();
+
+        Assert.That(job.IsFaulted, Is.True);
+        Assert.That(job.IsPending, Is.False);
+        Assert.That(job.Exception, Is.InstanceOf<InvalidOperationException>());
+        Assert.That(job.Exception!.InnerException, Is.SameAs(exception));
+    }
+
+    [Test]
+    public void Start_cancels_when_scheduling_is_canceled()
+    {
+        var scheduler = Substitute.For<IScheduler>();
+        var job = new SchedulerJob(scheduler, Task.FromCanceled);
+
+        scheduler.ScheduleAsync(Arg.Any<Func<Task>>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => Task.FromCanceled(callInfo.Arg<CancellationToken>()));
+
+        job.Cancel();
+        job.Start();
+
+        Assert.That(job.IsCanceled, Is.True);
+        Assert.That(job.IsPending, Is.False);
+    }
+
+    [Test]
+    public void Start_passes_CancellationToken_to_scheduler()
+    {
+        CancellationToken receivedToken = default;
+        var scheduler = Substitute.For<IScheduler>();
+
+        scheduler.ScheduleAsync(Arg.Any<Func<Task>>(), Arg.Any<CancellationToken>()).Returns(callInfo =>
+        {
+            receivedToken = callInfo.Arg<CancellationToken>();
+
+            return callInfo.Arg<Func<Task>>()();
+        });
+
+        var job = new SchedulerJob(scheduler, _ => Task.CompletedTask);
+
+        job.Start();
+
+        Assert.That(receivedToken.CanBeCanceled, Is.True);
+    }
+
     private static IScheduler CreateImmediateScheduler()
     {
         var scheduler = Substitute.For<IScheduler>();
 
-        scheduler.ScheduleAsync(Arg.Any<Func<Task>>()).Returns(callInfo => callInfo.Arg<Func<Task>>()());
+        scheduler.ScheduleAsync(Arg.Any<Func<Task>>(), Arg.Any<CancellationToken>()).Returns(callInfo => callInfo.Arg<Func<Task>>()());
 
         return scheduler;
     }
