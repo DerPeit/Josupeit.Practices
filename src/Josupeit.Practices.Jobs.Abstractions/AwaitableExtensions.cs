@@ -16,7 +16,7 @@ public static class AwaitableExtensions
     /// Gets the job awaiter.
     /// </summary>
     /// <param name="job">The job.</param>
-    /// <returns>A job awaiter.</returns>
+    /// <returns>A new job awaiter. Each call allocates a new instance.</returns>
     /// <exception cref="System.ArgumentNullException">The <paramref name="job" /> must not be <c>null</c>.</exception>
     [System.Diagnostics.Contracts.Pure]
     public static IJobAwaiter GetAwaiter(this IJob job)
