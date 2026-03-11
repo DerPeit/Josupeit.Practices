@@ -8,11 +8,11 @@ namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This interface represents a job awaiter. It is used by the framework to support awaiting a job.
-/// Implements the <see cref="INotifyCompletion" />
+/// Implements the <see cref="ICriticalNotifyCompletion" />
 /// </summary>
-/// <seealso cref="INotifyCompletion" />
+/// <seealso cref="ICriticalNotifyCompletion" />
 [PublicAPI]
-public interface IJobAwaiter : INotifyCompletion
+public interface IJobAwaiter : ICriticalNotifyCompletion
 {
     /// <summary>
     /// Gets a value indicating whether this job is completed.

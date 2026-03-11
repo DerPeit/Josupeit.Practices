@@ -42,6 +42,8 @@ internal sealed class JobAwaiter(IJob job) : IJobAwaiter
         continuation();
     }
 
+    public void UnsafeOnCompleted(Action continuation) => OnCompleted(continuation);
+
     public void GetResult()
     {
         if (IsCompleted)
