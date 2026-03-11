@@ -6,21 +6,37 @@ using System.Threading;
 
 namespace Josupeit.Practices.Jobs;
 
-internal sealed class JobAwaiter(IJob job) : IJobAwaiter
+internal sealed class JobAwaiter(IJob job, bool continueOnCapturedContext = true) : IJobAwaiter
 {
-    private readonly object _syncRoot = new();
     private readonly IJob _job = job ?? throw new ArgumentNullException(nameof(job));
-
+    private readonly object _syncRoot = new();
+    
     private bool _isSubscribedToChangeEvent;
 
     private event Action? Continuations;
 
     public bool IsCompleted => _job.IsCompleted;
 
+    public void GetResult()
+    {
+        if (IsCompleted)
+            return;
+
+        lock (_syncRoot)
+        {
+            SubscribeToChangeEvent();
+
+            while (!IsCompleted)
+                Monitor.Wait(_syncRoot);
+        }
+    }
+
     public void OnCompleted(Action continuation)
     {
         if (continuation == null)
             throw new ArgumentNullException(nameof(continuation));
+
+        continuation = CaptureSynchronizationContext(continuation);
 
         if (IsCompleted)
         {
@@ -43,28 +59,18 @@ internal sealed class JobAwaiter(IJob job) : IJobAwaiter
     }
 
     public void UnsafeOnCompleted(Action continuation) => OnCompleted(continuation);
-
-    public void GetResult()
+    
+    private Action CaptureSynchronizationContext(Action continuation)
     {
-        if (IsCompleted)
-            return;
+        if (!continueOnCapturedContext)
+            return continuation;
 
-        lock (_syncRoot)
-        {
-            SubscribeToChangeEvent();
+        var context = SynchronizationContext.Current;
 
-            while (!IsCompleted)
-                Monitor.Wait(_syncRoot);
-        }
-    }
+        if (context == null)
+            return continuation;
 
-    private void SubscribeToChangeEvent()
-    {
-        if (_isSubscribedToChangeEvent)
-            return;
-
-        _isSubscribedToChangeEvent = true;
-        _job.Changed += RunContinuationsIfCompleted;
+        return () => context.Post(static state => ((Action)state!).Invoke(), continuation);
     }
 
     private void RunContinuationsIfCompleted(object sender, EventArgs e)
@@ -85,5 +91,14 @@ internal sealed class JobAwaiter(IJob job) : IJobAwaiter
         }
 
         continuations?.Invoke();
+    }
+
+    private void SubscribeToChangeEvent()
+    {
+        if (_isSubscribedToChangeEvent)
+            return;
+
+        _isSubscribedToChangeEvent = true;
+        _job.Changed += RunContinuationsIfCompleted;
     }
 }
