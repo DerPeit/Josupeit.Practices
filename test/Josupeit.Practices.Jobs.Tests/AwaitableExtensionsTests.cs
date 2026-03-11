@@ -22,6 +22,21 @@ public class AwaitableExtensionsTests
     }
 
     [Test]
+    public void ConfigureAwait_throws_on_null()
+    {
+        Assert.That(() => AwaitableExtensions.ConfigureAwait(null!, false), Throws.InstanceOf<ArgumentNullException>());
+    }
+
+    [Test]
+    public void ConfigureAwait_returns_ConfiguredJobAwaitable()
+    {
+        var job = Substitute.For<IJob>();
+        var awaitable = job.ConfigureAwait(false);
+
+        Assert.That(awaitable, Is.InstanceOf<ConfiguredJobAwaitable>());
+    }
+
+    [Test]
     public void Wait_throws_on_null()
     {
         Assert.That(() => AwaitableExtensions.Wait(null!), Throws.InstanceOf<ArgumentNullException>());
