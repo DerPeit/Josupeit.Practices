@@ -31,7 +31,12 @@ public static class AwaitableExtensions
     /// Waits for the job to complete.
     /// </summary>
     /// <remarks>
-    /// This method does not throw if the job is canceled or faulted.
+    /// <para>This method does not throw if the job is canceled or faulted.</para>
+    /// <para>
+    /// This method blocks the calling thread. Do not call it from a context that the job
+    /// needs in order to complete (e.g. a single-threaded <see cref="System.Threading.SynchronizationContext"/>),
+    /// as this will result in a deadlock.
+    /// </para>
     /// </remarks>
     /// <param name="job">The job.</param>
     /// <exception cref="System.ArgumentNullException">The <paramref name="job" /> must not be <c>null</c>.</exception>
