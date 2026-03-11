@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: EUPL-1.2
+// SPDX-License-Identifier: EUPL-1.2
 // Copyright (c) Manuel Josupeit-Walter
 
 using System;
@@ -6,16 +6,12 @@ using System.Threading;
 
 namespace Josupeit.Practices.Jobs;
 
-internal sealed class JobAwaiter : IJobAwaiter
+internal sealed class JobAwaiter(IJob job) : IJobAwaiter
 {
     private readonly object _syncRoot = new();
-    private readonly IJob _job;
+    private readonly IJob _job = job ?? throw new ArgumentNullException(nameof(job));
 
-    public JobAwaiter(IJob job)
-    {
-        _job = job ?? throw new ArgumentNullException(nameof(job));
-        _job.Changed += RunContinuationsIfCompleted;
-    }
+    private bool _isSubscribedToChangeEvent;
 
     private event Action? Continuations;
 
@@ -34,6 +30,8 @@ internal sealed class JobAwaiter : IJobAwaiter
 
         lock (_syncRoot)
         {
+            SubscribeToChangeEvent();
+
             if (!IsCompleted)
             {
                 Continuations += continuation;
@@ -46,9 +44,25 @@ internal sealed class JobAwaiter : IJobAwaiter
 
     public void GetResult()
     {
+        if (IsCompleted)
+            return;
+
         lock (_syncRoot)
+        {
+            SubscribeToChangeEvent();
+
             while (!IsCompleted)
                 Monitor.Wait(_syncRoot);
+        }
+    }
+
+    private void SubscribeToChangeEvent()
+    {
+        if (_isSubscribedToChangeEvent)
+            return;
+
+        _isSubscribedToChangeEvent = true;
+        _job.Changed += RunContinuationsIfCompleted;
     }
 
     private void RunContinuationsIfCompleted(object sender, EventArgs e)
