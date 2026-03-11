@@ -136,13 +136,14 @@ public abstract class JobBase
     }
 
     /// <summary>
-    /// Sets the <see cref="IsExecuting" /> property to <c>false</c>, the <see cref="IsCompleted" /> and
-    /// <see cref="IsFaulted"/> properties to <c>true</c>, sets the <see cref="Exception"/> property and
-    /// invokes the <see cref="Changed" /> event.
+    /// Sets the <see cref="IsPending" /> and <see cref="IsExecuting" /> properties to <c>false</c>, the
+    /// <see cref="IsCompleted" /> and <see cref="IsFaulted"/> properties to <c>true</c>, sets the
+    /// <see cref="Exception"/> property and invokes the <see cref="Changed" /> event.
     /// </summary>
     protected void NotifyFailed(Exception ex)
     {
         Exception = ex;
+        IsPending = false;
         IsCompleted = true;
         IsExecuting = false;
         IsFaulted = true;
