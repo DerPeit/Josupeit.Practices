@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Josupeit.Practices.Schedulers;
+using static Josupeit.Practices.Jobs.ScheduleErrorHandler;
 
 namespace Josupeit.Practices.Jobs;
 
@@ -42,7 +43,11 @@ public class SchedulerJobWithProgressAndResult<TProgress, TResult> : JobWithProg
 
         NotifyPending();
 
-        _ = _scheduler.ScheduleAsync(StartCore);
+        HandleScheduleErrors(
+            _scheduler.ScheduleAsync(StartCore, CancellationToken),
+            CancellationToken,
+            NotifyCanceled,
+            NotifyFailed);
     }
 
     /// <summary>
