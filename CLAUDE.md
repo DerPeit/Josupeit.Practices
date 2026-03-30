@@ -64,6 +64,41 @@ Libraries target netstandard2.0 as minimum, with netstandard2.1 where IAsyncDisp
 - **Generic test inheritance:** Some test suites use a generic base class pattern — a concrete class inherits from an abstract `Tests<TService>` to test a type hierarchy (e.g. `ServiceTests : ServiceTests<Service>`).
 - **Helper classes:** A shared `TestException : Exception` class per test project for exception-path testing. `SubstituteExtensions` helper classes provide reflection-based `.Protected()` / `.InvokeMember()` extensions for verifying protected member calls via NSubstitute.
 
+## Branching & Release Workflow
+
+### Merging
+
+Always use `--no-ff` when merging feature branches to `develop` and when merging `develop` to `main`.
+
+### Releasing to main
+
+After merging `develop` into `main`, follow these steps:
+
+1. **Dry-run version tags** to see which packages are being incremented:
+   ```bash
+   dotnet nbgv tag --what-if -p src/Josupeit.Practices.SomeProject
+   ```
+   Run this for each project that has new commits since its last tag. Each invocation prints a line like `PackageName/v1.2.3`.
+
+2. **Reword the merge commit** to follow the release convention:
+   ```bash
+   git commit --amend -m "chore(release): PackageA, PackageB 1.2"
+   ```
+   Use the short package names (without the `Josupeit.Practices.` prefix) and the major.minor version when all packages share the same version. When packages have different versions, list each with its version.
+
+3. **Create the version tags** for real:
+   ```bash
+   dotnet nbgv tag -p src/Josupeit.Practices.SomeProject
+   ```
+   Run this for each project that was included in the release.
+
+### nbgv invocation notes
+
+- nbgv is a **local dotnet tool** - always invoke it as `dotnet nbgv`, not bare `nbgv`.
+- `dotnet tool restore` must have been run at least once in the repo for `dotnet nbgv` to work.
+- The `-p` flag takes the **project directory path** (e.g. `src/Josupeit.Practices.Commands`), not a `.csproj` file path.
+- Use `--what-if` with the `tag` subcommand for dry-runs; it prints the tag name without creating it.
+
 ## Conventions
 
 - Follow the rules in [CODING_STANDARDS.md](CODING_STANDARDS.md) for naming, style, member ordering, and general practices.
