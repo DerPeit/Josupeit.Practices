@@ -54,7 +54,7 @@ Pass a `DisposableMixinOptions` flags value to the attribute to tailor the gener
 | Flag | Effect |
 |---|---|
 | `WithProperty` | Generates a public `bool IsDisposed { get; }` property |
-| `WithEvent` | Generates a `Disposed` event that is raised when the instance is disposed |
+| `WithEvent` | Generates a `Disposing` event that is raised when the instance is about to release its resources |
 | `WithoutIdempotencyGuarantees` | Omits the double-dispose guard — use only when you can guarantee `Dispose` is called once |
 | `WithoutAsyncDisposable` | Generates only `IDisposable`, not `IAsyncDisposable` |
 

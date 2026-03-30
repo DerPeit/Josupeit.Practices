@@ -76,8 +76,12 @@
           ConsoleToMSBuild="true"
           IgnoreExitCode="true"
           WorkingDirectory="$(MSBuildProjectDirectory)">
-      <Output TaskParameter="ConsoleOutput" PropertyName="PackageReleaseNotes" />
+      <Output TaskParameter="ConsoleOutput" ItemName="_PackageReleaseNoteLines" />
     </Exec>
+
+    <PropertyGroup>
+      <PackageReleaseNotes>@(_PackageReleaseNoteLines, '%0a')</PackageReleaseNotes>
+    </PropertyGroup>
 
   </Target>
 
