@@ -18,6 +18,11 @@
     <PackageReference Include="JetBrains.Annotations" Version="*">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+
+    <PackageReference Include="PolySharp" Version="1.*">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <!-- netcoreapp2.2: pin to latest compatible versions -->

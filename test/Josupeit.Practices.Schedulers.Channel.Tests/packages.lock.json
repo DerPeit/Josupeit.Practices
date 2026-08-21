@@ -59,6 +59,12 @@
           "System.Xml.XPath.XmlDocument": "4.3.0"
         }
       },
+      "PolySharp": {
+        "type": "Direct",
+        "requested": "[1.*, )",
+        "resolved": "1.16.0",
+        "contentHash": "3kdIIceBPumwjw279FuiVMfVENT2cGASXJgcigdySsbX2dJB8ofUgG6i47yqF/k1qu6fvNR3csrSekZPviR6kQ=="
+      },
       "Castle.Core": {
         "type": "Transitive",
         "resolved": "4.0.0",
@@ -253,6 +259,12 @@
           "Microsoft.Testing.Platform.MSBuild": "2.1.0"
         }
       },
+      "PolySharp": {
+        "type": "Direct",
+        "requested": "[1.*, )",
+        "resolved": "1.16.0",
+        "contentHash": "3kdIIceBPumwjw279FuiVMfVENT2cGASXJgcigdySsbX2dJB8ofUgG6i47yqF/k1qu6fvNR3csrSekZPviR6kQ=="
+      },
       "Castle.Core": {
         "type": "Transitive",
         "resolved": "5.1.1",
@@ -436,6 +448,12 @@
           "Microsoft.Testing.Extensions.VSTestBridge": "2.1.0",
           "Microsoft.Testing.Platform.MSBuild": "2.1.0"
         }
+      },
+      "PolySharp": {
+        "type": "Direct",
+        "requested": "[1.*, )",
+        "resolved": "1.16.0",
+        "contentHash": "3kdIIceBPumwjw279FuiVMfVENT2cGASXJgcigdySsbX2dJB8ofUgG6i47yqF/k1qu6fvNR3csrSekZPviR6kQ=="
       },
       "Castle.Core": {
         "type": "Transitive",

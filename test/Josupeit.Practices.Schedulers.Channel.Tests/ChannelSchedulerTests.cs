@@ -161,7 +161,7 @@ public class ChannelSchedulerTests
             // Release all gates
             gate.Release(itemCount);
 
-            await Task.WhenAll(scheduleTasks);
+            await Task.WhenAll(scheduleTasks).WithinTimeout();
 
             Assert.That(maxConcurrent, Is.LessThanOrEqualTo(_dop));
         }
@@ -188,13 +188,13 @@ public class ChannelSchedulerTests
                 });
             }
 
-            await allRunning.Task;
+            await allRunning.Task.WithinTimeout();
 
             Assert.That(Volatile.Read(ref concurrentCount), Is.EqualTo(_dop));
 
             gate.Release(_dop);
 
-            await Task.WhenAll(scheduleTasks);
+            await Task.WhenAll(scheduleTasks).WithinTimeout();
         }
     }
 
@@ -216,7 +216,7 @@ public class ChannelSchedulerTests
                 workCompleted = true;
             });
 
-            await workStarted.Task;
+            await workStarted.Task.WithinTimeout();
 
             var stopTask = Subject.StopAsync(CancellationToken.None);
 
@@ -227,8 +227,8 @@ public class ChannelSchedulerTests
 
             workCanFinish.TrySetResult(null);
 
-            await stopTask;
-            await scheduleTask;
+            await stopTask.WithinTimeout();
+            await scheduleTask.WithinTimeout();
 
             Assert.That(workCompleted, Is.True);
         }
@@ -236,10 +236,19 @@ public class ChannelSchedulerTests
         [Test]
         public async Task StopAsync_declines_pending_work()
         {
+            var blockingWorkStarted = new TaskCompletionSource<object?>();
             var gate = new TaskCompletionSource<object?>();
 
-            // Fill the single consumer with blocking work
-            var blockingTask = Subject.ScheduleAsync(async () => await gate.Task);
+            // Occupy the single consumer. Enqueuing is not enough: until the consumer has
+            // actually dequeued this item, StopAsync would decline it along with the pending one.
+            var blockingTask = Subject.ScheduleAsync(async () =>
+            {
+                blockingWorkStarted.TrySetResult(null);
+
+                await gate.Task;
+            });
+
+            await blockingWorkStarted.Task.WithinTimeout();
 
             // Enqueue a second item that will be pending
             var pendingTask = Subject.ScheduleAsync(() => { });
@@ -250,8 +259,8 @@ public class ChannelSchedulerTests
             // Release the blocking work so the consumer can finish
             gate.TrySetResult(null);
 
-            await stopTask;
-            await blockingTask;
+            await stopTask.WithinTimeout();
+            await blockingTask.WithinTimeout();
 
             Assert.That(async () => await pendingTask, Throws.InstanceOf<ExecutionDeclinedException>());
         }
@@ -281,7 +290,7 @@ public class ChannelSchedulerTests
                 await Task.Delay(Timeout.InfiniteTimeSpan, ct);
             });
 
-            await workStarted.Task;
+            await workStarted.Task.WithinTimeout();
 
             await Subject.StopAsync(CancellationToken.None);
 
@@ -312,7 +321,7 @@ public class ChannelSchedulerTests
                 workCompleted = true;
             });
 
-            await workStarted.Task;
+            await workStarted.Task.WithinTimeout();
 
             var stopTask = Subject.StopAsync(CancellationToken.None);
 
@@ -322,8 +331,8 @@ public class ChannelSchedulerTests
 
             workCanFinish.TrySetResult(null);
 
-            await stopTask;
-            await scheduleTask;
+            await stopTask.WithinTimeout();
+            await scheduleTask.WithinTimeout();
 
             Assert.That(workCompleted, Is.True);
         }
@@ -353,7 +362,7 @@ public class ChannelSchedulerTests
                 await Task.Delay(Timeout.InfiniteTimeSpan, ct);
             });
 
-            await workStarted.Task;
+            await workStarted.Task.WithinTimeout();
 
             await Subject.StopAsync(CancellationToken.None);
 
@@ -379,7 +388,7 @@ public class ChannelSchedulerTests
 
             await Subject.ResumeAsync(CancellationToken.None);
 
-            await scheduleTask;
+            await scheduleTask.WithinTimeout();
 
             Assert.That(executed, Is.True);
         }
@@ -395,7 +404,7 @@ public class ChannelSchedulerTests
 
             await Subject.ResumeAsync(CancellationToken.None);
 
-            await tcs.Task;
+            await tcs.Task.WithinTimeout();
 
             Assert.That(tcs.Task.IsCompleted, Is.True);
         }

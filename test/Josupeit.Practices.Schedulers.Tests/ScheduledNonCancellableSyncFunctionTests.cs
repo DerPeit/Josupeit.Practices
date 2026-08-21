@@ -128,7 +128,7 @@ public class ScheduledNonCancellableSyncFunctionTests
             },
             new object[] { subject, executeMethod, sentinel1, e });
 
-        e.Wait();
+        Assert.That(e.Wait(TimeSpan.FromSeconds(30)), Is.True);
         callback.Received(1)();
     }
 
