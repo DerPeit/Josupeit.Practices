@@ -78,7 +78,7 @@ public class TaskPoolJobTests
     public void Start_cancels_when_token_canceled()
     {
         var completed = new ManualResetEventSlim();
-        var job = new TaskPoolJob(Task.FromCanceled);
+        var job = new TaskPoolJob(CanceledTask.From);
 
         job.Changed += (_, _) =>
         {

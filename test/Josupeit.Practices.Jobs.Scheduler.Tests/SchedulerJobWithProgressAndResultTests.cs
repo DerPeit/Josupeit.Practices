@@ -66,7 +66,7 @@ public class SchedulerJobWithProgressAndResultTests
     public void Start_cancels_when_token_canceled()
     {
         var scheduler = CreateImmediateScheduler();
-        var job = new SchedulerJobWithProgressAndResult<string, string>(scheduler, (_, ct) => Task.FromCanceled<string>(ct));
+        var job = new SchedulerJobWithProgressAndResult<string, string>(scheduler, (_, ct) => CanceledTask.From<string>(ct));
 
         job.Cancel();
         job.Start();
@@ -114,10 +114,10 @@ public class SchedulerJobWithProgressAndResultTests
     public void Start_cancels_when_scheduling_is_canceled()
     {
         var scheduler = Substitute.For<IScheduler>();
-        var job = new SchedulerJobWithProgressAndResult<string, string>(scheduler, (_, ct) => Task.FromCanceled<string>(ct));
+        var job = new SchedulerJobWithProgressAndResult<string, string>(scheduler, (_, ct) => CanceledTask.From<string>(ct));
 
         scheduler.ScheduleAsync(Arg.Any<Func<Task>>(), Arg.Any<CancellationToken>())
-            .Returns(callInfo => Task.FromCanceled(callInfo.Arg<CancellationToken>()));
+            .Returns(callInfo => CanceledTask.From(callInfo.Arg<CancellationToken>()));
 
         job.Cancel();
         job.Start();
