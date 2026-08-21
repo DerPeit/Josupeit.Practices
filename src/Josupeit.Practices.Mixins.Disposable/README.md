@@ -64,6 +64,40 @@ Pass a `DisposableMixinOptions` flags value to the attribute to tailor the gener
 public partial class ObservableConnection { … }
 ```
 
+## Generated marker attributes
+
+The generator emits `DisposableMixinAttribute` and `DisposableMixinOptions` into every consuming compilation, so the package needs no runtime assembly at all. Alongside them it emits a declaration of `Microsoft.CodeAnalysis.EmbeddedAttribute`, which is what keeps those two types out of your assembly's public metadata - even for projects you have granted `InternalsVisibleTo`. Embedding is a metadata import filter rather than an accessibility check, so consumers of your library cannot name the mixin's attributes at all.
+
+That declaration is deliberately bare - no `AttributeUsage`, no `Conditional`, no `GeneratedCode`, no self-application. All of those are `AllowMultiple = false`, and the type is `partial`, so any of them would merge with another generator's half of the same declaration and produce `error CS0579: Duplicate 'AttributeUsage' attribute`. Keeping it bare lets the mixin coexist with PolySharp, with Roslyn's own synthesized declaration, and with any other generator that declares the type.
+
+### Opting out
+
+Two preprocessor symbols suppress parts of that output.
+
+| Symbol | Effect |
+|---|---|
+| `JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_ATTRIBUTES` | Emits nothing at all - no `EmbeddedAttribute`, no `DisposableMixinAttribute`, no `DisposableMixinOptions` |
+| `JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_EMBEDDED_ATTRIBUTE` | Omits only the `EmbeddedAttribute` declaration, keeping the mixin's own attributes |
+
+```xml
+<PropertyGroup>
+  <DefineConstants>$(DefineConstants);JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_EMBEDDED_ATTRIBUTE</DefineConstants>
+</PropertyGroup>
+```
+
+Reach for the second symbol when a co-generator emits a *non*-`partial` `EmbeddedAttribute`, so merging is not an option, or when you simply want to own that declaration yourself. Note that the mixin's attributes still carry `[Embedded]`, so you have to supply an `EmbeddedAttribute` of your own - otherwise the generated code fails with `error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft'`. A bare declaration is enough:
+
+```csharp
+namespace Microsoft.CodeAnalysis
+{
+    internal sealed partial class EmbeddedAttribute : global::System.Attribute
+    {
+    }
+}
+```
+
+Defining `JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_ATTRIBUTES` implies the second symbol, so projects that already use it are unaffected. With it defined you have to hand-declare the entire attribute contract yourself, which the generator matches by full type name (`Josupeit.Practices.Mixins.Disposable.DisposableMixinAttribute`).
+
 ## Analyzer and code fixes
 
 The package also includes a Roslyn analyzer that catches common mistakes at compile time — for example, forgetting the `partial` keyword, using the wrong visibility on a cleanup method, or applying the mixin to a class that already inherits a disposable base. Most of these diagnostics come with a code fix you can apply directly from the IDE's lightbulb menu. The code fixes can also scaffold the `DisposeManagedResources`, `DisposeManagedResourcesAsync`, and `DisposeUnmanagedResources` method stubs for you.

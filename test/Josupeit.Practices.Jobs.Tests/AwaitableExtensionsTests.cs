@@ -59,7 +59,7 @@ public class AwaitableExtensionsTests
         });
 
         thread.Start();
-        started.Wait();
+        Assert.That(started.Wait(TimeSpan.FromSeconds(30)), Is.True);
 
         Assert.That(completed.IsSet, Is.False);
 

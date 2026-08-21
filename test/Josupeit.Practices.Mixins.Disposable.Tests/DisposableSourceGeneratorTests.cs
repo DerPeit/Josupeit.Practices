@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (c) Manuel Josupeit-Walter
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Josupeit.Practices.Mixins.Disposable.Generator;
 using Josupeit.Practices.Mixins.Disposable.Tests.Verifiers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Testing;
 
 namespace Josupeit.Practices.Mixins.Disposable.Tests;
@@ -16,6 +18,10 @@ namespace Josupeit.Practices.Mixins.Disposable.Tests;
 [TestOf(typeof(DisposableSourceGenerator))]
 internal sealed class DisposableSourceGeneratorTests
 {
+    private const string AttributesHintName = "Attributes.g.cs";
+    private const string NoAttributesSymbol = "JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_ATTRIBUTES";
+    private const string NoEmbeddedAttributeSymbol = "JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_EMBEDDED_ATTRIBUTE";
+
     [Test]
     public async Task Generator_produces_full_implementation_with_all_options()
     {
@@ -616,17 +622,176 @@ namespace TestNamespace
         Assert.That(generated, Does.Not.Contain("event"));
     }
 
+    [Test]
+    public async Task Generator_declares_EmbeddedAttribute_without_any_attributes()
+    {
+        // Every attribute that could sit on this declaration is AllowMultiple = false, so each one
+        // is a CS0579 waiting for a co-generator that declares the other partial half of the type.
+        // A [Conditional] would additionally un-embed every [Embedded] marker in the consuming
+        // project, because the attribute applications are then never written to metadata.
+        var source = @"
+namespace TestNamespace
+{
+}
+";
+
+        var run = await RunGenerator([source]);
+
+        var embeddedAttribute = FindDeclaredType(GetAttributesSyntaxTree(run), "EmbeddedAttribute");
+
+        Assert.That(run.Errors, Is.Empty);
+        Assert.That(embeddedAttribute, Is.Not.Null);
+        Assert.That(embeddedAttribute!.AttributeLists, Is.Empty);
+    }
+
+    [Test]
+    public async Task Generator_coexists_with_a_foreign_EmbeddedAttribute_declaration()
+    {
+        // The shape PolySharp emits. Both halves merge into one type and attributes union across
+        // partials, so an AllowMultiple = false attribute on both sides surfaces as CS0579.
+        var foreignHalf = @"
+namespace Microsoft.CodeAnalysis
+{
+    [global::System.AttributeUsage(global::System.AttributeTargets.All)]
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    internal sealed partial class EmbeddedAttribute : global::System.Attribute
+    {
+    }
+}
+";
+
+        var source = @"
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace
+{
+    [DisposableMixin]
+    public partial class TestClass
+    {
+    }
+}
+";
+
+        var run = await RunGenerator([source, foreignHalf]);
+
+        Assert.That(run.Errors, Is.Empty);
+        Assert.That(GetGeneratedHintNames(run), Does.Contain("TestClass.g.cs"));
+    }
+
+    [Test]
+    public async Task Generator_omits_only_EmbeddedAttribute_for_NO_EMBEDDED_ATTRIBUTE()
+    {
+        var ownEmbeddedAttribute = @"
+namespace Microsoft.CodeAnalysis
+{
+    internal sealed partial class EmbeddedAttribute : global::System.Attribute
+    {
+    }
+}
+";
+
+        var source = @"
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace
+{
+    [DisposableMixin]
+    public partial class TestClass
+    {
+    }
+}
+";
+
+        var run = await RunGenerator(
+            [source, ownEmbeddedAttribute],
+            preprocessorSymbols: [NoEmbeddedAttributeSymbol]);
+
+        var attributes = GetAttributesSyntaxTree(run);
+
+        Assert.That(run.Errors, Is.Empty);
+        Assert.That(FindDeclaredType(attributes, "EmbeddedAttribute"), Is.Null);
+        Assert.That(FindDeclaredType(attributes, "DisposableMixinAttribute"), Is.Not.Null);
+        Assert.That(FindDeclaredType(attributes, "DisposableMixinOptions"), Is.Not.Null);
+        Assert.That(GetGeneratedHintNames(run), Does.Contain("TestClass.g.cs"));
+    }
+
+    [Test]
+    public async Task Generator_requires_an_own_EmbeddedAttribute_for_NO_EMBEDDED_ATTRIBUTE()
+    {
+        // The mixin's own attributes still wear [Embedded], so opting out of the declaration
+        // without supplying a replacement leaves them unresolvable. Documented in the README.
+        var source = @"
+namespace TestNamespace
+{
+}
+";
+
+        var run = await RunGenerator([source], preprocessorSymbols: [NoEmbeddedAttributeSymbol]);
+
+        Assert.That(run.Errors.Select(x => x.Id), Is.All.EqualTo("CS0234"));
+        Assert.That(run.Errors, Is.Not.Empty);
+    }
+
+    [Test]
+    public async Task Generator_omits_all_attributes_for_NO_ATTRIBUTES()
+    {
+        await AssertNoTypesAreDeclared(NoAttributesSymbol);
+    }
+
+    [Test]
+    public async Task Generator_omits_all_attributes_for_both_opt_out_symbols()
+    {
+        await AssertNoTypesAreDeclared(NoAttributesSymbol, NoEmbeddedAttributeSymbol);
+    }
+
+    private static async Task AssertNoTypesAreDeclared(params string[] preprocessorSymbols)
+    {
+        var source = @"
+namespace TestNamespace
+{
+}
+";
+
+        var run = await RunGenerator([source], preprocessorSymbols: preprocessorSymbols);
+
+        var declaredTypes = GetAttributesSyntaxTree(run)
+            .GetRoot()
+            .DescendantNodes()
+            .OfType<BaseTypeDeclarationSyntax>();
+
+        Assert.That(run.Errors, Is.Empty);
+        Assert.That(declaredTypes, Is.Empty);
+    }
+
     private static async Task<string> RunGeneratorAndGetOutput(string source, ReferenceAssemblies? referenceAssemblies = null, LanguageVersion languageVersion = LanguageVersion.CSharp12)
+    {
+        var run = await RunGenerator([source], referenceAssemblies, languageVersion);
+
+        Assert.That(run.Errors, Is.Empty, "Compilation should succeed without errors");
+
+        var generatedSource = run.Result.Results[0].GeneratedSources.Single(s => s.HintName != AttributesHintName);
+
+        return generatedSource.SourceText.ToString();
+    }
+
+    private static async Task<GeneratorRun> RunGenerator(
+        string[] sources,
+        ReferenceAssemblies? referenceAssemblies = null,
+        LanguageVersion languageVersion = LanguageVersion.CSharp12,
+        string[]? preprocessorSymbols = null)
     {
         referenceAssemblies ??= ReferenceAssemblies.Net.Net80;
         var references = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
 
-        var parseOptions = new CSharpParseOptions(languageVersion);
-        var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions);
+        var parseOptions = new CSharpParseOptions(languageVersion, preprocessorSymbols: preprocessorSymbols);
+
+        var syntaxTrees = sources
+            .Select(x => CSharpSyntaxTree.ParseText(x, parseOptions))
+            .ToArray();
 
         var compilation = CSharpCompilation.Create(
             "TestAssembly",
-            [syntaxTree],
+            syntaxTrees,
             references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
@@ -635,16 +800,32 @@ namespace TestNamespace
             .WithUpdatedParseOptions(parseOptions)
             .RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
 
-        var compilationErrors = outputCompilation
+        var errors = outputCompilation
             .GetDiagnostics()
             .Where(d => d.Severity == DiagnosticSeverity.Error)
             .ToImmutableArray();
 
-        Assert.That(compilationErrors, Is.Empty, "Compilation should succeed without errors");
-
-        var result = driver.GetRunResult();
-        var generatedSource = result.Results[0].GeneratedSources.Single(s => s.HintName != "Attributes.g.cs");
-
-        return generatedSource.SourceText.ToString();
+        return new GeneratorRun(driver.GetRunResult(), errors);
     }
+
+    private static SyntaxTree GetAttributesSyntaxTree(GeneratorRun run)
+    {
+        return run.Result.Results[0].GeneratedSources.Single(x => x.HintName == AttributesHintName).SyntaxTree;
+    }
+
+    private static IEnumerable<string> GetGeneratedHintNames(GeneratorRun run)
+    {
+        return run.Result.Results[0].GeneratedSources.Select(x => x.HintName);
+    }
+
+    private static BaseTypeDeclarationSyntax? FindDeclaredType(SyntaxTree tree, string name)
+    {
+        return tree
+            .GetRoot()
+            .DescendantNodes()
+            .OfType<BaseTypeDeclarationSyntax>()
+            .SingleOrDefault(x => x.Identifier.ValueText == name);
+    }
+
+    private sealed record GeneratorRun(GeneratorDriverRunResult Result, ImmutableArray<Diagnostic> Errors);
 }

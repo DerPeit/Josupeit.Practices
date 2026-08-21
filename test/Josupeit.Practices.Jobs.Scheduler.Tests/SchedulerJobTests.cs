@@ -88,7 +88,7 @@ public class SchedulerJobTests
     public void Start_cancels_when_token_canceled()
     {
         var scheduler = CreateImmediateScheduler();
-        var job = new SchedulerJob(scheduler, Task.FromCanceled);
+        var job = new SchedulerJob(scheduler, CanceledTask.From);
 
         job.Cancel();
         job.Start();
@@ -118,10 +118,10 @@ public class SchedulerJobTests
     public void Start_cancels_when_scheduling_is_canceled()
     {
         var scheduler = Substitute.For<IScheduler>();
-        var job = new SchedulerJob(scheduler, Task.FromCanceled);
+        var job = new SchedulerJob(scheduler, CanceledTask.From);
 
         scheduler.ScheduleAsync(Arg.Any<Func<Task>>(), Arg.Any<CancellationToken>())
-            .Returns(callInfo => Task.FromCanceled(callInfo.Arg<CancellationToken>()));
+            .Returns(callInfo => CanceledTask.From(callInfo.Arg<CancellationToken>()));
 
         job.Cancel();
         job.Start();
