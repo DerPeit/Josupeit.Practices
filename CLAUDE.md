@@ -53,7 +53,7 @@ Libraries target netstandard2.0 as minimum, with netstandard2.1 where IAsyncDisp
 
 ## Testing Conventions
 
-- **Framework:** NUnit 3 (`[Test]`, `[TestFixture]`, `Assert.That` constraint model).
+- **Framework:** NUnit 4 (`[Test]`, `[TestFixture]`, `Assert.That` constraint model), except on `netcoreapp2.2`, which is pinned to NUnit 3.14.0 in `test/Directory.Build.props` because NUnit 4 tooling no longer supports it. Shared test code therefore has to compile and pass under **both** majors - avoid APIs that exist in only one of them. Use BCL delegate types (`Action`, `Func<Task>`) rather than NUnit's `TestDelegate` and `AsyncTestDelegate`, which NUnit 4 deprecated; `Assert.That` and the `Throws` constraints accept them on both versions.
 - **Mocking:** NSubstitute — use `Substitute.ForPartsOf<T>()` for partial mocks of abstract classes, `Substitute.For<T>()` for interfaces.
 - **Test class naming:** `{ClassUnderTest}Tests` (e.g. `CommandTests`, `ExplicitDisposableTests`). File names match class names.
 - **Test method naming:** Sentence-style with underscores: `{Method}_does_something_when_condition` (e.g. `Execute_calls_overridden_ExecuteAsync`, `Dispose_sets_IsDisposed_to_true`).

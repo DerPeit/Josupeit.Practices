@@ -113,13 +113,13 @@ public class ScheduledNonCancellableAsyncActionTests
 
                 switch (Execute(subject, executeMethod, CancellationToken.None))
                 {
-                    case TestDelegate td:
-                        td();
+                    case Action execute:
+                        execute();
                         e.Set();
                         break;
 
-                    case AsyncTestDelegate atd:
-                        atd().ContinueWith(_ => e.Set(), TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
+                    case Func<Task> executeAsync:
+                        executeAsync().ContinueWith(_ => e.Set(), TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
                         break;
                 }
             },
@@ -147,12 +147,12 @@ public class ScheduledNonCancellableAsyncActionTests
 
         switch (Execute(subject, executeMethod, CancellationToken.None))
         {
-            case TestDelegate td:
-                td();
+            case Action execute:
+                execute();
                 break;
 
-            case AsyncTestDelegate atd:
-                await atd();
+            case Func<Task> executeAsync:
+                await executeAsync();
                 break;
         }
 
@@ -172,12 +172,12 @@ public class ScheduledNonCancellableAsyncActionTests
 
         switch (Execute(subject, executeMethod, CancellationToken.None))
         {
-            case TestDelegate td:
-                td();
+            case Action execute:
+                execute();
                 break;
 
-            case AsyncTestDelegate atd:
-                await atd();
+            case Func<Task> executeAsync:
+                await executeAsync();
                 break;
         }
 
@@ -195,12 +195,12 @@ public class ScheduledNonCancellableAsyncActionTests
 
         switch (Execute(subject, executeMethod, CancellationToken.None))
         {
-            case TestDelegate td:
-                td();
+            case Action execute:
+                execute();
                 break;
 
-            case AsyncTestDelegate atd:
-                await atd();
+            case Func<Task> executeAsync:
+                await executeAsync();
                 break;
         }
 
@@ -446,10 +446,10 @@ public class ScheduledNonCancellableAsyncActionTests
 
         if (mi.Name == nameof(IScheduled.Execute))
         {
-            return Expression.Lambda<TestDelegate>(call).Compile();
+            return Expression.Lambda<Action>(call).Compile();
         }
 
-        return Expression.Lambda<AsyncTestDelegate>(call).Compile();
+        return Expression.Lambda<Func<Task>>(call).Compile();
     }
 
     private static IEnumerable<MethodInfo> ReturnExecuteThenExecuteAsync()

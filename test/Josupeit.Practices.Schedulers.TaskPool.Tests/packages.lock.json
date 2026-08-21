@@ -183,7 +183,7 @@
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
-        "requested": "[*, )",
+        "requested": "[18.*, )",
         "resolved": "18.9.0",
         "contentHash": "xIzVXa/VpKXqDWzyC/5Hw8JbFY5u9k3Jc53CpcjBiOXvkQGio484LD9FNwOiGUSMDcYL3Rcw9sNgGi5WrswlPQ==",
         "dependencies": {
@@ -193,7 +193,7 @@
       },
       "NSubstitute": {
         "type": "Direct",
-        "requested": "[*, )",
+        "requested": "[6.*, )",
         "resolved": "6.2.0",
         "contentHash": "05oaAmBAvYYUQb/NTb9/kWBDjq0iS772X4t428WJcHRcH+5ULJx6rTbEvqkZJBIHWRLI8MlU3et3F5/gkEHKIw==",
         "dependencies": {
@@ -202,13 +202,13 @@
       },
       "NUnit": {
         "type": "Direct",
-        "requested": "[*, )",
+        "requested": "[4.*, )",
         "resolved": "4.6.1",
         "contentHash": "xS4+YaBFUv1r8bcAbjitSfYaRZGfMwUiMdiaRziBXZpKgVxKDSHhjUn0mV5mObHGZRZq6eNa+WFWr3g8grj66A=="
       },
       "NUnit3TestAdapter": {
         "type": "Direct",
-        "requested": "[*, )",
+        "requested": "[6.*, )",
         "resolved": "6.2.0",
         "contentHash": "8PMJB8za2u8S0ey/nEtvh9BHjLhv5yzUEMCmA0+VIPLKSeOAZ3TEHWDyAp0+iPQb3jnBH1o8k0PoU2FgzXLRnQ==",
         "dependencies": {
@@ -337,7 +337,7 @@
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
-        "requested": "[*, )",
+        "requested": "[18.*, )",
         "resolved": "18.9.0",
         "contentHash": "xIzVXa/VpKXqDWzyC/5Hw8JbFY5u9k3Jc53CpcjBiOXvkQGio484LD9FNwOiGUSMDcYL3Rcw9sNgGi5WrswlPQ==",
         "dependencies": {
@@ -347,7 +347,7 @@
       },
       "NSubstitute": {
         "type": "Direct",
-        "requested": "[*, )",
+        "requested": "[6.*, )",
         "resolved": "6.2.0",
         "contentHash": "05oaAmBAvYYUQb/NTb9/kWBDjq0iS772X4t428WJcHRcH+5ULJx6rTbEvqkZJBIHWRLI8MlU3et3F5/gkEHKIw==",
         "dependencies": {
@@ -356,13 +356,13 @@
       },
       "NUnit": {
         "type": "Direct",
-        "requested": "[*, )",
+        "requested": "[4.*, )",
         "resolved": "4.6.1",
         "contentHash": "xS4+YaBFUv1r8bcAbjitSfYaRZGfMwUiMdiaRziBXZpKgVxKDSHhjUn0mV5mObHGZRZq6eNa+WFWr3g8grj66A=="
       },
       "NUnit3TestAdapter": {
         "type": "Direct",
-        "requested": "[*, )",
+        "requested": "[6.*, )",
         "resolved": "6.2.0",
         "contentHash": "8PMJB8za2u8S0ey/nEtvh9BHjLhv5yzUEMCmA0+VIPLKSeOAZ3TEHWDyAp0+iPQb3jnBH1o8k0PoU2FgzXLRnQ==",
         "dependencies": {

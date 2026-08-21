@@ -30,10 +30,10 @@
 
   <!-- All other frameworks -->
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp2.2'">
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
-    <PackageReference Include="NSubstitute" Version="*" />
-    <PackageReference Include="NUnit" Version="*" />
-    <PackageReference Include="NUnit3TestAdapter" Version="*" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.*" />
+    <PackageReference Include="NSubstitute" Version="6.*" />
+    <PackageReference Include="NUnit" Version="4.*" /><!-- Major pinned: netcoreapp2.2 stays on NUnit 3, so shared test code must compile on both. -->
+    <PackageReference Include="NUnit3TestAdapter" Version="6.*" /><!-- Tracks the Microsoft test platform, not NUnit: 5.x moved the test host to Microsoft.Testing.Platform. -->
   </ItemGroup>
 
   <!--
