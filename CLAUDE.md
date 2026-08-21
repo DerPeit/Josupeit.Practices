@@ -99,6 +99,14 @@ After merging `develop` into `main`, follow these steps:
 - The `-p` flag takes the **project directory path** (e.g. `src/Josupeit.Practices.Commands`), not a `.csproj` file path.
 - Use `--what-if` with the `tag` subcommand for dry-runs; it prints the tag name without creating it.
 
+## Package Versions
+
+Most `PackageReference` versions in `src/Directory.Build.props` and `test/Directory.Build.props` float (`Version="*"`). Resolution is pinned by a `packages.lock.json` per project, committed alongside it, and `RestoreLockedMode` is enabled when `$(CI) == 'true'` so CI fails instead of silently drifting.
+
+- A floating version resolving to something new does **not** change the build until the lock files are regenerated. That is deliberate - every version bump is an explicit, reviewable commit.
+- To take newer packages, run `dotnet restore --force-evaluate` and commit the resulting lock file changes.
+- `error NU1004` or `NU1403` on CI means the lock files are out of date or were hand-edited. Regenerate them, do not delete them.
+
 ## Conventions
 
 - Follow the rules in [CODING_STANDARDS.md](CODING_STANDARDS.md) for naming, style, member ordering, and general practices.

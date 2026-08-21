@@ -3,6 +3,8 @@
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,6 +34,19 @@
     <PackageReference Include="NSubstitute" Version="*" />
     <PackageReference Include="NUnit" Version="*" />
     <PackageReference Include="NUnit3TestAdapter" Version="*" />
+  </ItemGroup>
+
+  <!--
+    On non-Windows hosts the SDK adds this implicitly for net4x targets, but on Windows it
+    resolves the installed targeting pack instead and adds nothing. That asymmetry makes
+    packages.lock.json host-specific and fails RestoreLockedMode on a Linux CI runner with
+    NU1004. Declaring it explicitly keeps the graph identical everywhere; the SDK skips its
+    own implicit reference when one is already present.
+  -->
+  <ItemGroup Condition="$(TargetFramework.StartsWith('net4'))">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>
