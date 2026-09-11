@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Commands</RootNamespace>
     <Description>CQRS command and query interfaces covering all combinations of input, output, and query purity. Every interface exposes both synchronous and asynchronous execution paths.</Description>
     <PackageTags>cqrs command query abstractions interfaces patterns</PackageTags>

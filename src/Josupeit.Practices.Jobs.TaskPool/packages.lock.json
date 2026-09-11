@@ -113,6 +113,82 @@
           "Josupeit.Practices.Jobs.Abstractions": "[1.0.0, )"
         }
       }
+    },
+    "net8.0": {
+      "ConfigureAwaitChecker.Analyzer": {
+        "type": "Direct",
+        "requested": "[*, )",
+        "resolved": "5.0.0.1",
+        "contentHash": "jqOPPOJzHiUajPVGNw0MJzqUYLM3nHYEXEo1X91VqbwBqvq0+u8ASgcdmlmr4E9ffWJkjIo8vPEH9EMrKh69EQ=="
+      },
+      "JetBrains.Annotations": {
+        "type": "Direct",
+        "requested": "[*, )",
+        "resolved": "2026.2.0",
+        "contentHash": "drvAEaI7Xf4wU6dx4UTB9MoZWXZlraaQ0qoeThPQ411FxNhId7QdUTukIC9I8aUHP0ycAaGwZNKqSvfOZQvUlg=="
+      },
+      "Microsoft.NET.ILLink.Tasks": {
+        "type": "Direct",
+        "requested": "[8.0.27, )",
+        "resolved": "8.0.27",
+        "contentHash": "rQi9TxifHRnXP7lVRZH05DxD2/XGbJp12q0ozcbrlBlBnyyzssFTH/2vLhtKWUp2CT1qVscTrcYTFiwTyKPKRg=="
+      },
+      "Microsoft.Sbom.Targets": {
+        "type": "Direct",
+        "requested": "[*, )",
+        "resolved": "4.1.5",
+        "contentHash": "i5z+cNu/cOcdO0AgFB8aXk8w6In2H+haaDfSgd9ImvQIK+rSHavHZIogVoAZLL8jLwYx4bAcs5b7EyuMMG4mQQ=="
+      },
+      "Microsoft.SourceLink.Gitea": {
+        "type": "Direct",
+        "requested": "[*, )",
+        "resolved": "10.0.401",
+        "contentHash": "l4c5K/p3XSYOtFxhK25+LuWrdiRFeBk62I9TY5X7G9/KjWj/Q4bWMWlLQo1BxAvJrLeOcgRXa2a4HuzILJsQBg==",
+        "dependencies": {
+          "Microsoft.Build.Tasks.Git": "10.0.401",
+          "Microsoft.SourceLink.Common": "10.0.401",
+          "System.IO.Hashing": "10.0.12"
+        }
+      },
+      "Nerdbank.GitVersioning": {
+        "type": "Direct",
+        "requested": "[3.*, )",
+        "resolved": "3.10.94",
+        "contentHash": "sn6gFIx6bwFj3Me0XGmek3gLZi/MZC8C4tRLwslXGeBcXcVxvFpZyDrQA93G8TiYgxTS7J7triKB7hj5wXzSxA=="
+      },
+      "PolySharp": {
+        "type": "Direct",
+        "requested": "[*, )",
+        "resolved": "1.16.0",
+        "contentHash": "3kdIIceBPumwjw279FuiVMfVENT2cGASXJgcigdySsbX2dJB8ofUgG6i47yqF/k1qu6fvNR3csrSekZPviR6kQ=="
+      },
+      "Microsoft.Build.Tasks.Git": {
+        "type": "Transitive",
+        "resolved": "10.0.401",
+        "contentHash": "ZYctNuT10V9IYyCFydy63DXx0ggZQuynuzQOdLvW62dPgzjIz7f0ISEP75RGiq1jFQh8p6TmGSqxeQZQ87LCig==",
+        "dependencies": {
+          "System.IO.Hashing": "10.0.12"
+        }
+      },
+      "Microsoft.SourceLink.Common": {
+        "type": "Transitive",
+        "resolved": "10.0.401",
+        "contentHash": "u3rLxIwi/9MqDFaWGE/QQgLR1NBEzLOW2lv5+9OrZPDBYIAmFdYSWCWrR1ufpXWOqFn+x02TgKropl/oDuHmgA=="
+      },
+      "System.IO.Hashing": {
+        "type": "Transitive",
+        "resolved": "10.0.12",
+        "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
+      },
+      "josupeit.practices.jobs.abstractions": {
+        "type": "Project"
+      },
+      "Josupeit.Practices.Jobs.Core": {
+        "type": "Project",
+        "dependencies": {
+          "Josupeit.Practices.Jobs.Abstractions": "[1.0.0, )"
+        }
+      }
     }
   }
 }

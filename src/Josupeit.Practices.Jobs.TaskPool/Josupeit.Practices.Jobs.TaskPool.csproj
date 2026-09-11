@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Jobs</RootNamespace>
     <Description>Thread pool IJobFactory implementation. Creates observable jobs with support for results, progress reporting, and cancellation — no scheduler setup required.</Description>
     <PackageTags>job background-task thread-pool observable patterns</PackageTags>
