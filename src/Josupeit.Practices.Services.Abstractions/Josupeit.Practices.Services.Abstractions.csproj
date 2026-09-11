@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Services</RootNamespace>
     <Description>Background service lifecycle interfaces with start, stop, pause, and resume operations. Exposes a ServiceState enum covering all transition states.</Description>
     <PackageTags>service lifecycle abstractions interfaces background-service patterns</PackageTags>

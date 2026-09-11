@@ -2,7 +2,7 @@
 
 A collection of small, focused .NET libraries for patterns that appear repeatedly in production applications — commands, background services, schedulers, observable jobs, and the dispose pattern — each packaged separately so you only take what you need.
 
-All packages target **netstandard2.0** as a minimum. Where a feature requires it (e.g. `IAsyncDisposable`, `System.Threading.Channels`), an additional target is included. No package requires a specific application framework.
+All packages target **netstandard2.0** as a minimum. Where a feature requires it (e.g. `IAsyncDisposable`, `System.Threading.Channels`), an additional target is included. No package requires a specific application framework. They also carry a **net8.0** target that is verified [Native AOT compatible](AOT.md).
 
 ## Packages
 
@@ -63,6 +63,12 @@ Source-generated `IDisposable` / `IAsyncDisposable` implementation with compile-
 | [`Josupeit.Practices.Mixins.Disposable`](src/Josupeit.Practices.Mixins.Disposable/README.md) | Meta-package — install this one; bundles the generator and analyzer as a dev dependency |
 | [`Josupeit.Practices.Mixins.Disposable.Generator`](src/Josupeit.Practices.Mixins.Disposable.Generator/README.md) | Roslyn incremental source generator |
 | [`Josupeit.Practices.Mixins.Disposable.Analyzer`](src/Josupeit.Practices.Mixins.Disposable.Analyzer/README.md) | Roslyn analyzer and code fix providers |
+
+## Native AOT
+
+All packable libraries are Native AOT compatible on their `net8.0` target — verified by an
+analyzer-clean build (`<IsAotCompatible>`) and a native smoke-test binary published and run in CI.
+See [AOT.md](AOT.md) for details.
 
 ## Building and testing
 

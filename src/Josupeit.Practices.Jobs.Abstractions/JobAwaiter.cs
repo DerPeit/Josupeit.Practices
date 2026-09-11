@@ -73,7 +73,7 @@ internal sealed class JobAwaiter(IJob job, bool continueOnCapturedContext = true
         return () => context.Post(static state => ((Action)state!).Invoke(), continuation);
     }
 
-    private void RunContinuationsIfCompleted(object sender, EventArgs e)
+    private void RunContinuationsIfCompleted(object? sender, EventArgs e)
     {
         if (!IsCompleted)
             return;
