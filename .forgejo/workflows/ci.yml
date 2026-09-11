@@ -38,3 +38,35 @@ jobs:
           --source https://api.nuget.org/v3/index.json
           --api-key "${{ secrets.NUGET_API_KEY }}"
           --skip-duplicate
+
+  aot:
+    runs-on: codeberg-medium-lazy
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:10.0
+    steps:
+      - name: Checkout
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git clone "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" .
+          git checkout "$GITHUB_REF_NAME"
+
+      - name: Install Native AOT prerequisites
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends clang zlib1g-dev
+          rm -rf /var/lib/apt/lists/*
+
+      - name: Restore local tools
+        run: dotnet tool restore
+
+      - name: Publish AOT smoke test
+        run: >-
+          dotnet publish aot/Josupeit.Practices.AotSmoke/Josupeit.Practices.AotSmoke.csproj
+          --configuration Release --runtime linux-x64
+
+      - name: Run AOT smoke test
+        run: |
+          binary="aot/Josupeit.Practices.AotSmoke/bin/Release/net10.0/linux-x64/publish/Josupeit.Practices.AotSmoke"
+          output="$("$binary")"
+          echo "$output"
+          echo "$output" | grep -q "AOT SMOKE OK"
