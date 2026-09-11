@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Schedulers</RootNamespace>
     <Description>IScheduler abstraction for decoupling work submission from execution strategy. Covers sync and async actions, functions, and cancellable variants across three scheduling families.</Description>
     <PackageTags>scheduler abstractions interfaces patterns concurrency</PackageTags>

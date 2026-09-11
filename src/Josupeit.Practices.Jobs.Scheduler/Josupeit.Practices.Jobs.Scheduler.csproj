@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Jobs</RootNamespace>
     <Description>IJobFactory that routes job execution through an IScheduler for sequential ordering, bounded parallelism, and pause support.</Description>
     <PackageTags>job scheduler background-task observable patterns concurrency</PackageTags>
