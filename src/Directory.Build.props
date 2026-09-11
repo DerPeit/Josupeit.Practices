@@ -33,6 +33,16 @@
     <PackageReleaseNotesGitPath>. ../Directory.Build.props ../Directory.Build.targets</PackageReleaseNotesGitPath>
   </PropertyGroup>
 
+  <!--
+    On modern target frameworks, turn on the full trim / AOT / single-file analyzer suite so that
+    AOT-hostile code is flagged at build time rather than failing at publish. IsAotCompatible also
+    marks the assembly trimmable. The netstandard targets cannot carry these analyzers, so the
+    condition scopes this to net8.0; it is a no-op for projects without that target framework.
+  -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')" />
     <None Include="$(MSBuildThisFileDirectory)..\LICENSE.md" Pack="true" PackagePath="\" Link="LICENSE.md" Visible="false" />
