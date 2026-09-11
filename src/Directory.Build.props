@@ -43,6 +43,19 @@
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
+  <!--
+    IsAotCompatible (via IsTrimmable) pulls in Microsoft.NET.ILLink.Tasks, whose version the SDK
+    picks from the build environment's .NET 8 servicing band. That makes packages.lock.json
+    host-specific and fails RestoreLockedMode on CI with NU1004. Pinning it explicitly keeps the
+    restore graph identical everywhere, the same rationale as Microsoft.NETFramework.ReferenceAssemblies
+    in test/Directory.Build.props.
+  -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="8.0.31">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')" />
     <None Include="$(MSBuildThisFileDirectory)..\LICENSE.md" Pack="true" PackagePath="\" Link="LICENSE.md" Visible="false" />
