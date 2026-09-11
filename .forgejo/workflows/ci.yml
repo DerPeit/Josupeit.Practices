@@ -60,9 +60,12 @@ jobs:
         run: dotnet tool restore
 
       - name: Publish AOT smoke test
+        # RestoreLockedMode is off for this publish only: a runtime (RID) restore adds linux-x64 to
+        # the referenced projects, which their RID-less lock files cannot satisfy in locked mode. The
+        # ci job already enforces full lock integrity.
         run: >-
           dotnet publish aot/Josupeit.Practices.AotSmoke/Josupeit.Practices.AotSmoke.csproj
-          --configuration Release --runtime linux-x64
+          --configuration Release --runtime linux-x64 -p:RestoreLockedMode=false
 
       - name: Run AOT smoke test
         run: |
