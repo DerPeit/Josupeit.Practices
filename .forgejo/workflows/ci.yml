@@ -16,7 +16,7 @@ jobs:
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git clone "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" .
-          git checkout "$GITHUB_REF_NAME"
+          git checkout "${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
 
       - name: Restore local tools
         run: dotnet tool restore
@@ -48,7 +48,7 @@ jobs:
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git clone "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" .
-          git checkout "$GITHUB_REF_NAME"
+          git checkout "${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
 
       - name: Install Native AOT prerequisites
         run: |
