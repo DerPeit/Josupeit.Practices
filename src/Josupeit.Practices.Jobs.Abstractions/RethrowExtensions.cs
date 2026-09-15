@@ -20,8 +20,7 @@ public static class RethrowExtensions
     /// <exception cref="System.ArgumentNullException">The <paramref name="job" /> must not be <c>null</c>.</exception>
     public static void ThrowIfFaulted(this IJob job)
     {
-        if (job == null)
-            throw new ArgumentNullException(nameof(job));
+        ArgumentNullException.ThrowIfNull(job);
 
         if (job.IsFaulted)
             ExceptionDispatchInfo.Capture(job.Exception!).Throw();

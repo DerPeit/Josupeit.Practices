@@ -5,7 +5,7 @@ using System;
 
 namespace Josupeit.Practices.Services;
 
-internal class ResumingServiceState : IServiceState
+internal sealed class ResumingServiceState : IServiceState
 {
     private readonly IServiceInternals _owner;
 

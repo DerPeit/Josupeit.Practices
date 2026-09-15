@@ -7,8 +7,8 @@ namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This interface represents a job with a result.<para />
-/// Implements the <see cref="Josupeit.Practices.Jobs.IJob" />
-/// Implements the <see cref="Josupeit.Practices.Jobs.IHasResult{TResult}" />
+/// Implements the <see cref="Josupeit.Practices.Jobs.IJob" />.
+/// Implements the <see cref="Josupeit.Practices.Jobs.IHasResult{TResult}" />.
 /// </summary>
 /// <typeparam name="TResult">The type of the result.</typeparam>
 /// <seealso cref="Josupeit.Practices.Jobs.IJob" />

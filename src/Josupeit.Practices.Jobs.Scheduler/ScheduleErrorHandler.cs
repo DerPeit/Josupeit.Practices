@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace Josupeit.Practices.Jobs;
 
+#pragma warning disable CA1068 // CancellationToken groups logically with the promise it guards, not the outcome callbacks.
+
 internal static class ScheduleErrorHandler
 {
     public static async void HandleScheduleErrors(

@@ -43,12 +43,12 @@ internal ref struct SemanticAnalyzer(GeneratorAttributeSyntaxContext context)
 
         if (firstSyntaxTree == null)
             return;
-            
+
         var csharpOpts = firstSyntaxTree.Options as CSharpParseOptions;
-        
+
         if (csharpOpts == null)
             return;
-        
+
         _languageVersion = csharpOpts.LanguageVersion;
     }
 
@@ -107,7 +107,7 @@ internal ref struct SemanticAnalyzer(GeneratorAttributeSyntaxContext context)
         var name = _targetSymbol.Name;
         var nameWithConstraints = _targetSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
         var type = Discriminate(_typeSyntax);
-        
+
         for (var parentSyntax = _typeSyntax.Parent; parentSyntax is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax or InterfaceDeclarationSyntax; parentSyntax = parentSyntax.Parent)
         {
             var parentSymbol = (INamedTypeSymbol)context.SemanticModel.GetDeclaredSymbol(parentSyntax)!;

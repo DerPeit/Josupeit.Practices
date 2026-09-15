@@ -5,6 +5,8 @@ using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Jobs;
 
+#pragma warning disable CA1815 // Awaitable struct; equality is never used, matching ConfiguredTaskAwaitable.
+
 /// <summary>
 /// Provides an awaitable object that enables configured awaits on an <see cref="IJob"/>.
 /// </summary>

@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace Josupeit.Practices.Schedulers;
 
+#pragma warning disable CA2016 // TrySetCanceled() is deliberately parameterless; the cancellation source is ambiguous in catch blocks.
+
 internal sealed class ScheduledNonCancellableSyncFunction<TResult> : IScheduledFunction<TResult>
 {
     private readonly TaskCompletionSource<TResult> _taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -80,7 +82,7 @@ internal sealed class ScheduledNonCancellableSyncFunction<TResult> : IScheduledF
             TResult result = default!;
 
             ExecutionContext.Run(_executionContext, _ => result = _function(), state: null);
-            
+
             _taskCompletionSource.TrySetResult(result);
         }
         catch (OperationCanceledException ex) when (executionCancellationToken.IsCancellationRequested)

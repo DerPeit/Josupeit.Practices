@@ -1,6 +1,7 @@
 ﻿// SPDX-License-Identifier: EUPL-1.2
 // Copyright (c) Manuel Josupeit-Walter
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -26,10 +27,10 @@ internal sealed class AsyncKeywordRemovingRewriter : CSharpSyntaxRewriter
         if (!isAsync)
             return base.VisitMethodDeclaration(node);
 
-        Debug.Assert(node.ReturnType.ToFullString().Trim().EndsWith("ValueTask"), "Return type is no ValueTask.");
+        Debug.Assert(node.ReturnType.ToFullString().Trim().EndsWith("ValueTask", StringComparison.Ordinal), "Return type is no ValueTask.");
 
         var awaitChecker = new AwaitChecker();
-        
+
         awaitChecker.Visit(node);
 
         if (awaitChecker.HasAwait)
@@ -44,6 +45,8 @@ internal sealed class AsyncKeywordRemovingRewriter : CSharpSyntaxRewriter
                 .AddBodyStatements(ReturnStatement()));
     }
 }
+
+#pragma warning disable SA1402 // file-scoped types must share a file by definition.
 
 file sealed class AwaitChecker : CSharpSyntaxWalker
 {

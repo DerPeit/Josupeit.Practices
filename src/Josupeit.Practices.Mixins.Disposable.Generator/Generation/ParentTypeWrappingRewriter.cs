@@ -30,7 +30,7 @@ internal sealed class ParentTypeWrappingRewriter(ParentType? parent) : CSharpSyn
                 TypeDiscriminator.StructRecord => RecordDeclaration(SyntaxKind.RecordStructDeclaration, Token(SyntaxKind.RecordKeyword), enclosingTypeInfo.NameWithConstraints).WithClassOrStructKeyword(Token(SyntaxKind.StructKeyword)),
                 TypeDiscriminator.Interface => InterfaceDeclaration(enclosingTypeInfo.NameWithConstraints),
 
-                _ => throw new InvalidOperationException()
+                _ => throw new InvalidOperationException(),
             };
 
             newTypeDeclaration = newTypeDeclaration.AddModifiers(Token(SyntaxKind.PartialKeyword));

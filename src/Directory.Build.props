@@ -32,7 +32,7 @@
     <IncludeSource>true</IncludeSource>
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
     <AnalysisLevel>latest</AnalysisLevel>
-    <NoWarn>$(NoWarn);NETSDK1138;NETSDK1215</NoWarn>
+    <NoWarn>$(NoWarn);NETSDK1138;NETSDK1215;SA1649;CA1032</NoWarn>
     <PackageVersionTagPrefix />
     <PackageReleaseNotesGitPath>. ../Directory.Build.props ../Directory.Build.targets</PackageReleaseNotesGitPath>
   </PropertyGroup>
@@ -105,6 +105,10 @@
 
   <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ThrowIfNullExtension.cs" Link="Properties\ThrowIfNullExtension.cs" />
   </ItemGroup>
 
 </Project>

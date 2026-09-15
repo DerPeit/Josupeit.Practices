@@ -6,11 +6,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Josupeit.Practices.Mixins.Disposable.Analyzer;
+
+#pragma warning disable SA1408 // Operator precedence is correct; parens would obscure the pattern-match shape.
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DisposableAnalyzer : DiagnosticAnalyzer
@@ -27,9 +29,11 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
             Diagnostics.TargetDoesNotImplementDisposeUnmanagedResources,
             Diagnostics.MethodShouldBeProtectedVirtual,
             Diagnostics.MethodShouldBePrivate);
-    
+
     public override void Initialize(AnalysisContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
         context.RegisterSyntaxNodeAction(AnalyzeClass, SyntaxKind.ClassDeclaration);
@@ -60,9 +64,9 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
             mixinOptions,
             classSyntax,
             classSemantics,
-            asyncDisposableInterface, 
-            disposeManagedResources, 
-            disposeManagedResourcesAsync, 
+            asyncDisposableInterface,
+            disposeManagedResources,
+            disposeManagedResourcesAsync,
             disposeUnmanagedResources);
 
         ReportInvalidVisibility(
@@ -133,7 +137,7 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
             var baseInterfaces = baseType.AllInterfaces;
 
             var baseImplementsDisposable = baseInterfaces.Contains(disposableInterface)
-                                        || asyncDisposableInterface != null 
+                                        || asyncDisposableInterface != null
                                         && baseInterfaces.Contains(asyncDisposableInterface);
 
             if (!baseImplementsDisposable)

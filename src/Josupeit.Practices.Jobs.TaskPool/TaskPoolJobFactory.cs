@@ -10,7 +10,7 @@ namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This class represents a job factory that creates task pool jobs.<para />
-/// Implements the <see cref="Josupeit.Practices.Jobs.IJobFactory" />
+/// Implements the <see cref="Josupeit.Practices.Jobs.IJobFactory" />.
 /// </summary>
 /// <seealso cref="Josupeit.Practices.Jobs.IJobFactory" />
 [PublicAPI]

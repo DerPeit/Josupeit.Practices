@@ -25,7 +25,7 @@ public abstract class Command<TInput> : Executable, ICommand<TInput>
     /// base implementation. The base implementation is intended to call the asynchronous
     /// overload and vice versa to ensure that commands can always be called synchronously
     /// or asynchronously regardless of the implementation. Override the asynchronous
-    /// method <see cref="ExecuteAsync(TInput, CancellationToken)"/> 
+    /// method <see cref="ExecuteAsync(TInput, CancellationToken)"/>
     /// only, if the command also has an equal asynchronous implementation.
     /// </remarks>
     public virtual void Execute(TInput input)
@@ -63,7 +63,7 @@ public abstract class Command<TInput> : Executable, ICommand<TInput>
         {
             if (cancellationToken.IsCancellationRequested)
                 return Task.FromCanceled(cancellationToken);
-            
+
             try
             {
                 Execute(input);

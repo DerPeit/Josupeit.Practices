@@ -7,7 +7,7 @@ namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This interface represents an instance which has a particular progress.<para />
-/// Implements <see cref="Josupeit.Practices.Jobs.IHasProgress" />
+/// Implements <see cref="Josupeit.Practices.Jobs.IHasProgress" />.
 /// </summary>
 /// <typeparam name="TProgress">The type of the progress.</typeparam>
 /// <seealso cref="Josupeit.Practices.Jobs.IHasProgress" />

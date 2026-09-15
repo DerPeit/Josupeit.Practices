@@ -60,7 +60,7 @@ internal sealed class FormattingRewriter : CSharpSyntaxRewriter
                 MethodDeclarationSyntax y => y.Identifier.ToString(),
                 TypeDeclarationSyntax y => y.Identifier.ToString(),
 
-                _ => "",
+                _ => string.Empty,
             })
         ));
     }

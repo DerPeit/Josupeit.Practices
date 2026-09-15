@@ -16,16 +16,16 @@ namespace Josupeit.Practices.Schedulers.Channel.Tests;
 /// </remarks>
 internal static class TimeBounded
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(30);
 
     public static async Task WithinTimeout(this Task task)
     {
-        var timeout = Task.Delay(Timeout);
+        var timeout = Task.Delay(_timeout);
 
         var completed = await Task.WhenAny(task, timeout).ConfigureAwait(false);
 
         if (completed == timeout)
-            Assert.Fail($"Timed out after {Timeout.TotalSeconds:0} seconds waiting for background work.");
+            Assert.Fail($"Timed out after {_timeout.TotalSeconds:0} seconds waiting for background work.");
 
         await task.ConfigureAwait(false);
     }

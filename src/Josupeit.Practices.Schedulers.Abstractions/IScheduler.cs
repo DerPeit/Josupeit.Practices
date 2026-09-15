@@ -166,7 +166,7 @@ public interface IScheduler
     /// <summary>
     /// Schedules the specified action to be executed. This method terminates
     /// after the action has been completed. When this instance is stopped or the supplied
-    /// <paramref name="cancellationToken"/> is canceled, the <see cref="CancellationToken"/> 
+    /// <paramref name="cancellationToken"/> is canceled, the <see cref="CancellationToken"/>
     /// supplied to the action will be canceled.
     /// </summary>
     /// <param name="cancellableAction">The synchronous action to execute.</param>
@@ -202,8 +202,8 @@ public interface IScheduler
 
     /// <summary>
     /// Schedules the specified action to be executed. This method terminates
-    /// after the action has been completed. When this instance is stopped or the supplied 
-    /// <paramref name="cancellationToken"/> is canceled, the <see cref="CancellationToken"/> 
+    /// after the action has been completed. When this instance is stopped or the supplied
+    /// <paramref name="cancellationToken"/> is canceled, the <see cref="CancellationToken"/>
     /// supplied to the action will be canceled.
     /// </summary>
     /// <param name="cancellableAsyncAction">The cancellable asynchronous action.</param>
@@ -465,7 +465,7 @@ public interface IScheduler
     /// <summary>
     /// Schedules the specified action to be executed. This method terminates
     /// after the action has been completed. When this instance is stopped or the supplied
-    /// <paramref name="cancellationToken"/> is canceled, the <see cref="CancellationToken"/> 
+    /// <paramref name="cancellationToken"/> is canceled, the <see cref="CancellationToken"/>
     /// supplied to the action will be canceled.
     /// </summary>
     /// <remarks>This method does not capture the current execution context.</remarks>
@@ -505,8 +505,8 @@ public interface IScheduler
 
     /// <summary>
     /// Schedules the specified action to be executed. This method terminates
-    /// after the action has been completed. When this instance is stopped or the supplied 
-    /// <paramref name="cancellationToken"/> is canceled, the <see cref="CancellationToken"/> 
+    /// after the action has been completed. When this instance is stopped or the supplied
+    /// <paramref name="cancellationToken"/> is canceled, the <see cref="CancellationToken"/>
     /// supplied to the action will be canceled.
     /// </summary>
     /// <remarks>This method does not capture the current execution context.</remarks>

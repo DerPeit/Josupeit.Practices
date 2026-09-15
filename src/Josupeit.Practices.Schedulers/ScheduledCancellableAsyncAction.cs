@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace Josupeit.Practices.Schedulers;
 
+#pragma warning disable CA1068 // CancellationToken groups logically with the delegate it cancels, not the trailing ExecutionContext.
+#pragma warning disable CA2016 // TrySetCanceled() is deliberately parameterless; the cancellation source is ambiguous in catch blocks.
+#pragma warning disable CA2025 // CTS ownership is transferred to the Awaited local function which disposes it after the await.
+
 internal sealed class ScheduledCancellableAsyncAction : IScheduledAction
 {
     private readonly Func<CancellationToken, Task>? _cancellableAsyncAction;
@@ -14,7 +18,7 @@ internal sealed class ScheduledCancellableAsyncAction : IScheduledAction
     private readonly CancellationToken? _scheduleCancellationToken;
     private readonly ExecutionContext? _executionContext;
     private readonly TaskCompletionSource<object?>? _taskCompletionSource;
-    
+
     private IDisposable? _prematureCancellationRegistration;
 
     public ScheduledCancellableAsyncAction(Func<CancellationToken, Task> cancellableAsyncAction, CancellationToken scheduleCancellationToken, ExecutionContext? executionContext)
@@ -102,31 +106,31 @@ internal sealed class ScheduledCancellableAsyncAction : IScheduledAction
             {
                 case { IsCompleted: true, IsCanceled: false, IsFaulted: false }:
                     _taskCompletionSource!.TrySetResult(null);
-                    
+
                     cancellationTokenSource?.Dispose();
-                    
+
                     return Task.CompletedTask;
 
                 case { IsCanceled: true } when executionCancellationToken.IsCancellationRequested:
                     _taskCompletionSource!.TrySetException(
                         new ExecutionDeclinedException());
-                    
+
                     cancellationTokenSource?.Dispose();
-                    
+
                     return Task.FromCanceled(executionCancellationToken);
 
                 case { IsCanceled: true } when _scheduleCancellationToken.Value.IsCancellationRequested:
                     _taskCompletionSource!.TrySetCanceled(_scheduleCancellationToken.Value);
-                    
+
                     cancellationTokenSource?.Dispose();
-                    
+
                     return Task.CompletedTask;
 
                 case { IsCanceled: true }:
                     _taskCompletionSource!.TrySetCanceled();
-                    
+
                     cancellationTokenSource?.Dispose();
-                    
+
                     return Task.CompletedTask;
 
                 case { IsFaulted: true, Exception.InnerException: var ex }:
@@ -143,14 +147,14 @@ internal sealed class ScheduledCancellableAsyncAction : IScheduledAction
         catch (OperationCanceledException) when (_scheduleCancellationToken.Value.IsCancellationRequested)
         {
             _taskCompletionSource!.TrySetCanceled(_scheduleCancellationToken.Value);
-            
+
             cancellationTokenSource?.Dispose();
         }
         catch (OperationCanceledException ex) when (executionCancellationToken.IsCancellationRequested)
         {
             _taskCompletionSource!.TrySetException(
                 new ExecutionDeclinedException(ex));
-            
+
             cancellationTokenSource?.Dispose();
             throw;
         }
@@ -163,7 +167,7 @@ internal sealed class ScheduledCancellableAsyncAction : IScheduledAction
         catch (Exception ex)
         {
             _taskCompletionSource!.TrySetException(ex);
-            
+
             cancellationTokenSource?.Dispose();
         }
 

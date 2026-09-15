@@ -8,7 +8,7 @@ namespace Josupeit.Practices.Schedulers;
 
 /// <summary>
 /// This class represents an exception that is thrown when a scheduler declines execution of a scheduled item.<para />
-/// Implements the <see cref="InvalidOperationException" />
+/// Implements the <see cref="InvalidOperationException" />.
 /// </summary>
 /// <seealso cref="InvalidOperationException" />
 [PublicAPI]

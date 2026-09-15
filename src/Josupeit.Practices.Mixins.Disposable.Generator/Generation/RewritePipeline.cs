@@ -13,14 +13,14 @@ internal sealed class RewritePipeline : IRewritePipeline
     private readonly RewritePipeline? _predecessors;
     private readonly CSharpSyntaxRewriter? _rewriter;
 
-    private RewritePipeline()
-    {
-    }
-
     public RewritePipeline(RewritePipeline predecessors, CSharpSyntaxRewriter rewriter)
     {
         _predecessors = predecessors;
         _rewriter = rewriter;
+    }
+
+    private RewritePipeline()
+    {
     }
 
     public static RewritePipeline operator |(RewritePipeline predecessors, CSharpSyntaxRewriter rewriter)

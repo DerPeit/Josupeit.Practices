@@ -7,10 +7,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Josupeit.Practices.Mixins.Disposable.Analyzer;
 
@@ -49,7 +49,7 @@ public sealed class PartialCodeFixProvider : CodeFixProvider
     {
         var newClassDeclaration = typeDeclaration.WithModifiers(
             typeDeclaration.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword)));
-     
+
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var newRoot = root!.ReplaceNode(typeDeclaration, newClassDeclaration);
 

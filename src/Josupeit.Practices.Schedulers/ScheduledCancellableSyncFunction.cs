@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Josupeit.Practices.Schedulers;
 
+#pragma warning disable CA1068 // CancellationToken groups logically with the delegate it cancels, not the trailing ExecutionContext.
+#pragma warning disable CA2016 // TrySetCanceled() is deliberately parameterless; the cancellation source is ambiguous in catch blocks.
+
 internal sealed class ScheduledCancellableSyncFunction<TResult> : IScheduledFunction<TResult>
 {
     private readonly Func<CancellationToken, TResult>? _cancellableFunction;
