@@ -13,7 +13,8 @@
 ## Naming Conventions
 - **Types:** PascalCase. Interfaces start with I
 - **Methods, properties, events, delegates:** PascalCase
-- **Variables, parameters, fields, constants:** camelCase for private visibility, otherwise PascalCase
+- **Variables, parameters, fields:** camelCase for private visibility, otherwise PascalCase
+- **Private and local constants:** SCREAMING_SNAKE_CASE (e.g. `MAX_RETRY_COUNT`). Public/internal/protected constants remain PascalCase
 - **Private fields:** Prefix with an underscore _
 - **Member access:** Avoid using this
 - **Test methods:** Use descriptive names that clearly convey the scenario. Snake case is allowed.
