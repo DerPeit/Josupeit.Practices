@@ -1,0 +1,212 @@
+# The machine-enforced half of CODING_STANDARDS.md. Directory.Build.props sets EnforceCodeStyleInBuild, so
+# everything below at `warning` severity fails a `dotnet build` rather than only marking the editor.
+#
+# Rules that no analyzer can express - statement grouping, the visibility tiers, the ValueTask policy -
+# stay in CODING_STANDARDS.md. Keep the two in step: a rule stated in both places must say the same thing.
+
+root = true
+
+[*]
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{csproj,slnx,props,targets}]
+indent_size = 2
+tab_width = 2
+charset = utf-8-bom
+end_of_line = crlf
+
+[*.md]
+indent_size = 2
+end_of_line = crlf
+# Two trailing spaces are a line break in Markdown, so stripping them rewrites the text.
+trim_trailing_whitespace = false
+
+[*.cs]
+indent_size = 4
+tab_width = 4
+charset = utf-8-bom
+end_of_line = crlf
+
+#### Naming ####
+
+dotnet_diagnostic.IDE1006.severity = warning
+
+# Rules are matched in order, so the exposed surface is claimed before the SCREAMING_SNAKE_CASE rules
+# below can reach it. Note what this does NOT buy: Roslyn's pascal_case check only looks at the first
+# character, so a public PUBLIC_LIMIT passes it - measured, not assumed, and an empty word_separator does
+# not tighten it. Keeping screaming snake inside the assembly stays a review matter, and CODING_STANDARDS.md
+# is where the rule actually lives.
+dotnet_naming_rule.exposed_constants.severity = warning
+dotnet_naming_rule.exposed_constants.symbols = exposed_constants
+dotnet_naming_rule.exposed_constants.style = pascal_case
+dotnet_naming_symbols.exposed_constants.applicable_kinds = field
+dotnet_naming_symbols.exposed_constants.applicable_accessibilities = public, internal, protected, protected_internal, private_protected
+dotnet_naming_symbols.exposed_constants.required_modifiers = const
+
+dotnet_naming_rule.private_constants.severity = warning
+dotnet_naming_rule.private_constants.symbols = private_constants
+dotnet_naming_rule.private_constants.style = all_upper
+dotnet_naming_symbols.private_constants.applicable_kinds = field
+dotnet_naming_symbols.private_constants.applicable_accessibilities = private
+dotnet_naming_symbols.private_constants.required_modifiers = const
+
+dotnet_naming_rule.local_constants.severity = warning
+dotnet_naming_rule.local_constants.symbols = local_constants
+dotnet_naming_rule.local_constants.style = all_upper
+dotnet_naming_symbols.local_constants.applicable_kinds = local
+dotnet_naming_symbols.local_constants.applicable_accessibilities = *
+dotnet_naming_symbols.local_constants.required_modifiers = const
+
+dotnet_naming_rule.private_static_readonly_fields.severity = warning
+dotnet_naming_rule.private_static_readonly_fields.symbols = private_static_readonly_fields
+dotnet_naming_rule.private_static_readonly_fields.style = underscored_camel_case
+dotnet_naming_symbols.private_static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.private_static_readonly_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_readonly_fields.required_modifiers = static, readonly
+
+dotnet_naming_rule.private_fields.severity = warning
+dotnet_naming_rule.private_fields.symbols = private_fields
+dotnet_naming_rule.private_fields.style = underscored_camel_case
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_rule.interfaces.severity = warning
+dotnet_naming_rule.interfaces.symbols = interfaces
+dotnet_naming_rule.interfaces.style = prefixed_pascal_case
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+
+dotnet_naming_rule.types_and_members.severity = warning
+dotnet_naming_rule.types_and_members.symbols = types_and_members
+dotnet_naming_rule.types_and_members.style = pascal_case
+dotnet_naming_symbols.types_and_members.applicable_kinds = class, struct, enum, delegate, event, method, property
+dotnet_naming_symbols.types_and_members.applicable_accessibilities = *
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_style.all_upper.capitalization = all_upper
+dotnet_naming_style.all_upper.word_separator = _
+dotnet_naming_style.underscored_camel_case.capitalization = camel_case
+dotnet_naming_style.underscored_camel_case.required_prefix = _
+dotnet_naming_style.prefixed_pascal_case.capitalization = pascal_case
+dotnet_naming_style.prefixed_pascal_case.required_prefix = I
+
+#### Layout ####
+
+# One type per file, file-scoped namespaces, usings outside the namespace with System first.
+csharp_style_namespace_declarations = file_scoped:warning
+dotnet_diagnostic.IDE0161.severity = warning
+csharp_using_directive_placement = outside_namespace:warning
+dotnet_diagnostic.IDE0065.severity = warning
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# Allman.
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = false
+csharp_new_line_between_query_expression_clauses = true
+
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_indent_labels = one_less_than_current
+
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_parentheses = false
+
+# Braces appear once a body spans more than one line, not before.
+csharp_prefer_braces = when_multiline:suggestion
+csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks = true
+
+#### Language ####
+
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
+csharp_style_prefer_utf8_string_literals = true:suggestion
+csharp_style_throw_expression = true:suggestion
+csharp_style_prefer_null_check_over_type_check = true:suggestion
+csharp_style_conditional_delegate_call = true:suggestion
+
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_null_propagation = true:suggestion
+dotnet_style_prefer_compound_assignment = true:suggestion
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
+
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+
+dotnet_style_parentheses_in_arithmetic_binary_operators = never_if_unnecessary:none
+dotnet_style_parentheses_in_relational_binary_operators = never_if_unnecessary:none
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:none
+
+csharp_preferred_modifier_order = public, private, protected, internal, file, new, static, abstract, virtual, sealed, readonly, override, extern, unsafe, volatile, async, required:suggestion
+
+#### Code quality ####
+
+dotnet_diagnostic.CA1028.severity = silent
+dotnet_diagnostic.CA1031.severity = suggestion
+dotnet_diagnostic.CA1716.severity = none
+dotnet_diagnostic.CA1724.severity = suggestion
+dotnet_diagnostic.CA1859.severity = suggestion
+
+#### StyleCop ####
+
+dotnet_diagnostic.SA1101.severity = none
+dotnet_diagnostic.SA1309.severity = none
+dotnet_diagnostic.SA1310.severity = none
+dotnet_diagnostic.SA1503.severity = none
+dotnet_diagnostic.SA1519.severity = none
+dotnet_diagnostic.SA1520.severity = none
+dotnet_diagnostic.SA1600.severity = none
+dotnet_diagnostic.SA1601.severity = none
+dotnet_diagnostic.SA1623.severity = none
+dotnet_diagnostic.SA1633.severity = none
+dotnet_diagnostic.SA1642.severity = none
+dotnet_diagnostic.SA1210.severity = suggestion
+dotnet_diagnostic.SA1313.severity = none
+dotnet_diagnostic.SA1512.severity = none
+
+#### NUnit ####
+
+# Execute() returns System.Delegate (base type, varies at runtime); NUnit2044 does not recognize it.
+dotnet_diagnostic.NUnit2044.severity = suggestion
+
+#### NSubstitute ####
+
+# The SubstituteExtensions.Protected() / InvokeMember() pattern calls non-virtual members through
+# reflection. NSubstitute.Analyzers cannot see through the reflection and fires on every such call.
+dotnet_diagnostic.NS1000.severity = suggestion
+dotnet_diagnostic.NS1001.severity = suggestion
+dotnet_diagnostic.NS1004.severity = suggestion
+dotnet_diagnostic.NS5000.severity = suggestion
+
+#### ReSharper ####
+
+# Only the entries with no Roslyn equivalent. Anything ReSharper exported that duplicates a setting
+# above was dropped, so there is one place to change a rule rather than two that can disagree.
+resharper_apply_auto_detected_rules = false
+resharper_show_autodetect_configure_formatting_tip = false
+resharper_csharp_wrap_lines = false
+resharper_csharp_wrap_parameters_style = chop_if_long
+resharper_csharp_trailing_comma_in_multiline_lists = true
+resharper_max_formal_parameters_on_line = 7
+resharper_keep_existing_declaration_parens_arrangement = false
+resharper_new_line_before_while = true
+resharper_place_constructor_initializer_on_same_line = false
+resharper_wrap_before_arrow_with_expressions = true
+resharper_redundant_base_qualifier_highlighting = warning

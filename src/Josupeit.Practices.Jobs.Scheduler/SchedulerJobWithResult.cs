@@ -53,6 +53,7 @@ public class SchedulerJobWithResult<TResult> : JobWithResult<TResult>
     /// Invoked by the scheduler to execute this job. Runs the start function and notifies the appropriate
     /// completion state.
     /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     protected virtual async Task StartCore()
     {
         NotifyExecuting();

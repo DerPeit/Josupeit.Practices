@@ -10,7 +10,7 @@ namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This class represents a job that executes on the task pool.<para />
-/// Implements the <see cref="Josupeit.Practices.Jobs.Job" />
+/// Implements the <see cref="Josupeit.Practices.Jobs.Job" />.
 /// </summary>
 /// <seealso cref="Josupeit.Practices.Jobs.Job" />
 [PublicAPI]

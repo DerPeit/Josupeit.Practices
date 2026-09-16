@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 
 namespace Josupeit.Practices.Services;
 
-internal class StoppingFromRunningAsyncServiceState : IAsyncServiceState
+#pragma warning disable CA1849 // Cancel() is deliberate; CancelAsync() does not exist on netstandard2.0.
+
+internal sealed class StoppingFromRunningAsyncServiceState : IAsyncServiceState
 {
     private readonly IAsyncServiceInternals _owner;
     private readonly CancellationTokenSource _stopAttempt;

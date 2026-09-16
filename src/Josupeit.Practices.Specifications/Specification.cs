@@ -120,7 +120,7 @@ public abstract class Specification<TCandidate>
             }
         }
     }
-        
+
     private IDisposable CreateRecursionScope()
     {
         var isRecursing = _isRecursing;

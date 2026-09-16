@@ -18,9 +18,9 @@ namespace Josupeit.Practices.Mixins.Disposable.Tests;
 [TestOf(typeof(DisposableSourceGenerator))]
 internal sealed class DisposableSourceGeneratorTests
 {
-    private const string AttributesHintName = "Attributes.g.cs";
-    private const string NoAttributesSymbol = "JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_ATTRIBUTES";
-    private const string NoEmbeddedAttributeSymbol = "JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_EMBEDDED_ATTRIBUTE";
+    private const string ATTRIBUTES_HINT_NAME = "Attributes.g.cs";
+    private const string NO_ATTRIBUTES_SYMBOL = "JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_ATTRIBUTES";
+    private const string NO_EMBEDDED_ATTRIBUTE_SYMBOL = "JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_EMBEDDED_ATTRIBUTE";
 
     [Test]
     public async Task Generator_produces_full_implementation_with_all_options()
@@ -704,7 +704,7 @@ namespace TestNamespace
 
         var run = await RunGenerator(
             [source, ownEmbeddedAttribute],
-            preprocessorSymbols: [NoEmbeddedAttributeSymbol]);
+            preprocessorSymbols: [NO_EMBEDDED_ATTRIBUTE_SYMBOL]);
 
         var attributes = GetAttributesSyntaxTree(run);
 
@@ -726,7 +726,7 @@ namespace TestNamespace
 }
 ";
 
-        var run = await RunGenerator([source], preprocessorSymbols: [NoEmbeddedAttributeSymbol]);
+        var run = await RunGenerator([source], preprocessorSymbols: [NO_EMBEDDED_ATTRIBUTE_SYMBOL]);
 
         Assert.That(run.Errors.Select(x => x.Id), Is.All.EqualTo("CS0234"));
         Assert.That(run.Errors, Is.Not.Empty);
@@ -735,13 +735,13 @@ namespace TestNamespace
     [Test]
     public async Task Generator_omits_all_attributes_for_NO_ATTRIBUTES()
     {
-        await AssertNoTypesAreDeclared(NoAttributesSymbol);
+        await AssertNoTypesAreDeclared(NO_ATTRIBUTES_SYMBOL);
     }
 
     [Test]
     public async Task Generator_omits_all_attributes_for_both_opt_out_symbols()
     {
-        await AssertNoTypesAreDeclared(NoAttributesSymbol, NoEmbeddedAttributeSymbol);
+        await AssertNoTypesAreDeclared(NO_ATTRIBUTES_SYMBOL, NO_EMBEDDED_ATTRIBUTE_SYMBOL);
     }
 
     private static async Task AssertNoTypesAreDeclared(params string[] preprocessorSymbols)
@@ -769,7 +769,7 @@ namespace TestNamespace
 
         Assert.That(run.Errors, Is.Empty, "Compilation should succeed without errors");
 
-        var generatedSource = run.Result.Results[0].GeneratedSources.Single(s => s.HintName != AttributesHintName);
+        var generatedSource = run.Result.Results[0].GeneratedSources.Single(s => s.HintName != ATTRIBUTES_HINT_NAME);
 
         return generatedSource.SourceText.ToString();
     }
@@ -810,7 +810,7 @@ namespace TestNamespace
 
     private static SyntaxTree GetAttributesSyntaxTree(GeneratorRun run)
     {
-        return run.Result.Results[0].GeneratedSources.Single(x => x.HintName == AttributesHintName).SyntaxTree;
+        return run.Result.Results[0].GeneratedSources.Single(x => x.HintName == ATTRIBUTES_HINT_NAME).SyntaxTree;
     }
 
     private static IEnumerable<string> GetGeneratedHintNames(GeneratorRun run)

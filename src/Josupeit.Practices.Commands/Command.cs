@@ -23,7 +23,7 @@ public abstract class Command : Executable, ICommand
     /// base implementation. The base implementation is intended to call the asynchronous
     /// overload and vice versa to ensure that commands can always be called synchronously
     /// or asynchronously regardless of the implementation. Override the asynchronous
-    /// method <see cref="ExecuteAsync(CancellationToken)"/> 
+    /// method <see cref="ExecuteAsync(CancellationToken)"/>
     /// only, if the command also has an equal asynchronous implementation.
     /// </remarks>
     public virtual void Execute()
@@ -50,7 +50,7 @@ public abstract class Command : Executable, ICommand
     /// base implementation. The base implementation is intended to call the synchronous
     /// overload and vice versa to ensure that commands can always be called synchronously
     /// or asynchronously regardless of the implementation. Override the synchronous
-    /// method <see cref="Execute"/> only, if the 
+    /// method <see cref="Execute"/> only, if the
     /// command also has an equal synchronous implementation.
     /// </remarks>
     public virtual Task ExecuteAsync(CancellationToken cancellationToken)

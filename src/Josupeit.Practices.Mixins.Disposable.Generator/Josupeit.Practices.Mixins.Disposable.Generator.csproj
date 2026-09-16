@@ -9,6 +9,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);SA0001;SA1009;SA1111</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

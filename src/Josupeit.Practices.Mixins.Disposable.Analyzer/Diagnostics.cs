@@ -5,12 +5,14 @@ using Microsoft.CodeAnalysis;
 
 namespace Josupeit.Practices.Mixins.Disposable.Analyzer;
 
+#pragma warning disable SA1118 // Diagnostic message strings span multiple lines by nature.
+
 internal static class Diagnostics
 {
     public static readonly DiagnosticDescriptor TargetMustNotHaveDisposableBase = new(
         "JPMD010",
         title: "Class is already disposable",
-        messageFormat: 
+        messageFormat:
             "Class '{0}' derives from a class that already implements System.IDisposable or System.IAsyncDisposable (or both). " +
             "This scenario is unsupported. Use the provided hooks from the base class to dispose any resources owned by this class, " +
             "instead. The [DisposableMixin] has no effect.",

@@ -10,7 +10,7 @@ namespace Josupeit.Practices.Jobs.Scheduler.Tests;
 /// </summary>
 internal static class CanceledTask
 {
-    private static readonly TimeSpan CancellationTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan _cancellationTimeout = TimeSpan.FromSeconds(5);
 
     public static Task From(CancellationToken cancellationToken)
     {
@@ -35,6 +35,6 @@ internal static class CanceledTask
     /// </remarks>
     private static void WaitForCancellation(CancellationToken cancellationToken)
     {
-        cancellationToken.WaitHandle.WaitOne(CancellationTimeout);
+        cancellationToken.WaitHandle.WaitOne(_cancellationTimeout);
     }
 }

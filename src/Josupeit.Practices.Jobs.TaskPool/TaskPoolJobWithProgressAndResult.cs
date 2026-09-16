@@ -10,7 +10,7 @@ namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This class represents a job with a progress and a result that executes on the task pool.<para />
-/// Implements the <see cref="Josupeit.Practices.Jobs.Job" />
+/// Implements the <see cref="Josupeit.Practices.Jobs.Job" />.
 /// </summary>
 /// <typeparam name="TProgress">The type of the progress.</typeparam>
 /// <typeparam name="TResult">The type of the result.</typeparam>

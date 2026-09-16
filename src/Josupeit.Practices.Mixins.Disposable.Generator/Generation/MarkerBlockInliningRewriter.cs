@@ -14,7 +14,8 @@ internal sealed class MarkerBlockInliningRewriter : CSharpSyntaxRewriter
 {
     public override SyntaxNode VisitBlock(BlockSyntax node)
     {
-        var statements = node.Statements.SelectMany(statement => {
+        var statements = node.Statements.SelectMany(statement =>
+        {
             if (statement is BlockSyntax { HasLeadingTrivia: true } block && block.GetLeadingTrivia().ToString().Trim().StartsWith("// MARKER:", StringComparison.Ordinal))
                 return block.Statements;
 

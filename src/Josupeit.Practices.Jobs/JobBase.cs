@@ -7,6 +7,8 @@ using JetBrains.Annotations;
 
 namespace Josupeit.Practices.Jobs;
 
+#pragma warning disable CA1001 // CTS is always canceled before the job completes; a canceled CTS needs no disposal.
+
 /// <summary>
 /// This class is a base class for all kinds of jobs.
 /// </summary>
@@ -140,6 +142,7 @@ public abstract class JobBase
     /// <see cref="IsCompleted" /> and <see cref="IsFaulted"/> properties to <c>true</c>, sets the
     /// <see cref="Exception"/> property and invokes the <see cref="Changed" /> event.
     /// </summary>
+    /// <param name="ex">The exception that caused the failure.</param>
     protected void NotifyFailed(Exception ex)
     {
         Exception = ex;

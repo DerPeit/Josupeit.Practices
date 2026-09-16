@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 
 namespace Josupeit.Practices.Schedulers;
 
+#pragma warning disable CA1068 // CancellationToken groups logically with the delegate it cancels, not the trailing ExecutionContext.
+#pragma warning disable CA1849, RS0030 // .Result is guarded by IsCompleted; the access is synchronous by construction.
+#pragma warning disable CA2016 // TrySetCanceled() is deliberately parameterless; the cancellation source is ambiguous in catch blocks.
+#pragma warning disable CA2025 // CTS ownership is transferred to the Awaited local function which disposes it after the await.
+
 internal sealed class ScheduledCancellableAsyncFunction<TResult> : IScheduledFunction<TResult>
 {
     private readonly Func<CancellationToken, Task<TResult>>? _cancellableAsyncFunction;

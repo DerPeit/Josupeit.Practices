@@ -8,6 +8,8 @@ using PureAttribute = System.Diagnostics.Contracts.PureAttribute;
 
 namespace Josupeit.Practices.Jobs;
 
+#pragma warning disable CA1034 // C# 14 extension block, not a traditional nested type.
+
 /// <summary>
 /// This class contains extension methods for an <seealso cref="IJob"/>.
 /// </summary>
@@ -24,8 +26,7 @@ public static class AwaitableExtensions
         [Pure]
         public IJobAwaiter GetAwaiter()
         {
-            if (job == null)
-                throw new ArgumentNullException(nameof(job));
+            ArgumentNullException.ThrowIfNull(job);
 
             return new JobAwaiter(job);
         }
@@ -41,8 +42,7 @@ public static class AwaitableExtensions
         [Pure]
         public ConfiguredJobAwaitable ConfigureAwait(bool continueOnCapturedContext)
         {
-            if (job == null)
-                throw new ArgumentNullException(nameof(job));
+            ArgumentNullException.ThrowIfNull(job);
 
             return new ConfiguredJobAwaitable(job, continueOnCapturedContext);
         }
@@ -61,8 +61,7 @@ public static class AwaitableExtensions
         /// <exception cref="System.ArgumentNullException">The job must not be <c>null</c>.</exception>
         public void Wait()
         {
-            if (job == null)
-                throw new ArgumentNullException(nameof(job));
+            ArgumentNullException.ThrowIfNull(job);
 
             job.GetAwaiter().GetResult();
         }

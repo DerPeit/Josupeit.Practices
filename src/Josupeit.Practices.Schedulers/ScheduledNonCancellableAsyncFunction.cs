@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Josupeit.Practices.Schedulers;
 
+#pragma warning disable CA1849, RS0030 // .Result is guarded by IsCompleted; the access is synchronous by construction.
+#pragma warning disable CA2016 // TrySetCanceled() is deliberately parameterless; the cancellation source is ambiguous in catch blocks.
+
 internal sealed class ScheduledNonCancellableAsyncFunction<TResult> : IScheduledFunction<TResult>
 {
     private readonly TaskCompletionSource<TResult> _taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -45,7 +48,7 @@ internal sealed class ScheduledNonCancellableAsyncFunction<TResult> : IScheduled
         try
         {
             Task<TResult> promise = null!;
-            
+
             ExecutionContext.Run(_executionContext, _ => promise = _asyncFunction(), state: null);
 
             switch (promise)

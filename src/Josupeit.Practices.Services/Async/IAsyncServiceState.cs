@@ -11,11 +11,11 @@ internal interface IAsyncServiceState
     ServiceState State { get; }
 
     Task PauseAsync(CancellationToken cancellationToken);
-    
+
     Task ResumeAsync(CancellationToken cancellationToken);
-    
+
     Task StartAsync(CancellationToken cancellationToken);
-    
+
     Task StopAsync(CancellationToken cancellationToken);
 
     void ThrowIfPausing();

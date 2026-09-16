@@ -66,13 +66,21 @@ Libraries target netstandard2.0 as minimum, with netstandard2.1 where IAsyncDisp
 
 ## Branching & Release Workflow
 
-### Merging
+### Merging feature branches
 
-Always use `--no-ff` when merging feature branches to `develop` and when merging `develop` to `main`.
+1. **Push the branch and create a PR** on Codeberg targeting `develop`.
+2. **Wait for CI** (build + AOT pipeline) to go green.
+3. **Complete the PR** on Codeberg (--no-ff merge).
+4. **Pull and clean up locally:**
+   ```bash
+   git checkout develop
+   git pull
+   git branch -d feature/branch-name
+   ```
 
 ### Releasing to main
 
-After merging `develop` into `main`, follow these steps:
+After merging `develop` into `main` with `--no-ff`, follow these steps:
 
 1. **Dry-run version tags** to see which packages are being incremented:
    ```bash

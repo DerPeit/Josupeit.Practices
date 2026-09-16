@@ -44,5 +44,5 @@ public enum ServiceState
     /// <summary>
     /// The referenced <see cref="IService"/> is currently being resumed.
     /// </summary>
-    Resuming
+    Resuming,
 }

@@ -7,14 +7,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CodeActions;
 
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Josupeit.Practices.Mixins.Disposable.Analyzer;
+
+#pragma warning disable SA1009, SA1111 // Roslyn syntax-factory builder style.
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(DisposeManagedResourcesCodeFixProvider))]
 [Shared]

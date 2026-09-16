@@ -11,7 +11,7 @@ namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This class represents a factory that creates scheduler jobs.<para />
-/// Implements the <see cref="Josupeit.Practices.Jobs.IJobFactory" />
+/// Implements the <see cref="Josupeit.Practices.Jobs.IJobFactory" />.
 /// </summary>
 /// <seealso cref="Josupeit.Practices.Jobs.IJobFactory" />
 [PublicAPI]

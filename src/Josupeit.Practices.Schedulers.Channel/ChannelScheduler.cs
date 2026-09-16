@@ -11,10 +11,13 @@ using Nito.AsyncEx;
 
 namespace Josupeit.Practices.Schedulers;
 
+#pragma warning disable CA1001 // Disposal is handled by the base class AsyncSchedulerService lifecycle.
+#pragma warning disable CA1849 // Cancel() is deliberate; CancelAsync() does not exist on netstandard2.0.
+
 /// <summary>
 /// This class represents a scheduler that uses a <see cref="System.Threading.Channels.Channel"/> to execute
 /// scheduled items eventually.<para />
-/// Implements the <see cref="Josupeit.Practices.Schedulers.AsyncSchedulerService" />
+/// Implements the <see cref="Josupeit.Practices.Schedulers.AsyncSchedulerService" />.
 /// </summary>
 /// <seealso cref="Josupeit.Practices.Schedulers.AsyncSchedulerService" />
 [PublicAPI]
@@ -58,7 +61,7 @@ public class ChannelScheduler : AsyncSchedulerService
                 SingleWriter = false,
                 SingleReader = degreeOfParallelism == 1,
             });
-            
+
         _stopping = new();
 
         var thisPlusStoppingToken = new object[] { this, _stopping.Token };
@@ -132,7 +135,7 @@ public class ChannelScheduler : AsyncSchedulerService
             case { TotalMilliseconds: 0 }:
                 // Delay is set to zero so we cancel pending work immediately.
                 _stopping.Cancel();
-                
+
                 break;
 
             default:
@@ -158,6 +161,9 @@ public class ChannelScheduler : AsyncSchedulerService
 #endif
         }
 
+        // The default branch (infinite wait) never cancels the CTS, so Dispose is needed to release it.
+        _stopping.Dispose();
+
         _channel = null;
         _consumers = null;
         _stopping = null;
@@ -166,8 +172,7 @@ public class ChannelScheduler : AsyncSchedulerService
     /// <inheritdoc />
     protected override Task EnqueueAsync(IScheduled scheduled, CancellationToken cancellationToken)
     {
-        if (scheduled == null)
-            throw new ArgumentNullException(nameof(scheduled));
+        ArgumentNullException.ThrowIfNull(scheduled);
 
         ThrowIfStopped();
 

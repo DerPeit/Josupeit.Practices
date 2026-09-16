@@ -31,6 +31,8 @@ internal sealed class LanguageVersionRewriter(LanguageVersion targetLanguageVers
     }
 }
 
+#pragma warning disable SA1402 // file-scoped types must share a file by definition.
+
 file sealed class Lang10To9 : CSharpSyntaxRewriter
 {
     public override SyntaxNode? VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)

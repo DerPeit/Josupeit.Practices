@@ -10,7 +10,7 @@ internal sealed class JobAwaiter(IJob job, bool continueOnCapturedContext = true
 {
     private readonly IJob _job = job ?? throw new ArgumentNullException(nameof(job));
     private readonly object _syncRoot = new();
-    
+
     private bool _isSubscribedToChangeEvent;
 
     private event Action? Continuations;
@@ -33,8 +33,7 @@ internal sealed class JobAwaiter(IJob job, bool continueOnCapturedContext = true
 
     public void OnCompleted(Action continuation)
     {
-        if (continuation == null)
-            throw new ArgumentNullException(nameof(continuation));
+        ArgumentNullException.ThrowIfNull(continuation);
 
         continuation = CaptureSynchronizationContext(continuation);
 
@@ -59,7 +58,7 @@ internal sealed class JobAwaiter(IJob job, bool continueOnCapturedContext = true
     }
 
     public void UnsafeOnCompleted(Action continuation) => OnCompleted(continuation);
-    
+
     private Action CaptureSynchronizationContext(Action continuation)
     {
         if (!continueOnCapturedContext)
