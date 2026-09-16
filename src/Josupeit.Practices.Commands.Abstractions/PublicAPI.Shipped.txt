@@ -1,0 +1,25 @@
+#nullable enable
+Josupeit.Practices.Commands.ICommand
+Josupeit.Practices.Commands.ICommand.Execute() -> void
+Josupeit.Practices.Commands.ICommand.ExecuteAsync() -> System.Threading.Tasks.Task!
+Josupeit.Practices.Commands.ICommand.ExecuteAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Commands.ICommand<TInput>
+Josupeit.Practices.Commands.ICommand<TInput>.Execute(TInput input) -> void
+Josupeit.Practices.Commands.ICommand<TInput>.ExecuteAsync(TInput input, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Commands.ICommand<TInput>.ExecuteAsync(TInput input) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Commands.ICommandWithOutput<TInput, TOutput>
+Josupeit.Practices.Commands.ICommandWithOutput<TInput, TOutput>.Execute(TInput input) -> TOutput
+Josupeit.Practices.Commands.ICommandWithOutput<TInput, TOutput>.ExecuteAsync(TInput input, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TOutput>!
+Josupeit.Practices.Commands.ICommandWithOutput<TInput, TOutput>.ExecuteAsync(TInput input) -> System.Threading.Tasks.Task<TOutput>!
+Josupeit.Practices.Commands.ICommandWithOutput<TOutput>
+Josupeit.Practices.Commands.ICommandWithOutput<TOutput>.Execute() -> TOutput
+Josupeit.Practices.Commands.ICommandWithOutput<TOutput>.ExecuteAsync() -> System.Threading.Tasks.Task<TOutput>!
+Josupeit.Practices.Commands.ICommandWithOutput<TOutput>.ExecuteAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TOutput>!
+Josupeit.Practices.Commands.IQuery<TInput, TOutput>
+Josupeit.Practices.Commands.IQuery<TInput, TOutput>.Execute(TInput input) -> TOutput
+Josupeit.Practices.Commands.IQuery<TInput, TOutput>.ExecuteAsync(TInput input, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TOutput>!
+Josupeit.Practices.Commands.IQuery<TInput, TOutput>.ExecuteAsync(TInput input) -> System.Threading.Tasks.Task<TOutput>!
+Josupeit.Practices.Commands.IQuery<TOutput>
+Josupeit.Practices.Commands.IQuery<TOutput>.Execute() -> TOutput
+Josupeit.Practices.Commands.IQuery<TOutput>.ExecuteAsync() -> System.Threading.Tasks.Task<TOutput>!
+Josupeit.Practices.Commands.IQuery<TOutput>.ExecuteAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TOutput>!

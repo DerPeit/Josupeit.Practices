@@ -1,0 +1,22 @@
+#nullable enable
+abstract Josupeit.Practices.Jobs.JobBase.Start() -> void
+Josupeit.Practices.Jobs.JobBase
+Josupeit.Practices.Jobs.JobBase.CancellationToken.get -> System.Threading.CancellationToken
+Josupeit.Practices.Jobs.JobBase.Changed -> System.EventHandler?
+Josupeit.Practices.Jobs.JobBase.Exception.get -> System.Exception?
+Josupeit.Practices.Jobs.JobBase.Id.get -> System.Guid
+Josupeit.Practices.Jobs.JobBase.IsCanceled.get -> bool
+Josupeit.Practices.Jobs.JobBase.IsCompleted.get -> bool
+Josupeit.Practices.Jobs.JobBase.IsCompletedSuccessfully.get -> bool
+Josupeit.Practices.Jobs.JobBase.IsExecuting.get -> bool
+Josupeit.Practices.Jobs.JobBase.IsFaulted.get -> bool
+Josupeit.Practices.Jobs.JobBase.IsPending.get -> bool
+Josupeit.Practices.Jobs.JobBase.JobBase() -> void
+Josupeit.Practices.Jobs.JobBase.NotifyCanceled() -> void
+Josupeit.Practices.Jobs.JobBase.NotifyExecuting() -> void
+Josupeit.Practices.Jobs.JobBase.NotifyFailed(System.Exception! ex) -> void
+Josupeit.Practices.Jobs.JobBase.NotifyPending() -> void
+Josupeit.Practices.Jobs.JobBase.ThrowIfCannotCancel() -> void
+Josupeit.Practices.Jobs.JobBase.ThrowIfCannotStart() -> void
+virtual Josupeit.Practices.Jobs.JobBase.Cancel() -> void
+virtual Josupeit.Practices.Jobs.JobBase.OnChanged() -> void

@@ -101,10 +101,20 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.*" Condition="'$(EnablePublicApiAnalyzers)' != 'false'">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(EnablePublicApiAnalyzers)' != 'false'">
+    <AdditionalFiles Include="PublicAPI.Shipped.$(TargetFramework).txt" Condition="Exists('$(MSBuildProjectDirectory)\PublicAPI.Shipped.$(TargetFramework).txt')" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.$(TargetFramework).txt" Condition="Exists('$(MSBuildProjectDirectory)\PublicAPI.Unshipped.$(TargetFramework).txt')" />
   </ItemGroup>
 
   <ItemGroup>

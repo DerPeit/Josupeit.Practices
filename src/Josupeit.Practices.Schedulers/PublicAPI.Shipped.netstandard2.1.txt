@@ -1,0 +1,21 @@
+#nullable enable
+Josupeit.Practices.Schedulers.AsyncDisposableAsyncScheduler
+Josupeit.Practices.Schedulers.AsyncDisposableAsyncScheduler.~AsyncDisposableAsyncScheduler() -> void
+Josupeit.Practices.Schedulers.AsyncDisposableAsyncScheduler.Dispose() -> void
+Josupeit.Practices.Schedulers.AsyncDisposableAsyncScheduler.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Josupeit.Practices.Schedulers.AsyncDisposableAsyncScheduler.Disposing -> System.EventHandler?
+Josupeit.Practices.Schedulers.AsyncDisposableAsyncScheduler.IsDisposed.get -> bool
+Josupeit.Practices.Schedulers.AsyncDisposableAsyncScheduler.ThrowIfDisposed() -> void
+Josupeit.Practices.Schedulers.AsyncDisposableScheduler
+Josupeit.Practices.Schedulers.AsyncDisposableScheduler.~AsyncDisposableScheduler() -> void
+Josupeit.Practices.Schedulers.AsyncDisposableScheduler.Dispose() -> void
+Josupeit.Practices.Schedulers.AsyncDisposableScheduler.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Josupeit.Practices.Schedulers.AsyncDisposableScheduler.Disposing -> System.EventHandler?
+Josupeit.Practices.Schedulers.AsyncDisposableScheduler.IsDisposed.get -> bool
+Josupeit.Practices.Schedulers.AsyncDisposableScheduler.ThrowIfDisposed() -> void
+virtual Josupeit.Practices.Schedulers.AsyncDisposableAsyncScheduler.DisposeManagedResources() -> void
+virtual Josupeit.Practices.Schedulers.AsyncDisposableAsyncScheduler.DisposeManagedResourcesAsync() -> System.Threading.Tasks.ValueTask
+virtual Josupeit.Practices.Schedulers.AsyncDisposableAsyncScheduler.DisposeUnmanagedResources() -> void
+virtual Josupeit.Practices.Schedulers.AsyncDisposableScheduler.DisposeManagedResources() -> void
+virtual Josupeit.Practices.Schedulers.AsyncDisposableScheduler.DisposeManagedResourcesAsync() -> System.Threading.Tasks.ValueTask
+virtual Josupeit.Practices.Schedulers.AsyncDisposableScheduler.DisposeUnmanagedResources() -> void

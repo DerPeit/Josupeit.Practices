@@ -1,0 +1,27 @@
+#nullable enable
+Josupeit.Practices.Jobs.SchedulerJob
+Josupeit.Practices.Jobs.SchedulerJob.SchedulerJob(Josupeit.Practices.Schedulers.IScheduler! scheduler, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! startFunc) -> void
+Josupeit.Practices.Jobs.SchedulerJobFactory
+Josupeit.Practices.Jobs.SchedulerJobFactory.SchedulerJobFactory(Josupeit.Practices.Schedulers.IScheduler! scheduler) -> void
+Josupeit.Practices.Jobs.SchedulerJobWithProgress<TProgress>
+Josupeit.Practices.Jobs.SchedulerJobWithProgress<TProgress>.SchedulerJobWithProgress(Josupeit.Practices.Schedulers.IScheduler! scheduler, System.Func<System.IProgress<TProgress>!, System.Threading.CancellationToken, System.Threading.Tasks.Task!>! startFunc) -> void
+Josupeit.Practices.Jobs.SchedulerJobWithProgressAndResult<TProgress, TResult>
+Josupeit.Practices.Jobs.SchedulerJobWithProgressAndResult<TProgress, TResult>.SchedulerJobWithProgressAndResult(Josupeit.Practices.Schedulers.IScheduler! scheduler, System.Func<System.IProgress<TProgress>!, System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! startFunc) -> void
+Josupeit.Practices.Jobs.SchedulerJobWithResult<TResult>
+Josupeit.Practices.Jobs.SchedulerJobWithResult<TResult>.SchedulerJobWithResult(Josupeit.Practices.Schedulers.IScheduler! scheduler, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! startFunc) -> void
+override Josupeit.Practices.Jobs.SchedulerJob.Start() -> void
+override Josupeit.Practices.Jobs.SchedulerJobWithProgress<TProgress>.Start() -> void
+override Josupeit.Practices.Jobs.SchedulerJobWithProgressAndResult<TProgress, TResult>.Start() -> void
+override Josupeit.Practices.Jobs.SchedulerJobWithResult<TResult>.Start() -> void
+virtual Josupeit.Practices.Jobs.SchedulerJob.StartCore() -> System.Threading.Tasks.Task!
+virtual Josupeit.Practices.Jobs.SchedulerJobFactory.Create(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! startFunc) -> Josupeit.Practices.Jobs.IJob!
+virtual Josupeit.Practices.Jobs.SchedulerJobFactory.Create(System.Func<System.Threading.Tasks.Task!>! startFunc) -> Josupeit.Practices.Jobs.IJob!
+virtual Josupeit.Practices.Jobs.SchedulerJobFactory.Create<TProgress, TResult>(System.Func<System.IProgress<TProgress>!, System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithProgressAndResult<TProgress, TResult>!
+virtual Josupeit.Practices.Jobs.SchedulerJobFactory.Create<TProgress, TResult>(System.Func<System.IProgress<TProgress>!, System.Threading.Tasks.Task<TResult>!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithProgressAndResult<TProgress, TResult>!
+virtual Josupeit.Practices.Jobs.SchedulerJobFactory.Create<TProgress>(System.Func<System.IProgress<TProgress>!, System.Threading.CancellationToken, System.Threading.Tasks.Task!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithProgress<TProgress>!
+virtual Josupeit.Practices.Jobs.SchedulerJobFactory.Create<TProgress>(System.Func<System.IProgress<TProgress>!, System.Threading.Tasks.Task!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithProgress<TProgress>!
+virtual Josupeit.Practices.Jobs.SchedulerJobFactory.Create<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithResult<TResult>!
+virtual Josupeit.Practices.Jobs.SchedulerJobFactory.Create<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithResult<TResult>!
+virtual Josupeit.Practices.Jobs.SchedulerJobWithProgress<TProgress>.StartCore() -> System.Threading.Tasks.Task!
+virtual Josupeit.Practices.Jobs.SchedulerJobWithProgressAndResult<TProgress, TResult>.StartCore() -> System.Threading.Tasks.Task!
+virtual Josupeit.Practices.Jobs.SchedulerJobWithResult<TResult>.StartCore() -> System.Threading.Tasks.Task!

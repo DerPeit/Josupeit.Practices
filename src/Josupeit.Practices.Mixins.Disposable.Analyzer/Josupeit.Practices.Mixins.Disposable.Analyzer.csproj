@@ -8,6 +8,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsRoslynComponent>true</IsRoslynComponent>
     <IsPackable>false</IsPackable>
+    <EnablePublicApiAnalyzers>false</EnablePublicApiAnalyzers>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);SA0001</NoWarn>
   </PropertyGroup>

@@ -1,0 +1,12 @@
+#nullable enable
+Josupeit.Practices.Specifications.Specification<TCandidate>
+Josupeit.Practices.Specifications.Specification<TCandidate>.IsSatisfiedByAsync(TCandidate candidate) -> System.Threading.Tasks.Task<bool>!
+Josupeit.Practices.Specifications.Specification<TCandidate>.Specification() -> void
+static Josupeit.Practices.Specifications.Specification<TCandidate>.operator !(Josupeit.Practices.Specifications.Specification<TCandidate>! operand) -> Josupeit.Practices.Specifications.Specification<TCandidate>!
+static Josupeit.Practices.Specifications.Specification<TCandidate>.operator &(Josupeit.Practices.Specifications.Specification<TCandidate>! left, Josupeit.Practices.Specifications.Specification<TCandidate>! right) -> Josupeit.Practices.Specifications.Specification<TCandidate>!
+static Josupeit.Practices.Specifications.Specification<TCandidate>.operator ^(Josupeit.Practices.Specifications.Specification<TCandidate>! left, Josupeit.Practices.Specifications.Specification<TCandidate>! right) -> Josupeit.Practices.Specifications.Specification<TCandidate>!
+static Josupeit.Practices.Specifications.Specification<TCandidate>.operator |(Josupeit.Practices.Specifications.Specification<TCandidate>! left, Josupeit.Practices.Specifications.Specification<TCandidate>! right) -> Josupeit.Practices.Specifications.Specification<TCandidate>!
+static Josupeit.Practices.Specifications.Specification<TCandidate>.operator false(Josupeit.Practices.Specifications.Specification<TCandidate>! _) -> bool
+static Josupeit.Practices.Specifications.Specification<TCandidate>.operator true(Josupeit.Practices.Specifications.Specification<TCandidate>! _) -> bool
+virtual Josupeit.Practices.Specifications.Specification<TCandidate>.IsSatisfiedBy(TCandidate candidate) -> bool
+virtual Josupeit.Practices.Specifications.Specification<TCandidate>.IsSatisfiedByAsync(TCandidate candidate, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!

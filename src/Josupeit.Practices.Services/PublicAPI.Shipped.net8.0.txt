@@ -1,0 +1,21 @@
+#nullable enable
+Josupeit.Practices.Services.AsyncDisposableAsyncService
+Josupeit.Practices.Services.AsyncDisposableAsyncService.~AsyncDisposableAsyncService() -> void
+Josupeit.Practices.Services.AsyncDisposableAsyncService.Dispose() -> void
+Josupeit.Practices.Services.AsyncDisposableAsyncService.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Josupeit.Practices.Services.AsyncDisposableAsyncService.Disposing -> System.EventHandler?
+Josupeit.Practices.Services.AsyncDisposableAsyncService.IsDisposed.get -> bool
+Josupeit.Practices.Services.AsyncDisposableAsyncService.ThrowIfDisposed() -> void
+Josupeit.Practices.Services.AsyncDisposableService
+Josupeit.Practices.Services.AsyncDisposableService.~AsyncDisposableService() -> void
+Josupeit.Practices.Services.AsyncDisposableService.Dispose() -> void
+Josupeit.Practices.Services.AsyncDisposableService.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Josupeit.Practices.Services.AsyncDisposableService.Disposing -> System.EventHandler?
+Josupeit.Practices.Services.AsyncDisposableService.IsDisposed.get -> bool
+Josupeit.Practices.Services.AsyncDisposableService.ThrowIfDisposed() -> void
+virtual Josupeit.Practices.Services.AsyncDisposableAsyncService.DisposeManagedResources() -> void
+virtual Josupeit.Practices.Services.AsyncDisposableAsyncService.DisposeManagedResourcesAsync() -> System.Threading.Tasks.ValueTask
+virtual Josupeit.Practices.Services.AsyncDisposableAsyncService.DisposeUnmanagedResources() -> void
+virtual Josupeit.Practices.Services.AsyncDisposableService.DisposeManagedResources() -> void
+virtual Josupeit.Practices.Services.AsyncDisposableService.DisposeManagedResourcesAsync() -> System.Threading.Tasks.ValueTask
+virtual Josupeit.Practices.Services.AsyncDisposableService.DisposeUnmanagedResources() -> void

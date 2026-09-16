@@ -1,0 +1,17 @@
+#nullable enable
+Josupeit.Practices.Services.DisposableAsyncService
+Josupeit.Practices.Services.DisposableAsyncService.~DisposableAsyncService() -> void
+Josupeit.Practices.Services.DisposableAsyncService.Dispose() -> void
+Josupeit.Practices.Services.DisposableAsyncService.Disposing -> System.EventHandler?
+Josupeit.Practices.Services.DisposableAsyncService.IsDisposed.get -> bool
+Josupeit.Practices.Services.DisposableAsyncService.ThrowIfDisposed() -> void
+Josupeit.Practices.Services.DisposableService
+Josupeit.Practices.Services.DisposableService.~DisposableService() -> void
+Josupeit.Practices.Services.DisposableService.Dispose() -> void
+Josupeit.Practices.Services.DisposableService.Disposing -> System.EventHandler?
+Josupeit.Practices.Services.DisposableService.IsDisposed.get -> bool
+Josupeit.Practices.Services.DisposableService.ThrowIfDisposed() -> void
+virtual Josupeit.Practices.Services.DisposableAsyncService.DisposeManagedResources() -> void
+virtual Josupeit.Practices.Services.DisposableAsyncService.DisposeUnmanagedResources() -> void
+virtual Josupeit.Practices.Services.DisposableService.DisposeManagedResources() -> void
+virtual Josupeit.Practices.Services.DisposableService.DisposeUnmanagedResources() -> void
