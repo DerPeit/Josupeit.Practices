@@ -1,0 +1,26 @@
+#nullable enable
+Josupeit.Practices.Schedulers.AsyncEnqueueCallback
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.~DisposableAsyncScheduler() -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Dispose() -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Disposing -> System.EventHandler?
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.IsDisposed.get -> bool
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ThrowIfDisposed() -> void
+Josupeit.Practices.Schedulers.DisposableScheduler
+Josupeit.Practices.Schedulers.DisposableScheduler.~DisposableScheduler() -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.Dispose() -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.Disposing -> System.EventHandler?
+Josupeit.Practices.Schedulers.DisposableScheduler.IsDisposed.get -> bool
+Josupeit.Practices.Schedulers.DisposableScheduler.ThrowIfDisposed() -> void
+Josupeit.Practices.Schedulers.IScheduled
+Josupeit.Practices.Schedulers.IScheduled.Decline() -> void
+Josupeit.Practices.Schedulers.IScheduled.Execute(System.Threading.CancellationToken executionCancellationToken) -> void
+Josupeit.Practices.Schedulers.IScheduled.ExecuteAsync(System.Threading.CancellationToken executionCancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.IScheduled.IsCancellationRequested.get -> bool
+Josupeit.Practices.Schedulers.SyncEnqueueCallback
+virtual Josupeit.Practices.Schedulers.AsyncEnqueueCallback.Invoke(Josupeit.Practices.Schedulers.IScheduled! scheduled, System.Threading.CancellationToken enqueueCancellationToken) -> System.Threading.Tasks.Task!
+virtual Josupeit.Practices.Schedulers.DisposableAsyncScheduler.DisposeManagedResources() -> void
+virtual Josupeit.Practices.Schedulers.DisposableAsyncScheduler.DisposeUnmanagedResources() -> void
+virtual Josupeit.Practices.Schedulers.DisposableScheduler.DisposeManagedResources() -> void
+virtual Josupeit.Practices.Schedulers.DisposableScheduler.DisposeUnmanagedResources() -> void
+virtual Josupeit.Practices.Schedulers.SyncEnqueueCallback.Invoke(Josupeit.Practices.Schedulers.IScheduled! scheduled) -> void

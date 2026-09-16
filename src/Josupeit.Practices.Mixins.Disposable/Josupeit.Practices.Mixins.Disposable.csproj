@@ -8,6 +8,7 @@
     <DevelopmentDependency>true</DevelopmentDependency>
     <NoWarn>$(NoWarn);NU5128;SA0001</NoWarn>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <EnablePublicApiAnalyzers>false</EnablePublicApiAnalyzers>
     <PackageId>Josupeit.Practices.Mixins.Disposable</PackageId>
     <Description>Roslyn source generator that implements IDisposable and IAsyncDisposable from a [DisposableMixin] attribute. Generates a correct, idiomatic dispose pattern at compile time with zero runtime overhead. Includes a companion Roslyn analyzer with code fixes.</Description>
     <PackageTags>source-generator disposable idisposable iasync-disposable roslyn analyzer mixin</PackageTags>

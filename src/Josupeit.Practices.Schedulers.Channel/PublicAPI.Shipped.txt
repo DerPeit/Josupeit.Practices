@@ -1,0 +1,18 @@
+#nullable enable
+Josupeit.Practices.Schedulers.ChannelScheduler
+Josupeit.Practices.Schedulers.ChannelScheduler.ChannelScheduler(Josupeit.Practices.Schedulers.ChannelSchedulerOptions! options) -> void
+Josupeit.Practices.Schedulers.ChannelSchedulerOptions
+Josupeit.Practices.Schedulers.ChannelSchedulerOptions.ChannelSchedulerOptions() -> void
+Josupeit.Practices.Schedulers.ChannelSchedulerOptions.DegreeOfParallelism.get -> int
+Josupeit.Practices.Schedulers.ChannelSchedulerOptions.DegreeOfParallelism.set -> void
+Josupeit.Practices.Schedulers.ChannelSchedulerOptions.GracefulStopDelay.get -> System.TimeSpan
+Josupeit.Practices.Schedulers.ChannelSchedulerOptions.GracefulStopDelay.set -> void
+override Josupeit.Practices.Schedulers.ChannelScheduler.CanPause.get -> bool
+override Josupeit.Practices.Schedulers.ChannelScheduler.EnqueueAsync(Josupeit.Practices.Schedulers.IScheduled! scheduled, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+override Josupeit.Practices.Schedulers.ChannelScheduler.OnPauseAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+override Josupeit.Practices.Schedulers.ChannelScheduler.OnResumeAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+override Josupeit.Practices.Schedulers.ChannelScheduler.OnStartAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+override Josupeit.Practices.Schedulers.ChannelScheduler.OnStopAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+static readonly Josupeit.Practices.Schedulers.ChannelSchedulerOptions.DefaultDegreeOfParallelism -> int
+static readonly Josupeit.Practices.Schedulers.ChannelSchedulerOptions.DefaultGracefulStopDelay -> System.TimeSpan
+virtual Josupeit.Practices.Schedulers.ChannelScheduler.ConsumeAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!

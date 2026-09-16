@@ -88,13 +88,15 @@ After merging `develop` into `main` with `--no-ff`, follow these steps:
    ```
    Run this for each project that has new commits since its last tag. Each invocation prints a line like `PackageName/v1.2.3`.
 
-2. **Reword the merge commit** to follow the release convention:
+2. **Ship the public API surface** for each released project: move all entries from `PublicAPI.Unshipped.txt` into `PublicAPI.Shipped.txt` (sorted alphabetically), leaving only the `#nullable enable` header in the Unshipped file. Do the same for any TFM-specific files (`PublicAPI.Unshipped.{tfm}.txt` -> `PublicAPI.Shipped.{tfm}.txt`). Stage the changes - the next step's `--amend` folds them into the merge commit.
+
+3. **Reword the merge commit** to follow the release convention:
    ```bash
    git commit --amend -m "chore(release): PackageA, PackageB 1.2"
    ```
    Use the short package names (without the `Josupeit.Practices.` prefix) and the major.minor version when all packages share the same version. When packages have different versions, list each with its version.
 
-3. **Create the version tags** for real:
+4. **Create the version tags** for real:
    ```bash
    dotnet nbgv tag -p src/Josupeit.Practices.SomeProject
    ```
@@ -106,6 +108,14 @@ After merging `develop` into `main` with `--no-ff`, follow these steps:
 - `dotnet tool restore` must have been run at least once in the repo for `dotnet nbgv` to work.
 - The `-p` flag takes the **project directory path** (e.g. `src/Josupeit.Practices.Commands`), not a `.csproj` file path.
 - Use `--what-if` with the `tag` subcommand for dry-runs; it prints the tag name without creating it.
+
+## Public API Tracking
+
+Every packable `src/` project ships with `PublicAPI.Shipped.txt` and `PublicAPI.Unshipped.txt`, enforced by `Microsoft.CodeAnalysis.PublicApiAnalyzers`. The three Mixins.Disposable projects opt out via `<EnablePublicApiAnalyzers>false</EnablePublicApiAnalyzers>` because they have no public API surface of their own.
+
+- **Adding a public member**: add its signature to `PublicAPI.Unshipped.txt`. The build emits RS0016 if it is missing.
+- **Removing a public member**: prefix the line with `*REMOVED*` in the relevant file. The build emits RS0017 if a declared member no longer exists.
+- **Releasing**: move all Unshipped entries into Shipped (sorted), leaving only the `#nullable enable` header. See the release workflow above.
 
 ## Package Versions
 
