@@ -1,0 +1,21 @@
+name: Context7
+
+# Context7 indexes the default branch (main), so its documentation only changes when main does. A push to main
+# covers both a merged pull request and a pushed release merge; a pull request itself leaves main untouched.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: codeberg-medium-lazy
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:10.0
+    steps:
+      - name: Refresh Context7 library
+        run: >-
+          curl --silent --show-error --fail-with-body -X POST https://context7.com/api/v1/refresh
+          -H "Content-Type: application/json"
+          -H "Authorization: Bearer ${{ secrets.CONTEXT7_API_KEY }}"
+          -d '{"libraryName": "/git_codeberg_org/derpeit_josupeit.practices"}'
