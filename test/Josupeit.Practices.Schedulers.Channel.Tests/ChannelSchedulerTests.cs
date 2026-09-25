@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (c) Manuel Josupeit-Walter
 
+using System.Linq;
 using System.Threading.Tasks;
 using Josupeit.Practices.Services;
 
@@ -296,6 +297,35 @@ public class ChannelSchedulerTests
 
             Assert.That(observedToken.IsCancellationRequested, Is.True);
         }
+
+        [Test]
+        public async Task StopAsync_completes_when_running_work_honors_the_token_with_ThrowIfCancellationRequested()
+        {
+            // Task.Delay cancels with TaskCanceledException; ThrowIfCancellationRequested throws the base
+            // OperationCanceledException. The stop must tolerate both.
+            var workStarted = new TaskCompletionSource<object?>();
+
+            var scheduleTask = Subject.ScheduleAsync(async ct =>
+            {
+                var canceled = new TaskCompletionSource<object?>();
+
+                using (ct.Register(() => canceled.TrySetResult(null)))
+                {
+                    workStarted.TrySetResult(null);
+
+                    await canceled.Task;
+                }
+
+                ct.ThrowIfCancellationRequested();
+            });
+
+            await workStarted.Task.WithinTimeout();
+
+            await Subject.StopAsync(CancellationToken.None).WithinTimeout();
+
+            Assert.That(Subject.State, Is.EqualTo(ServiceState.Stopped));
+            Assert.That(async () => await scheduleTask, Throws.InstanceOf<ExecutionDeclinedException>());
+        }
     }
 
     [TestFixture]
@@ -367,6 +397,35 @@ public class ChannelSchedulerTests
             await Subject.StopAsync(CancellationToken.None);
 
             Assert.That(observedToken.IsCancellationRequested, Is.True);
+        }
+    }
+
+    [TestFixture]
+    [TestOf(typeof(ChannelScheduler))]
+    public class StopWhilePaused : ChannelSchedulerTests
+    {
+        public StopWhilePaused()
+        {
+            DegreeOfParallelism = 4;
+        }
+
+        [Test]
+        public async Task StopAsync_declines_every_item_queued_while_paused()
+        {
+            // Releasing the paused consumers must not let them dequeue and run items the stop is declining.
+            await Subject.PauseAsync(CancellationToken.None);
+
+            var executed = 0;
+            var scheduleTasks = Enumerable.Range(0, 500).Select(_ => Subject.ScheduleAsync(() => { Interlocked.Increment(ref executed); })).ToArray();
+
+            await Subject.StopAsync(CancellationToken.None).WithinTimeout();
+
+            // A declined item faults its caller's task through an asynchronous continuation, so the tasks
+            // may still be completing when StopAsync returns. WhenAny waits for all of them without throwing.
+            await Task.WhenAny(Task.WhenAll(scheduleTasks)).WithinTimeout();
+
+            Assert.That(executed, Is.Zero);
+            Assert.That(scheduleTasks, Has.All.Matches<Task>(x => x.IsFaulted && x.Exception!.InnerException is ExecutionDeclinedException));
         }
     }
 

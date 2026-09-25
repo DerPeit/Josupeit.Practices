@@ -52,7 +52,7 @@ public class ScheduledCancellableAsyncActionTests
     public void Decline_cancels_wait_without_invoking_callback([ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         subject.Decline();
 
@@ -65,7 +65,7 @@ public class ScheduledCancellableAsyncActionTests
     public void Decline_cancels_promise_without_invoking_callback([ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         subject.Decline();
 
@@ -80,7 +80,7 @@ public class ScheduledCancellableAsyncActionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         Assert.That(Execute(subject, executeMethod, new CancellationToken(canceled: true)), Throws.InstanceOf<OperationCanceledException>());
         Assert.That(subject.Wait, Throws.TypeOf<ExecutionDeclinedException>());
@@ -94,7 +94,7 @@ public class ScheduledCancellableAsyncActionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         Assert.That(Execute(subject, executeMethod, new CancellationToken(canceled: true)), Throws.InstanceOf<OperationCanceledException>());
         Assert.That(async () => await subject.Promise, Throws.TypeOf<ExecutionDeclinedException>());
@@ -109,7 +109,7 @@ public class ScheduledCancellableAsyncActionTests
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         callback(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
 
@@ -205,7 +205,7 @@ public class ScheduledCancellableAsyncActionTests
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         callback(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         switch (Execute(subject, executeMethod, CancellationToken.None))
         {
@@ -228,7 +228,7 @@ public class ScheduledCancellableAsyncActionTests
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
         callback(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         switch (Execute(subject, executeMethod, CancellationToken.None))
         {
@@ -251,7 +251,7 @@ public class ScheduledCancellableAsyncActionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         using var cancellationTokenSource = new CancellationTokenSource();
         var proposedCancellationToken = cancellationTokenSource.Token;
@@ -274,7 +274,7 @@ public class ScheduledCancellableAsyncActionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         using var cancellationTokenSource = new CancellationTokenSource();
         var proposedCancellationToken = cancellationTokenSource.Token;
@@ -301,7 +301,7 @@ public class ScheduledCancellableAsyncActionTests
         using var scheduleCts = new CancellationTokenSource();
         var scheduleCancellationToken = scheduleCts.Token;
 
-        var subject = new ScheduledCancellableAsyncAction(callback, scheduleCancellationToken, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, scheduleCancellationToken, executionContext?.CreateCopy());
 
         callback(Arg.Any<CancellationToken>()).Returns(_ =>
         {
@@ -325,7 +325,7 @@ public class ScheduledCancellableAsyncActionTests
         using var scheduleCts = new CancellationTokenSource();
         var scheduleCancellationToken = scheduleCts.Token;
 
-        var subject = new ScheduledCancellableAsyncAction(callback, scheduleCancellationToken, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, scheduleCancellationToken, executionContext?.CreateCopy());
 
         callback(Arg.Any<CancellationToken>()).Returns(_ =>
         {
@@ -348,7 +348,7 @@ public class ScheduledCancellableAsyncActionTests
 
         using var scheduleCts = new CancellationTokenSource();
 
-        var subject = new ScheduledCancellableAsyncAction(callback, scheduleCts.Token, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, scheduleCts.Token, executionContext?.CreateCopy());
 
         scheduleCts.Cancel();
 
@@ -368,7 +368,7 @@ public class ScheduledCancellableAsyncActionTests
 
         using var scheduleCts = new CancellationTokenSource();
 
-        var subject = new ScheduledCancellableAsyncAction(callback, scheduleCts.Token, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, scheduleCts.Token, executionContext?.CreateCopy());
 
         scheduleCts.Cancel();
 
@@ -385,7 +385,7 @@ public class ScheduledCancellableAsyncActionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         using var cancellationTokenSource = new CancellationTokenSource();
         var unknownCancellationToken = cancellationTokenSource.Token;
@@ -408,7 +408,7 @@ public class ScheduledCancellableAsyncActionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         using var cancellationTokenSource = new CancellationTokenSource();
         var unknownCancellationToken = cancellationTokenSource.Token;
@@ -431,7 +431,7 @@ public class ScheduledCancellableAsyncActionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         callback(Arg.Any<CancellationToken>()).Returns(Task.FromException(new TestException()));
 
@@ -446,7 +446,7 @@ public class ScheduledCancellableAsyncActionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         callback(Arg.Any<CancellationToken>()).Returns(Task.FromException(new TestException()));
 
@@ -461,7 +461,7 @@ public class ScheduledCancellableAsyncActionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         callback.When(x => x(Arg.Any<CancellationToken>())).Throw<TestException>();
 
@@ -476,7 +476,7 @@ public class ScheduledCancellableAsyncActionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         callback.When(x => x(Arg.Any<CancellationToken>())).Throw<TestException>();
 
@@ -491,7 +491,7 @@ public class ScheduledCancellableAsyncActionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         using var cancellationTokenSource = new CancellationTokenSource();
         var proposedCancellationToken = cancellationTokenSource.Token;
@@ -520,7 +520,7 @@ public class ScheduledCancellableAsyncActionTests
         using var scheduleCts = new CancellationTokenSource();
         var scheduleCancellationToken = scheduleCts.Token;
 
-        var subject = new ScheduledCancellableAsyncAction(callback, scheduleCancellationToken, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, scheduleCancellationToken, executionContext?.CreateCopy());
 
         callback
             .When(x => x(Arg.Any<CancellationToken>()))
@@ -542,7 +542,7 @@ public class ScheduledCancellableAsyncActionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<CancellationToken, Task>>();
-        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, CancellationToken.None, executionContext?.CreateCopy());
 
         using var cancellationTokenSource = new CancellationTokenSource();
         var unknownCancellationToken = cancellationTokenSource.Token;
@@ -658,7 +658,7 @@ public class ScheduledCancellableAsyncActionTests
         using var scheduleCts = new CancellationTokenSource();
         using var executionCts = new CancellationTokenSource();
 
-        var subject = new ScheduledCancellableAsyncAction(callback, scheduleCts.Token, executionContext);
+        var subject = new ScheduledCancellableAsyncAction(callback, scheduleCts.Token, executionContext?.CreateCopy());
 
         Assert.That(Execute(subject, executeMethod, executionCts.Token), Throws.Nothing);
 
