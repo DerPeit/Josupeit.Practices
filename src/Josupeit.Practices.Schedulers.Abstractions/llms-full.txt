@@ -1,0 +1,276 @@
+# Josupeit.Practices.Schedulers.Abstractions
+
+> Interface-only NuGet package defining `IScheduler`, the contract for handing work to an execution strategy without knowing what it is: 56 overloads in four families - `Schedule` (blocks until the item has run), `ScheduleAsync` (returns a task that completes when it has run), and `UnsafeSchedule`/`UnsafeScheduleAsync` (the same without capturing the caller's execution context) - each taking synchronous or asynchronous, cancellable or non-cancellable actions and functions, with and without a caller-supplied `CancellationToken`. Also defines `ExecutionDeclinedException`, raised when an accepted item is not executed because the scheduler stopped in the meantime. Targets netstandard2.0 and net8.0 and lives in the `Josupeit.Practices.Schedulers` namespace.
+
+## At a glance
+
+- **Package:** `Josupeit.Practices.Schedulers.Abstractions`
+- **Namespace:** `Josupeit.Practices.Schedulers` - the namespace does not carry the `.Abstractions` suffix. `using Josupeit.Practices.Schedulers;` is correct; `using Josupeit.Practices.Schedulers.Abstractions;` does not compile.
+- **Target frameworks:** `netstandard2.0`, `net8.0`
+- **Native AOT and trimming:** compatible. The `net8.0` target is built with `IsAotCompatible`, which also marks the assembly trimmable, and is verified by an analyzer-clean build plus a native smoke-test binary published and run in CI. See [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md).
+- **Dependencies:** none. The `[PublicAPI]` annotations visible in the source are compile-time only and are not shipped.
+- **Contents:** one interface and one exception type. No classes to derive from - those live in `Josupeit.Practices.Schedulers.Core`.
+- **Nullability:** every declaration in this document is shown as compiled under `#nullable enable`. An unannotated reference type such as `Task` is non-nullable; nothing in this package is nullable.
+- **Authoritative inventory:** [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/PublicAPI.Shipped.txt) is the analyzer-enforced list of every public member, kept in sync with the compiled assembly by RS0016/RS0017. Format key: `!` marks a non-nullable and `?` a nullable reference type; members are prefixed with `abstract`, `virtual`, `override`, or `static` where applicable; accessibility is not shown.
+- **This document:** ships inside the NuGet package as `llms-full.txt` and is published at https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/llms-full.txt. The packaged copy matches its package version; the published copy describes the latest release.
+- **Implementations:** `Josupeit.Practices.Schedulers.Core` provides base classes that reduce the 56 members to a single override; `Josupeit.Practices.Schedulers.TaskPool` and `Josupeit.Practices.Schedulers.Channel` are ready-made schedulers (see Related packages).
+- **License:** EUPL-1.2
+
+Install:
+
+```
+dotnet add package Josupeit.Practices.Schedulers.Abstractions
+```
+
+## Concepts
+
+Different parts of an application have different scheduling needs - fire work onto the thread pool, or push it through a FIFO queue with a fixed number of consumers and pause support. `IScheduler` lets call sites submit work without committing to a strategy, so the strategy can change without touching them.
+
+The interface is deliberately broad. Its 56 members are one idea repeated over three axes:
+
+- **Family** - how the caller waits. `Schedule` blocks the calling thread until the item has completed and returns the function's result directly. `ScheduleAsync` returns a `Task` (or `Task<TResult>`) that completes when the item has completed. The `Unsafe*` twins behave identically but do **not** capture the caller's `ExecutionContext`, so ambient state such as `AsyncLocal<T>` values does not flow into the work item - cheaper, for tight loops where that state is not needed.
+- **Delegate shape** - what runs. A synchronous action (`Action`) or function (`Func<TResult>`), an asynchronous action (`Func<Task>`) or function (`Func<Task<TResult>>`), and each of those in a _cancellable_ form that receives a `CancellationToken` (`Action<CancellationToken>`, `Func<CancellationToken, Task>`, and so on).
+- **Caller token** - whether the caller passes its own `CancellationToken`. The asynchronous families accept one for every delegate shape. The synchronous families accept one only for cancellable delegates: a blocking call whose delegate cannot observe a token has nothing to cancel.
+
+Two tokens are involved and they are not the same. The token _the delegate receives_ is the scheduler's: it is canceled when the scheduler stops and, in the overloads that take a caller token, also when that caller token is canceled. Do not expect it to be the caller's token instance.
+
+`IScheduler` has no lifecycle members. Whether a scheduler can be started, paused, or stopped, and how, is exposed separately by implementations - typically through `IService`/`IAsyncService`. When a scheduler does stop after accepting an item but before running it, the item's caller receives `ExecutionDeclinedException`.
+
+## Types
+
+| Type                         | Kind      | Members                                                                                                   |
+| ---------------------------- | --------- | --------------------------------------------------------------------------------------------------------- |
+| `IScheduler`                 | interface | 56 methods: 12 `Schedule`, 16 `ScheduleAsync`, 12 `UnsafeSchedule`, 16 `UnsafeScheduleAsync`              |
+| `ExecutionDeclinedException` | class     | `InvalidOperationException` subclass with a fixed message; parameterless and inner-exception constructors |
+
+### `IScheduler`
+
+Every member of one family, grouped; the `Unsafe*` families repeat the signatures of their safe twins exactly. None of the members has a default implementation.
+
+```csharp
+namespace Josupeit.Practices.Schedulers;
+
+public interface IScheduler
+{
+    // Schedule: blocks until the item has completed; functions return their result directly.
+    void Schedule(Action action);
+    void Schedule(Action<CancellationToken> cancellableAction);
+    void Schedule(Action<CancellationToken> cancellableAction, CancellationToken cancellationToken);
+    void Schedule(Func<Task> asyncAction);
+    void Schedule(Func<CancellationToken, Task> cancellableAsyncAction);
+    void Schedule(Func<CancellationToken, Task> cancellableAsyncAction, CancellationToken cancellationToken);
+    TResult Schedule<TResult>(Func<TResult> func);
+    TResult Schedule<TResult>(Func<CancellationToken, TResult> cancellableFunc);
+    TResult Schedule<TResult>(Func<CancellationToken, TResult> cancellableFunc, CancellationToken cancellationToken);
+    TResult Schedule<TResult>(Func<Task<TResult>> asyncFunc);
+    TResult Schedule<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc);
+    TResult Schedule<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc, CancellationToken cancellationToken);
+
+    // ScheduleAsync: returns a task that completes when the item has completed.
+    Task ScheduleAsync(Action action);
+    Task ScheduleAsync(Action action, CancellationToken cancellationToken);
+    Task ScheduleAsync(Action<CancellationToken> cancellableAction);
+    Task ScheduleAsync(Action<CancellationToken> cancellableAction, CancellationToken cancellationToken);
+    Task ScheduleAsync(Func<Task> asyncAction);
+    Task ScheduleAsync(Func<Task> asyncAction, CancellationToken cancellationToken);
+    Task ScheduleAsync(Func<CancellationToken, Task> cancellableAsyncAction);
+    Task ScheduleAsync(Func<CancellationToken, Task> cancellableAsyncAction, CancellationToken cancellationToken);
+    Task<TResult> ScheduleAsync<TResult>(Func<TResult> func);
+    Task<TResult> ScheduleAsync<TResult>(Func<TResult> func, CancellationToken cancellationToken);
+    Task<TResult> ScheduleAsync<TResult>(Func<CancellationToken, TResult> cancellableFunc);
+    Task<TResult> ScheduleAsync<TResult>(Func<CancellationToken, TResult> cancellableFunc, CancellationToken cancellationToken);
+    Task<TResult> ScheduleAsync<TResult>(Func<Task<TResult>> asyncFunc);
+    Task<TResult> ScheduleAsync<TResult>(Func<Task<TResult>> asyncFunc, CancellationToken cancellationToken);
+    Task<TResult> ScheduleAsync<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc);
+    Task<TResult> ScheduleAsync<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc, CancellationToken cancellationToken);
+
+    // UnsafeSchedule: as Schedule, without capturing the caller's ExecutionContext.
+    void UnsafeSchedule(Action action);
+    void UnsafeSchedule(Action<CancellationToken> cancellableAction);
+    void UnsafeSchedule(Action<CancellationToken> cancellableAction, CancellationToken cancellationToken);
+    void UnsafeSchedule(Func<Task> asyncAction);
+    void UnsafeSchedule(Func<CancellationToken, Task> cancellableAsyncAction);
+    void UnsafeSchedule(Func<CancellationToken, Task> cancellableAsyncAction, CancellationToken cancellationToken);
+    TResult UnsafeSchedule<TResult>(Func<TResult> func);
+    TResult UnsafeSchedule<TResult>(Func<CancellationToken, TResult> cancellableFunc);
+    TResult UnsafeSchedule<TResult>(Func<CancellationToken, TResult> cancellableFunc, CancellationToken cancellationToken);
+    TResult UnsafeSchedule<TResult>(Func<Task<TResult>> asyncFunc);
+    TResult UnsafeSchedule<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc);
+    TResult UnsafeSchedule<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc, CancellationToken cancellationToken);
+
+    // UnsafeScheduleAsync: as ScheduleAsync, without capturing the caller's ExecutionContext.
+    Task UnsafeScheduleAsync(Action action);
+    Task UnsafeScheduleAsync(Action action, CancellationToken cancellationToken);
+    Task UnsafeScheduleAsync(Action<CancellationToken> cancellableAction);
+    Task UnsafeScheduleAsync(Action<CancellationToken> cancellableAction, CancellationToken cancellationToken);
+    Task UnsafeScheduleAsync(Func<Task> asyncAction);
+    Task UnsafeScheduleAsync(Func<Task> asyncAction, CancellationToken cancellationToken);
+    Task UnsafeScheduleAsync(Func<CancellationToken, Task> cancellableAsyncAction);
+    Task UnsafeScheduleAsync(Func<CancellationToken, Task> cancellableAsyncAction, CancellationToken cancellationToken);
+    Task<TResult> UnsafeScheduleAsync<TResult>(Func<TResult> func);
+    Task<TResult> UnsafeScheduleAsync<TResult>(Func<TResult> func, CancellationToken cancellationToken);
+    Task<TResult> UnsafeScheduleAsync<TResult>(Func<CancellationToken, TResult> cancellableFunc);
+    Task<TResult> UnsafeScheduleAsync<TResult>(Func<CancellationToken, TResult> cancellableFunc, CancellationToken cancellationToken);
+    Task<TResult> UnsafeScheduleAsync<TResult>(Func<Task<TResult>> asyncFunc);
+    Task<TResult> UnsafeScheduleAsync<TResult>(Func<Task<TResult>> asyncFunc, CancellationToken cancellationToken);
+    Task<TResult> UnsafeScheduleAsync<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc);
+    Task<TResult> UnsafeScheduleAsync<TResult>(Func<CancellationToken, Task<TResult>> cancellableAsyncFunc, CancellationToken cancellationToken);
+}
+```
+
+The same set as a matrix. "token" is a trailing `CancellationToken cancellationToken` parameter supplied by the caller.
+
+| Delegate shape                           | `Schedule` / `UnsafeSchedule`                         | `ScheduleAsync` / `UnsafeScheduleAsync`                     |
+| ---------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------- |
+| `Action`                                 | `(action)` -> `void`                                  | `(action)`, `(action, token)` -> `Task`                     |
+| `Action<CancellationToken>`              | `(cancellableAction)`, `(..., token)` -> `void`       | `(cancellableAction)`, `(..., token)` -> `Task`             |
+| `Func<Task>`                             | `(asyncAction)` -> `void`                             | `(asyncAction)`, `(..., token)` -> `Task`                   |
+| `Func<CancellationToken, Task>`          | `(cancellableAsyncAction)`, `(..., token)` -> `void`  | `(cancellableAsyncAction)`, `(..., token)` -> `Task`        |
+| `Func<TResult>`                          | `(func)` -> `TResult`                                 | `(func)`, `(..., token)` -> `Task<TResult>`                 |
+| `Func<CancellationToken, TResult>`       | `(cancellableFunc)`, `(..., token)` -> `TResult`      | `(cancellableFunc)`, `(..., token)` -> `Task<TResult>`      |
+| `Func<Task<TResult>>`                    | `(asyncFunc)` -> `TResult`                            | `(asyncFunc)`, `(..., token)` -> `Task<TResult>`            |
+| `Func<CancellationToken, Task<TResult>>` | `(cancellableAsyncFunc)`, `(..., token)` -> `TResult` | `(cancellableAsyncFunc)`, `(..., token)` -> `Task<TResult>` |
+
+Note the four gaps in the synchronous column: `Schedule(Action, CancellationToken)`, `Schedule(Func<Task>, CancellationToken)`, `Schedule<TResult>(Func<TResult>, CancellationToken)`, and `Schedule<TResult>(Func<Task<TResult>>, CancellationToken)` do not exist, nor do their `UnsafeSchedule` twins. A synchronous call with a delegate that cannot observe a token takes no token.
+
+### `ExecutionDeclinedException`
+
+Raised when an item that the scheduler accepted is not executed - typically because the scheduler was stopped between enqueuing and execution. It derives from `InvalidOperationException`, so a handler for that type catches it as well. The message is fixed; there is no constructor that takes a message.
+
+```csharp
+namespace Josupeit.Practices.Schedulers;
+
+public class ExecutionDeclinedException : InvalidOperationException
+{
+    public ExecutionDeclinedException();
+
+    public ExecutionDeclinedException(Exception innerException);
+}
+```
+
+Message text: `After enqueuing, but prior to execution, the scheduler declined to process the operation. Likely, the scheduler has transitioned to a state that no longer allows further processing. It may have been stopped in the meantime.`
+
+## Contract expectations
+
+What implementers must guarantee and what consumers may rely on:
+
+1. **Completion.** `Schedule` returns only after the item has completed; `ScheduleAsync` returns a task that completes only after the item has completed. For function shapes the result is the delegate's return value - unwrapped from `Task<TResult>` when the delegate is asynchronous. Neither family is fire-and-forget.
+2. **The delegate's token.** A cancellable delegate receives the scheduler's token. It is canceled when the scheduler stops and, in the overloads that take a caller token, also when that caller token is canceled. Do not assume it is the caller's token instance; an implementation may hand the caller's token through unchanged when it has nothing of its own to link.
+3. **Token-less overloads.** Each token-less overload is by contract equivalent to its token-accepting sibling called with `CancellationToken.None` - a requirement, not a convention, and what the Task-based Asynchronous Pattern prescribes for overloads without a cancellation token. Every token-less member carries this statement in its XML documentation.
+4. **`Unsafe*` families.** They do not capture the caller's `ExecutionContext`; ambient state such as `AsyncLocal<T>` values and the current culture set through it does not flow into the item. Under which context the item does run is left to the implementation.
+5. **Exceptions from the item.** An exception thrown by the delegate reaches the caller - thrown from `Schedule`, faulting the task from `ScheduleAsync`. Whether it arrives wrapped is left to the implementation. `ExecutionDeclinedException` is reserved for an accepted item that will not run.
+6. **Left open.** Ordering between items, degree of concurrency, which thread runs an item, whether submitting to a scheduler that has already stopped fails immediately or is declined later, and whether an item may itself call back into the scheduler - all implementation-defined. Consult the implementation's documentation.
+7. **Lifecycle.** `IScheduler` has none. Implementations that stop expose their lifecycle separately, usually through `IService` or `IAsyncService`.
+
+## Usage
+
+### Submitting work through the interface
+
+Depend on `IScheduler` in components that need work executed without deciding how. Pick the family by how you wait, the overload by what you have.
+
+```csharp
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Schedulers;
+
+public sealed class ThumbnailPipeline
+{
+    private readonly IScheduler _scheduler;
+
+    public ThumbnailPipeline(IScheduler scheduler) => _scheduler = scheduler;
+
+    // Blocks until the action has run.
+    public void WarmUp() => _scheduler.Schedule(() => LoadCodecs());
+
+    // Blocks until the function has run and returns its result.
+    public int CountPending() => _scheduler.Schedule(() => PendingCount());
+
+    // Asynchronous, cancellable: the delegate receives the scheduler's token, linked to ours.
+    public Task RenderAsync(string path, CancellationToken cancellationToken) =>
+        _scheduler.ScheduleAsync(ct => RenderCoreAsync(path, ct), cancellationToken);
+
+    // Asynchronous function with a result.
+    public Task<byte[]> ReadAsync(string path, CancellationToken cancellationToken) =>
+        _scheduler.ScheduleAsync(ct => ReadCoreAsync(path, ct), cancellationToken);
+
+    private static void LoadCodecs()
+    {
+    }
+
+    private static int PendingCount() => 0;
+
+    private static Task RenderCoreAsync(string path, CancellationToken cancellationToken) => Task.CompletedTask;
+
+    private static Task<byte[]> ReadCoreAsync(string path, CancellationToken cancellationToken) => Task.FromResult(new byte[0]);
+}
+```
+
+Overload resolution follows the lambda: `() => DoAsync()` with a `Task`-returning method binds to the `Func<Task>` overload (and `Schedule` then blocks until that task completes); `() => 42` binds to `Func<TResult>`; `() => FetchAsync()` with a `Task<T>`-returning method binds to `Func<Task<TResult>>`, so `Schedule` returns the unwrapped `T`; `ct => Work(ct)` binds to the cancellable shape.
+
+### Handling a declined item
+
+```csharp
+public async Task<bool> TryRenderAsync(string path, CancellationToken cancellationToken)
+{
+    try
+    {
+        await _scheduler.ScheduleAsync(ct => RenderCoreAsync(path, ct), cancellationToken).ConfigureAwait(false);
+
+        return true;
+    }
+    catch (ExecutionDeclinedException)
+    {
+        return false;   // accepted, then the scheduler stopped before running it
+    }
+}
+```
+
+### When to use the `Unsafe*` families
+
+Use them for items that neither read nor need ambient state - `AsyncLocal<T>` values, logging scopes carried in `AsyncLocal<T>`, the culture set through the execution context - and where the per-item cost of capturing the context matters, such as tight inner loops. Everything else is identical.
+
+```csharp
+for (var i = 0; i < samples.Length; i++)
+{
+    var sample = samples[i];
+
+    _scheduler.UnsafeSchedule(() => Accumulate(sample));
+}
+```
+
+### Implementing `IScheduler`
+
+Do not implement the 56 members by hand. `Josupeit.Practices.Schedulers.Core` provides base classes that implement all of them on top of a single `Enqueue`/`EnqueueAsync` override, including the sync/async bridging and the token linking described above. Use `Josupeit.Practices.Schedulers.TaskPool` or `Josupeit.Practices.Schedulers.Channel` when a ready-made strategy fits.
+
+## Choosing an overload
+
+- Need the result or completion on the current thread: `Schedule`. Can await: `ScheduleAsync`.
+- The item must stop when the caller gives up or the scheduler stops: use a cancellable delegate shape and honor the token it receives.
+- You hold a `CancellationToken`: pass it - every asynchronous shape and every cancellable synchronous shape has an overload for it.
+- Ambient state is irrelevant and the call is on a hot path: the `Unsafe*` twin.
+- Tracked, observable background work with results and progress rather than a blocking or awaited call: use `Josupeit.Practices.Jobs` on top of a scheduler instead.
+
+## Common mistakes
+
+- **Wrong namespace.** The types live in `Josupeit.Practices.Schedulers`. A `Josupeit.Practices.Schedulers.Abstractions` namespace does not exist.
+- **Expecting `Schedule` to return before the work runs.** Both families wait for completion; `Schedule` blocks the caller. There is no fire-and-forget member - discarding the task of `ScheduleAsync` loses its exceptions; use `Josupeit.Practices.Jobs` for tracked background work.
+- **Calling `Schedule(action, cancellationToken)` with a non-cancellable delegate.** No such overload for `Action`, `Func<Task>`, `Func<TResult>`, or `Func<Task<TResult>>` in the synchronous families. Use the cancellable delegate shape, or `ScheduleAsync`, which takes a token for every shape.
+- **Treating the delegate's token as the caller's token.** It is the scheduler's linked token: it fires on stop and, if you passed one, when your token fires. Compare neither identity nor `CanBeCanceled` against yours.
+- **Reading `AsyncLocal<T>` inside an `Unsafe*` item.** The context is not captured; the value is absent or stale.
+- **`new ExecutionDeclinedException("...")`.** There is no message constructor; the message is fixed. Only `()` and `(Exception innerException)` exist.
+- **Assuming ordering or concurrency from the interface.** It promises neither. FIFO versus parallel, and how many at once, is the implementation's choice.
+- **Looking for `Start`/`Stop` on `IScheduler`.** It has no lifecycle. Cast to, or depend on, `IService`/`IAsyncService` for implementations that have one.
+- **Blocking on `Schedule` from inside a scheduled item.** On a scheduler with bounded concurrency this can deadlock; whether it is safe is implementation-defined.
+
+## Related packages
+
+- **[Josupeit.Practices.Schedulers.Core](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/llms-full.txt)** - `Scheduler`, `AsyncScheduler`, `SchedulerService`, `AsyncSchedulerService` and their disposable variants: base classes that implement all 56 members over one `Enqueue`/`EnqueueAsync` override. Human-oriented README: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/README.md
+- **[Josupeit.Practices.Schedulers.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.TaskPool/llms-full.txt)** - `TaskPoolScheduler`: immediate thread-pool dispatch, no lifecycle.
+- **[Josupeit.Practices.Schedulers.Channel](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Channel/llms-full.txt)** - `ChannelScheduler`: FIFO queue with configurable parallelism and pause support.
+- **[Josupeit.Practices.Services.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services.Abstractions/llms-full.txt)** - `IService`/`IAsyncService`, the lifecycle contracts that stoppable schedulers expose. Not a dependency of this package; reference it yourself when you need them.
+- **[Josupeit.Practices.Jobs.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Abstractions/llms-full.txt)** - observable jobs with results and progress, for background work that should be tracked rather than awaited.
+- **[Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md)** - all packages in the family.
+
+## License
+
+EUPL-1.2. Full text: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md

@@ -1,23 +1,493 @@
 #nullable enable
 Josupeit.Practices.Schedulers.AsyncEnqueueCallback
+Josupeit.Practices.Schedulers.AsyncScheduler
+Josupeit.Practices.Schedulers.AsyncScheduler.AsyncScheduler() -> void
+Josupeit.Practices.Schedulers.AsyncScheduler.Schedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.AsyncScheduler.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.AsyncScheduler.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.AsyncScheduler.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.AsyncScheduler.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.AsyncScheduler.Schedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.AsyncScheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.AsyncScheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.AsyncScheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.AsyncScheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.AsyncScheduler.Schedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.AsyncScheduler.Schedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.ScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeSchedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeSchedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeSchedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService
+Josupeit.Practices.Schedulers.AsyncSchedulerService.AsyncSchedulerService() -> void
+Josupeit.Practices.Schedulers.AsyncSchedulerService.Schedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.AsyncSchedulerService.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.AsyncSchedulerService.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.AsyncSchedulerService.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.AsyncSchedulerService.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.AsyncSchedulerService.Schedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.AsyncSchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.AsyncSchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.AsyncSchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.AsyncSchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.AsyncSchedulerService.Schedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.AsyncSchedulerService.Schedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.ScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeSchedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeSchedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeSchedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.AsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
 Josupeit.Practices.Schedulers.DisposableAsyncScheduler
-Josupeit.Practices.Schedulers.DisposableAsyncScheduler.~DisposableAsyncScheduler() -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.DisposableAsyncScheduler() -> void
 Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Dispose() -> void
 Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Disposing -> System.EventHandler?
 Josupeit.Practices.Schedulers.DisposableAsyncScheduler.IsDisposed.get -> bool
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Schedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Schedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Schedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.Schedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
 Josupeit.Practices.Schedulers.DisposableAsyncScheduler.ThrowIfDisposed() -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeSchedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeSchedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeSchedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncScheduler.~DisposableAsyncScheduler() -> void
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.DisposableAsyncSchedulerService() -> void
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.Schedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.Schedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.Schedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.Schedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.ScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeSchedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeSchedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeSchedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
 Josupeit.Practices.Schedulers.DisposableScheduler
-Josupeit.Practices.Schedulers.DisposableScheduler.~DisposableScheduler() -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.DisposableScheduler() -> void
 Josupeit.Practices.Schedulers.DisposableScheduler.Dispose() -> void
 Josupeit.Practices.Schedulers.DisposableScheduler.Disposing -> System.EventHandler?
 Josupeit.Practices.Schedulers.DisposableScheduler.IsDisposed.get -> bool
+Josupeit.Practices.Schedulers.DisposableScheduler.Schedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.Schedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableScheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableScheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableScheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableScheduler.Schedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableScheduler.Schedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.ScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
 Josupeit.Practices.Schedulers.DisposableScheduler.ThrowIfDisposed() -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeSchedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeSchedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeSchedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableScheduler.~DisposableScheduler() -> void
+Josupeit.Practices.Schedulers.DisposableSchedulerService
+Josupeit.Practices.Schedulers.DisposableSchedulerService.DisposableSchedulerService() -> void
+Josupeit.Practices.Schedulers.DisposableSchedulerService.Schedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.DisposableSchedulerService.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.DisposableSchedulerService.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableSchedulerService.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableSchedulerService.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableSchedulerService.Schedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableSchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableSchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableSchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableSchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableSchedulerService.Schedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableSchedulerService.Schedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.ScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeSchedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeSchedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeSchedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.DisposableSchedulerService.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
 Josupeit.Practices.Schedulers.IScheduled
 Josupeit.Practices.Schedulers.IScheduled.Decline() -> void
 Josupeit.Practices.Schedulers.IScheduled.Execute(System.Threading.CancellationToken executionCancellationToken) -> void
 Josupeit.Practices.Schedulers.IScheduled.ExecuteAsync(System.Threading.CancellationToken executionCancellationToken) -> System.Threading.Tasks.Task!
 Josupeit.Practices.Schedulers.IScheduled.IsCancellationRequested.get -> bool
+Josupeit.Practices.Schedulers.Scheduler
+Josupeit.Practices.Schedulers.Scheduler.Schedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.Scheduler.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.Scheduler.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.Scheduler.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.Scheduler.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.Scheduler.Schedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.Scheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.Scheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.Scheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.Scheduler.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.Scheduler.Schedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.Scheduler.Schedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.ScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.Scheduler() -> void
+Josupeit.Practices.Schedulers.Scheduler.UnsafeSchedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.Scheduler.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.Scheduler.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.Scheduler.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.Scheduler.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.Scheduler.UnsafeSchedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.Scheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.Scheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.Scheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.Scheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.Scheduler.UnsafeSchedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.Scheduler.UnsafeSchedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.Scheduler.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService
+Josupeit.Practices.Schedulers.SchedulerService.Schedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.SchedulerService.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.SchedulerService.Schedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.SchedulerService.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.SchedulerService.Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.SchedulerService.Schedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.SchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.SchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.SchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.SchedulerService.Schedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.SchedulerService.Schedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.SchedulerService.Schedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.ScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.SchedulerService() -> void
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeSchedule(System.Action! action) -> void
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction) -> void
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeSchedule(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> void
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeSchedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> void
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeSchedule(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> void
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> TResult
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> TResult
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> TResult
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeSchedule<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> TResult
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeSchedule<TResult>(System.Func<TResult>! func) -> TResult
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync(System.Action! action) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync(System.Action! action, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync(System.Action<System.Threading.CancellationToken>! cancellableAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! cancellableAsyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync(System.Func<System.Threading.Tasks.Task!>! asyncAction, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! cancellableAsyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.CancellationToken, TResult>! cancellableFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! asyncFunc, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func) -> System.Threading.Tasks.Task<TResult>!
+Josupeit.Practices.Schedulers.SchedulerService.UnsafeScheduleAsync<TResult>(System.Func<TResult>! func, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult>!
 Josupeit.Practices.Schedulers.SyncEnqueueCallback
+abstract Josupeit.Practices.Schedulers.AsyncScheduler.EnqueueAsync(Josupeit.Practices.Schedulers.IScheduled! scheduled, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+abstract Josupeit.Practices.Schedulers.AsyncSchedulerService.EnqueueAsync(Josupeit.Practices.Schedulers.IScheduled! scheduled, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+abstract Josupeit.Practices.Schedulers.DisposableAsyncScheduler.EnqueueAsync(Josupeit.Practices.Schedulers.IScheduled! scheduled, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+abstract Josupeit.Practices.Schedulers.DisposableAsyncSchedulerService.EnqueueAsync(Josupeit.Practices.Schedulers.IScheduled! scheduled, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+abstract Josupeit.Practices.Schedulers.DisposableScheduler.Enqueue(Josupeit.Practices.Schedulers.IScheduled! scheduled) -> void
+abstract Josupeit.Practices.Schedulers.DisposableSchedulerService.Enqueue(Josupeit.Practices.Schedulers.IScheduled! scheduled) -> void
+abstract Josupeit.Practices.Schedulers.Scheduler.Enqueue(Josupeit.Practices.Schedulers.IScheduled! scheduled) -> void
+abstract Josupeit.Practices.Schedulers.SchedulerService.Enqueue(Josupeit.Practices.Schedulers.IScheduled! scheduled) -> void
 virtual Josupeit.Practices.Schedulers.AsyncEnqueueCallback.Invoke(Josupeit.Practices.Schedulers.IScheduled! scheduled, System.Threading.CancellationToken enqueueCancellationToken) -> System.Threading.Tasks.Task!
 virtual Josupeit.Practices.Schedulers.DisposableAsyncScheduler.DisposeManagedResources() -> void
 virtual Josupeit.Practices.Schedulers.DisposableAsyncScheduler.DisposeUnmanagedResources() -> void

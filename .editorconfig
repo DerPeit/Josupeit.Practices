@@ -23,6 +23,9 @@ end_of_line = crlf
 # Two trailing spaces are a line break in Markdown, so stripping them rewrites the text.
 trim_trailing_whitespace = false
 
+[*.txt]
+end_of_line = crlf
+
 [*.cs]
 indent_size = 4
 tab_width = 4

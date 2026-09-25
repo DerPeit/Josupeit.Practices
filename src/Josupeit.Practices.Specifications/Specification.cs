@@ -16,8 +16,11 @@ namespace Josupeit.Practices.Specifications;
 [PublicAPI]
 public abstract class Specification<TCandidate>
 {
+    // Holds a marker while a bridged member of this instance is active in the current call chain.
+    // The reset writes null on purpose: ExecutionContext removes an AsyncLocal entry only for null,
+    // whereas a boxed false would stay in the flow's map for every instance ever evaluated.
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private volatile bool _isRecursing;
+    private readonly AsyncLocal<object?> _recursionMarker = new();
 
     /// <summary>
     /// Returns <c>false</c>; enables the use of a specification in a short-circuit boolean <c>&amp;&amp;</c> or <c>||</c> expression.
@@ -93,6 +96,7 @@ public abstract class Specification<TCandidate>
     /// </summary>
     /// <param name="candidate">The candidate.</param>
     /// <returns><c>true</c> if this instance is satisfied by the candidate; otherwise, <c>false</c>.</returns>
+    /// <remarks>By contract equivalent to calling <see cref="IsSatisfiedByAsync(TCandidate, CancellationToken)"/> with <see cref="CancellationToken.None"/>.</remarks>
     public Task<bool> IsSatisfiedByAsync(TCandidate candidate) => IsSatisfiedByAsync(candidate, CancellationToken.None);
 
     /// <summary>
@@ -123,15 +127,14 @@ public abstract class Specification<TCandidate>
 
     private IDisposable CreateRecursionScope()
     {
-        var isRecursing = _isRecursing;
-        _isRecursing = true;
-
-        if (isRecursing)
+        if (_recursionMarker.Value is not null)
             throw new InvalidOperationException(
                 $"Neither the synchronous method {nameof(IsSatisfiedBy)}, nor the asynchronous overload " +
                 $"{nameof(IsSatisfiedByAsync)} has been overridden or either base.{nameof(IsSatisfiedBy)} " +
                 $"or base.{nameof(IsSatisfiedByAsync)} has been called from user-code which is prohibited. " +
                 $"Please ensure to override at least one of these methods and remove base calls and try again.");
+
+        _recursionMarker.Value = this;
 
         return new RecursionScope(this);
     }
@@ -147,7 +150,7 @@ public abstract class Specification<TCandidate>
 
         public void Dispose()
         {
-            _owner._isRecursing = false;
+            _owner._recursionMarker.Value = null;
         }
     }
 }

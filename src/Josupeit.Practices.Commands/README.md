@@ -8,6 +8,8 @@ The bridging works in both directions. If you override `ExecuteAsync`, then `Exe
 dotnet add package Josupeit.Practices.Commands
 ```
 
+All types live in the `Josupeit.Practices.Commands` namespace, shared with the Abstractions package.
+
 ## How to implement a command
 
 Override **either** `Execute` (sync) **or** `ExecuteAsync(CancellationToken)` (async), but not both unless your implementation genuinely differs between the two. Never call `base.Execute` or `base.ExecuteAsync` from an override.
@@ -24,7 +26,7 @@ public sealed class SendWelcomeEmailCommand : Command
     // Override the async path. Execute() is bridged automatically.
     public override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        await _email.SendAsync("welcome@example.com", cancellationToken);
+        await _email.SendAsync("welcome@example.com", cancellationToken).ConfigureAwait(false);
     }
 }
 
@@ -44,7 +46,7 @@ public sealed class DeleteUserCommand : Command<Guid>
 
     public override async Task ExecuteAsync(Guid userId, CancellationToken cancellationToken)
     {
-        await _repository.DeleteAsync(userId, cancellationToken);
+        await _repository.DeleteAsync(userId, cancellationToken).ConfigureAwait(false);
     }
 }
 ```
@@ -60,7 +62,7 @@ public sealed class CreateOrderCommand : CommandWithOutput<Order>
 
     public override async Task<Order> ExecuteAsync(CancellationToken cancellationToken)
     {
-        return await _repository.CreateAsync(cancellationToken);
+        return await _repository.CreateAsync(cancellationToken).ConfigureAwait(false);
     }
 }
 ```
@@ -82,13 +84,13 @@ public sealed class GetUserQuery : Query<Guid, User>
 
 ## Available base classes
 
-| Base class | Input | Output |
-|---|---|---|
-| `Command` | — | — |
-| `Command<TInput>` | `TInput` | — |
-| `CommandWithOutput<TOutput>` | — | `TOutput` |
+| Base class                           | Input    | Output    |
+| ------------------------------------ | -------- | --------- |
+| `Command`                            | —        | —         |
+| `Command<TInput>`                    | `TInput` | —         |
+| `CommandWithOutput<TOutput>`         | —        | `TOutput` |
 | `CommandWithOutput<TInput, TOutput>` | `TInput` | `TOutput` |
-| `Query<TOutput>` | — | `TOutput` |
-| `Query<TInput, TOutput>` | `TInput` | `TOutput` |
+| `Query<TOutput>`                     | —        | `TOutput` |
+| `Query<TInput, TOutput>`             | `TInput` | `TOutput` |
 
 The interfaces that these classes implement live in `Josupeit.Practices.Commands.Abstractions`, which is pulled in automatically as a transitive dependency.

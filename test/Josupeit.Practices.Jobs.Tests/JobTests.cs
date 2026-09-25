@@ -12,7 +12,7 @@ public class JobTests : JobBaseTests<Job>
         var job = CreateJob();
 
         job.InvokeMember("NotifyExecuting");
-        job.NotifySucceeded();
+        job.InvokeMember("NotifySucceeded");
 
         Assert.That(job.IsCompleted, Is.True);
         Assert.That(job.IsCompletedSuccessfully, Is.True);
@@ -24,7 +24,7 @@ public class JobTests : JobBaseTests<Job>
     {
         var job = CreateJob();
 
-        job.NotifySucceeded();
+        job.InvokeMember("NotifySucceeded");
 
         job.Received().InvokeMember("OnChanged");
     }

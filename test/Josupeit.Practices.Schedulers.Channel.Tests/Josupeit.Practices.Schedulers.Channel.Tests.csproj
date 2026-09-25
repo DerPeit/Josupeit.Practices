@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>
-      netcoreapp2.2; <!--Equivalence class for netstandard2.0 -->
+      net481; <!--Equivalence class for netstandard2.0 on .NET Framework -->
+      netcoreapp2.2; <!--Equivalence class for netstandard2.0 on .NET -->
       net80; <!--Equivalence class for netstandard2.1 -->
       net10.0 <!--CI: runs on .NET 10 SDK without additional runtime install -->
     </TargetFrameworks>

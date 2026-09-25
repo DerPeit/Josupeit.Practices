@@ -30,7 +30,7 @@ dotnet tool restore
 
 ## Architecture
 
-This is a .NET class library solution providing reusable patterns. It is organized into `src/` (18 library projects) and `test/` (5 test projects).
+This is a .NET class library solution providing reusable patterns. It is organized into `src/` (16 library projects) and `test/` (10 test projects).
 
 ### Multi-targeting
 
@@ -38,13 +38,12 @@ Libraries target netstandard2.0 as minimum, with netstandard2.1 where IAsyncDisp
 
 ### Code Generation
 
-**T4 Templates:** Several projects (Services, Schedulers, Jobs) use `.tt` text templates that produce `*.g.cs` files. These are transformed at build time via `dotnet t4` (configured in `src/Directory.Build.targets`). Generated files are git-ignored.
+**T4 Templates:** Several projects (Services, Schedulers, Jobs) use `.tt` text templates that produce `*.g.cs` files under each target framework's `obj/` directory. They are transformed at build time via `dotnet t4` (configured in `src/Directory.Build.targets`), once per target framework so that parallel builds never share a generated file. Generated files are git-ignored.
 
 **Roslyn Source Generator (Disposable Mixins):** The `Mixins.Disposable.Generator` project is an incremental source generator that auto-implements `IDisposable`/`IAsyncDisposable` on classes decorated with `[DisposableMixin]`. It has a multi-stage rewriting pipeline in `Generation/` and semantic analysis in `Analysis/`. The companion `Mixins.Disposable.Analyzer` project provides compile-time diagnostics. The `Mixins.Disposable` project is the NuGet package wrapper that bundles both as a development dependency. The analyzer references the generator as `<ProjectReference OutputItemType="Analyzer" ReferenceOutputAssembly="false">`, so the generator runs on the analyzer's own compilation and emits the marker attributes into it - that is how the analyzer can use `typeof(DisposableMixinAttribute)` without referencing the generator assembly. The `Mixins.Disposable.Tests` project is a regular NUnit project (net80, net10.0) that drives the generator through `CSharpGeneratorDriver` and the analyzer and code fixes through the `Microsoft.CodeAnalysis.*.Testing` verifiers in `Verifiers/`.
 
 ### Library Modules
 
-- **Disposables / Disposables.Abstractions** — Explicit and implicit `IDisposable`/`IAsyncDisposable` base classes with GC suppression.
 - **Commands / Commands.Abstractions** — CQRS-style command/query pattern with recursion prevention (`Executable` base).
 - **Services / Services.Abstractions** — Sync and async service abstractions (T4-generated overloads).
 - **Schedulers / Schedulers.Abstractions** — Type-safe scheduler with sync/async/cancellable variants (T4-generated). Includes TaskPool and Channel implementations.
@@ -83,17 +82,21 @@ Libraries target netstandard2.0 as minimum, with netstandard2.1 where IAsyncDisp
 After merging `develop` into `main` with `--no-ff`, follow these steps:
 
 1. **Dry-run version tags** to see which packages are being incremented:
+
    ```bash
    dotnet nbgv tag --what-if -p src/Josupeit.Practices.SomeProject
    ```
+
    Run this for each project that has new commits since its last tag. Each invocation prints a line like `PackageName/v1.2.3`.
 
 2. **Ship the public API surface** for each released project: move all entries from `PublicAPI.Unshipped.txt` into `PublicAPI.Shipped.txt` (sorted alphabetically), leaving only the `#nullable enable` header in the Unshipped file. Do the same for any TFM-specific files (`PublicAPI.Unshipped.{tfm}.txt` -> `PublicAPI.Shipped.{tfm}.txt`). Stage the changes - the next step's `--amend` folds them into the merge commit.
 
 3. **Reword the merge commit** to follow the release convention:
+
    ```bash
    git commit --amend -m "chore(release): PackageA, PackageB 1.2"
    ```
+
    Use the short package names (without the `Josupeit.Practices.` prefix) and the major.minor version when all packages share the same version. When packages have different versions, list each with its version.
 
 4. **Create the version tags** for real:
@@ -111,11 +114,29 @@ After merging `develop` into `main` with `--no-ff`, follow these steps:
 
 ## Public API Tracking
 
-Every packable `src/` project ships with `PublicAPI.Shipped.txt` and `PublicAPI.Unshipped.txt`, enforced by `Microsoft.CodeAnalysis.PublicApiAnalyzers`. The three Mixins.Disposable projects opt out via `<EnablePublicApiAnalyzers>false</EnablePublicApiAnalyzers>` because they have no public API surface of their own.
+Every packable `src/` project ships with `PublicAPI.Shipped.txt` and `PublicAPI.Unshipped.txt`, enforced by `Microsoft.CodeAnalysis.PublicApiAnalyzers`. The three Mixins.Disposable projects opt out via `<EnablePublicApiAnalyzers>false</EnablePublicApiAnalyzers>` because they have no public API surface of their own. T4-generated files restore RS0016 and RS0017 right after their blanket `#pragma warning disable` (see the `.tt` headers), so generated members are tracked exactly like hand-written ones.
 
-- **Adding a public member**: add its signature to `PublicAPI.Unshipped.txt`. The build emits RS0016 if it is missing.
+- **Adding a public member**: add its signature to `PublicAPI.Unshipped.txt`. The build emits RS0016 if it is missing. Bump the project's minor version in its `version.json` before the release: dependents declare `[major.minor, next-major)` (the `~` placeholder in `src/Directory.Build.targets`), so a member added in a patch release is missing for a consumer that resolves the lowest patch.
 - **Removing a public member**: prefix the line with `*REMOVED*` in the relevant file. The build emits RS0017 if a declared member no longer exists.
 - **Releasing**: move all Unshipped entries into Shipped (sorted), leaving only the `#nullable enable` header. See the release workflow above.
+
+## LLM Documentation
+
+Every packable `src/` project carries `llms.txt` and `llms-full.txt` (llmstxt.org format), packed into the NuGet next to the README. `src/Josupeit.Practices.Commands.Abstractions/` is the reference implementation; new or updated files follow its structure.
+
+- **`llms.txt`** is the index: H1 package name, blockquote summary, a heading-free body with namespace, install command, and type list, then `## Documentation` (llms-full.txt, PublicAPI.Shipped.txt where present, README), `## Related packages`, and `## Optional`.
+- **`llms-full.txt`** is the self-contained reference, in this section order: At a glance (package, namespace, target frameworks, Native AOT, dependencies, contents, nullability note, PublicAPI link, where this document lives, implementations, license, install command), Concepts, the type catalog (summary table, then one `###` per type with its exact C# declaration), Variance where generics exist, Contract expectations, Usage, a choosing/decision guide, Common mistakes, Related packages, License.
+- Declarations are written as C# under `#nullable enable`, never in the `PublicAPI.Shipped.txt` format. That file is linked as the machine-verified inventory, never inlined. Projects with per-TFM API files link those as well and explain that the base file is the intersection and the per-TFM files are additions.
+- Common mistakes lists the errors an LLM predictably makes against the package: wrong namespace, MediatR-style assumptions, reversed type parameters, non-existent overloads, partial implementations.
+- An Abstractions pair describes the contract only and states explicitly where the contract leaves behavior open. What the base classes actually do belongs in the implementation package's pair, reached by link - never asserted as if it were part of the interface. Relations the contract does define are stated as requirements, never softened to conventions. Keep concrete API facts out of this file: subagents receive it in their system context, so any fact stated here contaminates a probe that asks about it.
+- Related packages links the counterpart package in both directions - abstractions and implementation each point at the other's `llms-full.txt` - plus the repository overview.
+- Links to repository files are absolute raw Codeberg URLs on `main` (`https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/...`); the source-tree link in `## Optional` uses the web UI URL. Never link `PublicAPI.Unshipped.txt`.
+- The blockquote summary is identical in both files.
+- Both files are formatted by prettier as markdown (`.prettierrc` override) with CRLF line endings (`.editorconfig` `[*.txt]`). Run `npx prettier --write "**/llms.txt" "**/llms-full.txt"` after editing.
+- Before committing a new or changed pair, compile every snippet: a scratch project outside the repo that references the package, every documented-as-compiling snippet with stub types in one build that must succeed, and one negative build per documented-as-failing line (each behind its own `#if` define) that must fail with the predicted error code. Do not bundle failing lines into one file - a failed `using` suppresses body diagnostics for that compilation unit. For implementation packages, add runtime checks that exercise the library's own types for every behavioral claim; hand-written examples only prove themselves.
+- The repository root carries `llms.txt` (the index across all packages, linking every package's `llms-full.txt`) and `context7.json` (Context7 parsing configuration and the family-wide rules). A new package is added to both.
+- `scripts/check-llms-docs.sh` is the drift guard and runs as the first CI step: every packable project has its pair (or names its documenting package in `<LlmsDocumentedBy>`), H1 equals the PackageId, the blockquote is identical in both files, every repository link resolves on `main`, every type and member in the PublicAPI files is mentioned in `llms-full.txt`, and the root `llms.txt` links every pair. Line endings are not checked because the repository stores LF and the working copy follows the platform. Run it locally before committing a pair; a public API change that the documentation does not mention fails the build.
+- Before committing a new or changed pair, probe it with a context-free agent: a fresh general-purpose agent that may read only that package's `llms-full.txt` (copy it to a neutral path first), answering the package's trap questions - namespace, exact signatures, type parameter order, non-existent overloads, variance, MediatR-style assumptions - and marking `DOC SILENT` wherever the file does not answer. Every `DOC SILENT` is a gap to close. A README-only control run shows which answers the doc actually changed.
 
 ## Package Versions
 

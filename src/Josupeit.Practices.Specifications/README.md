@@ -10,6 +10,8 @@ Override either `IsSatisfiedBy` or `IsSatisfiedByAsync`, and the other direction
 dotnet add package Josupeit.Practices.Specifications
 ```
 
+All types live in the `Josupeit.Practices.Specifications` namespace.
+
 ## How to implement a specification
 
 ```csharp
@@ -52,9 +54,9 @@ bool isSatisfiedAsync = await eligibleForPromotion.IsSatisfiedByAsync(user, canc
 
 ## Operator reference
 
-| Operator | Semantics |
-|---|---|
-| `a && b` | Both specifications must be satisfied (AND) |
-| `a || b` | At least one specification must be satisfied (OR) |
-| `a ^ b` | Exactly one specification must be satisfied (XOR) |
-| `!a` | The specification must not be satisfied (NOT) |
+| Operator   | Semantics                                         |
+| ---------- | ------------------------------------------------- |
+| `a && b`   | Both specifications must be satisfied (AND)       |
+| `a \|\| b` | At least one specification must be satisfied (OR) |
+| `a ^ b`    | Exactly one specification must be satisfied (XOR) |
+| `!a`       | The specification must not be satisfied (NOT)     |

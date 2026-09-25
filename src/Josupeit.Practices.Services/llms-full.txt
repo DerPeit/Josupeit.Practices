@@ -1,0 +1,431 @@
+# Josupeit.Practices.Services
+
+> Abstract base classes implementing the lifecycle contracts of `Josupeit.Practices.Services.Abstractions`: `Service` and `AsyncService`, each also as a `Disposable*` variant (adds `IDisposable`) and an `AsyncDisposable*` variant (adds `IDisposable` and `IAsyncDisposable`; netstandard2.1 and net8.0 only). You override the `On*` hooks; the base class validates every transition, exposes the transitional states, treats repeated same-direction calls as no-ops, rolls back when a hook throws, and offers opt-in pausing through `CanPause`. Lifecycle calls are not synchronized, and disposing does not stop the service. Targets netstandard2.0, netstandard2.1, and net8.0; depends only on the Abstractions package; lives in the `Josupeit.Practices.Services` namespace.
+
+## At a glance
+
+- **Package:** `Josupeit.Practices.Services`
+- **Namespace:** `Josupeit.Practices.Services` - the same namespace as the interfaces in the Abstractions package. One `using Josupeit.Practices.Services;` covers both.
+- **Target frameworks:** `netstandard2.0`, `netstandard2.1`, `net8.0`. The two `AsyncDisposable*` classes exist only on `netstandard2.1` and `net8.0`.
+- **Native AOT and trimming:** compatible. The `net8.0` target is built with `IsAotCompatible`, which also marks the assembly trimmable, and is verified by an analyzer-clean build plus a native smoke-test binary published and run in CI. See [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md).
+- **Dependencies:** `Josupeit.Practices.Services.Abstractions` `[1.0, 2.0)`, pulled in transitively. The disposable variants are produced by the `Josupeit.Practices.Mixins.Disposable` source generator at build time of this package; nothing of it ships to you. The `[PublicAPI]` annotations visible in the source are compile-time only and are not shipped.
+- **Contents:** six abstract base classes. No interfaces of their own; those come from the Abstractions package.
+- **Nullability:** every declaration in this document is shown as compiled under `#nullable enable`. An unannotated reference type such as `Task` is non-nullable; nullable members carry `?` (only the `Disposing` event is nullable).
+- **Authoritative inventory:** [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/PublicAPI.Shipped.txt) lists every member present on all target frameworks; [PublicAPI.Shipped.netstandard2.1.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/PublicAPI.Shipped.netstandard2.1.txt) and [PublicAPI.Shipped.net8.0.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/PublicAPI.Shipped.net8.0.txt) list the additions that exist only on that framework - the `AsyncDisposable*` classes. All three are analyzer-enforced (RS0016/RS0017), including the generated members. Format key: `!` marks a non-nullable and `?` a nullable reference type; members are prefixed with `abstract`, `virtual`, `override`, or `static` where applicable - `abstract` marks the hooks you must implement, `virtual` the optional ones; accessibility is not shown, so public and protected members look alike.
+- **This document:** ships inside the NuGet package as `llms-full.txt` and is published at https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/llms-full.txt. The packaged copy matches its package version; the published copy describes the latest release.
+- **Abstractions:** the interfaces these classes implement are documented in [Josupeit.Practices.Services.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services.Abstractions/llms-full.txt) (see Related packages).
+- **License:** EUPL-1.2
+
+Install:
+
+```
+dotnet add package Josupeit.Practices.Services
+```
+
+## Concepts
+
+Implementing `IService` or `IAsyncService` by hand means re-implementing transition validation, the transitional states, and rollback on failure every time. These base classes do that once: internally each state is an object, and every transition swaps the current state object, so an operation that the current state does not allow throws before any of your code runs. You supply only the work that happens during a transition, through four hooks.
+
+- **`OnStart` / `OnStop`** (or `OnStartAsync` / `OnStopAsync`) are abstract - you must implement them.
+- **`OnPause` / `OnResume`** (or their async counterparts) are virtual no-ops - override them together with `CanPause => true` to opt into pausing.
+- **`Start`, `Stop`, `Pause`, `Resume`** and the async counterparts are the public lifecycle API and are **not virtual**. Never try to override them; they own the state machine.
+
+Six classes cover a 2 x 3 grid - lifecycle style times disposal style. Read the name from the end: the word directly before `Service` describes the lifecycle (`Service` = synchronous, `AsyncService` = asynchronous); the prefix describes disposal (`Disposable` = `IDisposable`, `AsyncDisposable` = `IDisposable` and `IAsyncDisposable`).
+
+| Class                         | Lifecycle    | Disposal                             | Frameworks           |
+| ----------------------------- | ------------ | ------------------------------------ | -------------------- |
+| `Service`                     | synchronous  | -                                    | all                  |
+| `DisposableService`           | synchronous  | `IDisposable`                        | all                  |
+| `AsyncDisposableService`      | synchronous  | `IDisposable` and `IAsyncDisposable` | netstandard2.1, net8 |
+| `AsyncService`                | asynchronous | -                                    | all                  |
+| `DisposableAsyncService`      | asynchronous | `IDisposable`                        | all                  |
+| `AsyncDisposableAsyncService` | asynchronous | `IDisposable` and `IAsyncDisposable` | netstandard2.1, net8 |
+
+The confusable pair: `AsyncDisposableService` has a **synchronous** lifecycle with asynchronous disposal; `DisposableAsyncService` has an **asynchronous** lifecycle with synchronous disposal.
+
+Two things the base classes deliberately leave to you. Lifecycle calls are not synchronized - concurrent `Start`/`Stop`/`Pause`/`Resume` calls on one instance must be serialized by the caller. And disposing does not stop the service - stop it first, or from your `DisposeManagedResources` override.
+
+## Types
+
+All six classes have a single protected parameterless constructor; there is nothing to pass to `base(...)`. The hooks are declared `protected internal`; from your assembly you override them as `protected override` - C# requires the narrower modifier when overriding a `protected internal` member across assemblies. By contract - and as the Task-based Asynchronous Pattern prescribes for overloads without a cancellation token - `StartAsync()` and the other token-less overloads are equivalent to their token-accepting counterparts called with `CancellationToken.None`; the asynchronous base classes implement them exactly that way.
+
+### `Service`
+
+```csharp
+namespace Josupeit.Practices.Services;
+
+public abstract class Service : IService
+{
+    protected Service();
+
+    public virtual bool CanPause { get; }                    // default false; override to return true to enable Pause/Resume
+
+    public ServiceState State { get; }
+
+    public void Start();                                     // not virtual
+
+    public void Stop();                                      // not virtual
+
+    public void Pause();                                     // not virtual
+
+    public void Resume();                                    // not virtual
+
+    protected internal abstract void OnStart();              // required hook
+
+    protected internal abstract void OnStop();               // required hook
+
+    protected internal virtual void OnPause();               // optional hook, no-op by default
+
+    protected internal virtual void OnResume();              // optional hook, no-op by default
+
+    protected void ThrowIfNotRunning();                      // guards for your own members, see below
+
+    protected void ThrowIfRunning();
+
+    protected void ThrowIfPaused();
+
+    protected void ThrowIfStopped();
+}
+```
+
+### `DisposableService`
+
+Everything in `Service`, plus the members generated by the disposable mixin:
+
+```csharp
+namespace Josupeit.Practices.Services;
+
+public abstract class DisposableService : IService, IDisposable
+{
+    public event EventHandler? Disposing;                    // raised once, before resources are released
+
+    public bool IsDisposed { get; }
+
+    public void Dispose();
+
+    protected virtual void DisposeManagedResources();        // release owned IDisposable instances here
+
+    protected virtual void DisposeUnmanagedResources();      // release handles and pointers here
+
+    protected void ThrowIfDisposed();                        // ObjectDisposedException guard for your own members
+
+    ~DisposableService();
+}
+```
+
+### `AsyncDisposableService`
+
+`netstandard2.1` and `net8.0` only. Everything in `DisposableService`, plus:
+
+```csharp
+namespace Josupeit.Practices.Services;
+
+public abstract class AsyncDisposableService : IService, IDisposable, IAsyncDisposable
+{
+    public ValueTask DisposeAsync();
+
+    protected virtual ValueTask DisposeManagedResourcesAsync();   // async counterpart of DisposeManagedResources
+}
+```
+
+### `AsyncService`
+
+```csharp
+namespace Josupeit.Practices.Services;
+
+public abstract class AsyncService : IAsyncService
+{
+    protected AsyncService();
+
+    public virtual bool CanPause { get; }                    // default false
+
+    public ServiceState State { get; }
+
+    public Task StartAsync();                                // not virtual; equals StartAsync(CancellationToken.None)
+
+    public Task StartAsync(CancellationToken cancellationToken);
+
+    public Task StopAsync();
+
+    public Task StopAsync(CancellationToken cancellationToken);
+
+    public Task PauseAsync();
+
+    public Task PauseAsync(CancellationToken cancellationToken);
+
+    public Task ResumeAsync();
+
+    public Task ResumeAsync(CancellationToken cancellationToken);
+
+    protected internal abstract Task OnStartAsync(CancellationToken cancellationToken);    // required hook
+
+    protected internal abstract Task OnStopAsync(CancellationToken cancellationToken);     // required hook
+
+    protected internal virtual Task OnPauseAsync(CancellationToken cancellationToken);     // optional, returns Task.CompletedTask
+
+    protected internal virtual Task OnResumeAsync(CancellationToken cancellationToken);    // optional, returns Task.CompletedTask
+
+    protected void ThrowIfNotRunning();
+
+    protected void ThrowIfRunning();
+
+    protected void ThrowIfPaused();
+
+    protected void ThrowIfStopped();
+}
+```
+
+### `DisposableAsyncService`
+
+Everything in `AsyncService`, plus the same mixin members as `DisposableService`: `Disposing`, `IsDisposed`, `Dispose()`, `DisposeManagedResources()`, `DisposeUnmanagedResources()`, `ThrowIfDisposed()`, and a finalizer.
+
+### `AsyncDisposableAsyncService`
+
+`netstandard2.1` and `net8.0` only. Everything in `DisposableAsyncService`, plus `DisposeAsync()` and `DisposeManagedResourcesAsync()`, implementing `IAsyncDisposable`.
+
+## Lifecycle behavior
+
+Every instance starts in `Stopped`. The table gives the outcome of each operation per current state. "no-op" returns immediately without invoking any hook; "error" throws `InvalidOperationException` with a message naming the current state and what to do instead. The `Pause` and `Resume` columns assume `CanPause` is `true`; when it is `false`, both (and their async counterparts) throw `NotSupportedException` **before any state check** - even on a stopped service.
+
+| Current state | `Start`                   | `Stop`                            | `Pause`                     | `Resume`                    |
+| ------------- | ------------------------- | --------------------------------- | --------------------------- | --------------------------- |
+| `Stopped`     | `Starting` -> `Running`   | no-op                             | error                       | error                       |
+| `Starting`    | no-op                     | sync: error; async: cancels start | error                       | error                       |
+| `Running`     | no-op                     | `Stopping` -> `Stopped`           | `Pausing` -> `Paused`       | error                       |
+| `Stopping`    | sync: error; async: see 1 | no-op                             | sync: error; async: see 1   | error                       |
+| `Pausing`     | error                     | error                             | no-op                       | sync: error; async: cancels |
+| `Paused`      | error                     | `Stopping` -> `Stopped`           | no-op                       | `Resuming` -> `Running`     |
+| `Resuming`    | error                     | error                             | sync: error; async: cancels | no-op                       |
+
+1. An asynchronous stop remembers where it came from. While stopping from `Running`, `StartAsync` cancels the stop and `PauseAsync` is an error; while stopping from `Paused`, `PauseAsync` cancels the stop and `StartAsync` is an error.
+
+**Usage errors are thrown synchronously.** The asynchronous classes follow the Task-based Asynchronous Pattern guidance - a usage error is thrown directly from the call, every other error is assigned to the returned task: `InvalidOperationException` (invalid transition) and `NotSupportedException` (`CanPause` is `false`) are thrown synchronously, while hook failures and cancellation arrive through the `Task`. `await service.StartAsync(ct)` inside a `try` block handles both; storing the task and awaiting it later does not catch the synchronous throw.
+
+**Same-direction calls are no-ops.** `Start` while `Running`, `Stop` while `Stopped`, `Pause` while `Paused`: the call returns and no hook runs. `Stop` on a service that was never started therefore does not call `OnStop`.
+
+**Hooks run inside the transitional state.** `OnStart` runs while `State` is `Starting`, and a concurrent reader can observe that. When the hook returns, the stable state is entered.
+
+**A failing hook rolls back.** If `OnStart` throws, the state returns to `Stopped`; `OnStop` -> back to `Running` or `Paused`, whichever it came from; `OnPause` -> `Running`; `OnResume` -> `Paused`. The exception propagates unchanged to the caller.
+
+**Stopping is permitted from `Paused`.** `OnStop` runs directly; `OnResume` is not called first.
+
+### Cancellation in the asynchronous classes
+
+The token you pass to `StartAsync(CancellationToken)` and the others is linked into a per-transition source, and the hook receives that source's token. Two things can signal it: your token, or a **counter-operation** issued while the transition is in progress - `StopAsync` during `Starting`, `StartAsync` during a stop that began from `Running`, `PauseAsync` during a stop that began from `Paused`, `ResumeAsync` during `Pausing`, `PauseAsync` during `Resuming`.
+
+Three consequences that are easy to get wrong:
+
+- The counter-call itself performs no transition. It cancels the source and returns an **already-completed** `Task`. `StopAsync` during `Starting` does not stop the service; it cancels the start, and the service ends up `Stopped` only because the canceled start rolls back. The completed task it returns says nothing about the start's outcome - await the original `StartAsync` for that.
+- Cancellation reaches your code only through the token the hook receives. A hook that ignores its token runs to completion and the transition succeeds regardless.
+- The original call - the `StartAsync` that was in flight - fails with `OperationCanceledException` (or whatever the hook threw when it observed the token), and the state rolls back as for any other failure.
+
+The synchronous classes have no cancellation; every operation during a transitional state is either a no-op or an error as in the table.
+
+### Guards for your own members
+
+Your service will expose methods beyond the lifecycle. Four protected guards throw `InvalidOperationException` with a state-specific message:
+
+| Guard               | Throws while the state is         |
+| ------------------- | --------------------------------- |
+| `ThrowIfNotRunning` | anything except `Running`         |
+| `ThrowIfRunning`    | `Starting`, `Resuming`, `Running` |
+| `ThrowIfPaused`     | `Pausing`, `Paused`               |
+| `ThrowIfStopped`    | `Stopping`, `Stopped`             |
+
+The disposable variants add `ThrowIfDisposed`, which throws `ObjectDisposedException`.
+
+### Concurrency
+
+`State` is safe to read from any thread and reflects the latest transition. Transitions themselves are **not** serialized: two threads calling `Start` on a stopped service at the same time can both run `OnStart`. Serialize lifecycle calls in the owner of the service - a host typically does this naturally.
+
+### Disposal
+
+The `Disposable*` and `AsyncDisposable*` variants implement the dispose pattern through the `Josupeit.Practices.Mixins.Disposable` generator. `Dispose()` marks the instance disposed (`IsDisposed` becomes `true`), raises `Disposing`, then calls your `DisposeManagedResources()` and `DisposeUnmanagedResources()` overrides once and suppresses finalization; the finalizer releases unmanaged resources if `Dispose` was never called. `DisposeAsync()` on the `AsyncDisposable*` classes awaits `DisposeManagedResourcesAsync()` instead of the synchronous managed hook and then runs `DisposeUnmanagedResources()`; the two paths are alternatives, and whichever runs first marks the instance disposed so the other becomes a no-op. Override both hooks when callers may use either path - a resource released only in the async hook leaks through a synchronous `Dispose()`. None of this touches the lifecycle: a running service stays `Running` after `Dispose`, and `OnStop` is not called. Stop the service before disposing it, or stop it from `DisposeManagedResources`.
+
+## Usage
+
+### Synchronous service
+
+Implement the two required hooks. The base class does the rest.
+
+```csharp
+using System;
+using System.Threading;
+using Josupeit.Practices.Services;
+
+public sealed class DataSyncService : Service
+{
+    private Timer? _timer;
+
+    protected override void OnStart()
+    {
+        _timer = new Timer(_ => Synchronize(), null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
+    }
+
+    protected override void OnStop()
+    {
+        _timer?.Dispose();
+
+        _timer = null;
+    }
+
+    private void Synchronize()
+    {
+    }
+}
+
+var service = new DataSyncService();
+
+service.Start();
+
+Console.WriteLine(service.State);   // Running
+
+service.Start();                    // no-op: already running
+
+service.Stop();
+```
+
+### Opting into pausing
+
+`CanPause` gates `Pause`/`Resume`; without it they throw `NotSupportedException` even if you overrode the hooks.
+
+```csharp
+public sealed class ThrottledSyncService : Service
+{
+    private volatile bool _accepting;
+
+    public override bool CanPause => true;
+
+    protected override void OnStart() => _accepting = true;
+
+    protected override void OnStop() => _accepting = false;
+
+    protected override void OnPause() => _accepting = false;
+
+    protected override void OnResume() => _accepting = true;
+}
+```
+
+### Guarding your own members
+
+```csharp
+public sealed class LighthouseService : Service
+{
+    private int _flashes;
+
+    public int Flashes => _flashes;
+
+    public void Flash()
+    {
+        ThrowIfNotRunning();
+
+        _flashes++;
+    }
+
+    protected override void OnStart()
+    {
+    }
+
+    protected override void OnStop()
+    {
+    }
+}
+```
+
+### Asynchronous service
+
+Honor the token in every hook: it is how a caller's cancellation and a counter-operation reach you.
+
+```csharp
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Services;
+
+public sealed class BackgroundProcessor : AsyncService
+{
+    private readonly IQueueConnection _connection;
+
+    public BackgroundProcessor(IQueueConnection connection) => _connection = connection;
+
+    protected override async Task OnStartAsync(CancellationToken cancellationToken)
+    {
+        await _connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    protected override async Task OnStopAsync(CancellationToken cancellationToken)
+    {
+        await _connection.DrainAsync(cancellationToken).ConfigureAwait(false);
+        await _connection.CloseAsync(cancellationToken).ConfigureAwait(false);
+    }
+}
+
+var worker = new BackgroundProcessor(connection);
+
+await worker.StartAsync(cancellationToken);
+await worker.StopAsync(cancellationToken);
+```
+
+### Service with disposal
+
+Choose a `Disposable*` base when the service owns resources. Stop it before releasing them.
+
+```csharp
+using System.IO;
+using Josupeit.Practices.Services;
+
+public sealed class ResourceService : DisposableService
+{
+    private readonly Stream _stream = File.OpenRead("data.bin");
+
+    protected override void OnStart()
+    {
+    }
+
+    protected override void OnStop()
+    {
+    }
+
+    protected override void DisposeManagedResources()
+    {
+        if (State == ServiceState.Running || State == ServiceState.Paused)
+            Stop();
+
+        _stream.Dispose();
+    }
+}
+```
+
+Hosting an `AsyncService` in the .NET generic host is a two-line `IHostedService` adapter; see the Abstractions package documentation.
+
+## Choosing a base class
+
+- Lifecycle involves I/O (connections, draining queues): `AsyncService` family. In-process and quick: `Service` family.
+- Owns `IDisposable` resources: the `Disposable*` variant. Owns resources with `DisposeAsync` and you can target netstandard2.1 or net8.0: the `AsyncDisposable*` variant.
+- Needs pausing: override `CanPause` to return `true` plus the two pause hooks, on whichever class fits.
+- Read the name from the end: `...AsyncService` = asynchronous lifecycle; `Disposable...` / `AsyncDisposable...` = how it disposes.
+
+## Common mistakes
+
+- **Mixing up `AsyncDisposableService` and `DisposableAsyncService`.** The first has a synchronous lifecycle with async disposal; the second an asynchronous lifecycle with sync disposal. The word before `Service` is the lifecycle.
+- **Overriding `Start`, `Stop`, `Pause`, or `Resume`.** They are not virtual (CS0506). Override the `On*` hooks; the lifecycle methods own the state machine.
+- **Writing `protected internal override void OnStart()`.** Across assemblies the override must be `protected override` (CS0507).
+- **Overriding `OnPause`/`OnResume` without `CanPause => true`.** `Pause` throws `NotSupportedException` before it ever reaches your hook.
+- **Expecting `Start` on a running service to throw.** It is a no-op; so is `Stop` on a stopped one. Only conflicting calls throw.
+- **Expecting `OnStop` when the service never started.** `Stop` while `Stopped` is a no-op and calls nothing.
+- **Expecting `StopAsync` during `Starting` to stop the service.** It cancels the start attempt and returns a completed task; the service ends up `Stopped` only because the canceled start rolls back - and only if `OnStartAsync` honors its token.
+- **Ignoring the token in async hooks.** Caller cancellation and counter-operations both arrive through it; a hook that ignores it cannot be canceled.
+- **Expecting `Dispose` to stop the service.** It releases resources only. Stop first, or stop inside `DisposeManagedResources`.
+- **Using `AsyncDisposableService` or `AsyncDisposableAsyncService` on netstandard2.0.** They do not exist there (CS0246); they need netstandard2.1 or net8.0. On netstandard2.0 derive from the `Disposable*` variant and, if a resource needs asynchronous release, implement `IAsyncDisposable` on your own class.
+- **Calling lifecycle methods concurrently on one instance.** Transitions are not serialized; both callers can run the hook.
+- **Calling lifecycle methods or guards from inside a hook.** While a hook runs the state is transitional: `Stop()` inside `OnStart` throws because `Starting` cannot be stopped, and `ThrowIfNotRunning()` throws there for the same reason. To abort a transition, throw from the hook - the base class rolls the state back and rethrows.
+
+## Related packages
+
+- **[Josupeit.Practices.Services.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services.Abstractions/llms-full.txt)** - `IService`, `IAsyncService`, and `ServiceState`: the contracts these classes implement, what they guarantee, and what they leave open. Human-oriented README: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services.Abstractions/README.md
+- **[Josupeit.Practices.Schedulers.Core](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/llms-full.txt)** - `SchedulerService` and `AsyncSchedulerService` derive from these base classes to give schedulers a lifecycle.
+- **[Josupeit.Practices.Mixins.Disposable](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Mixins.Disposable/llms-full.txt)** - the source generator that produces the disposal members of the `Disposable*` variants; documents their exact semantics.
+- **[Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md)** - all packages in the family.
+
+## License
+
+EUPL-1.2. Full text: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md

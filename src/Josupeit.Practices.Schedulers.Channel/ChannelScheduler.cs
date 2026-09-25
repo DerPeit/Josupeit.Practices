@@ -27,6 +27,7 @@ public class ChannelScheduler : AsyncSchedulerService
     private readonly ChannelSchedulerOptions _options;
 
     private bool _isPausing;
+    private volatile bool _isStopping;
 
 #nullable disable
     private Channel<IScheduled> _channel;
@@ -63,6 +64,7 @@ public class ChannelScheduler : AsyncSchedulerService
             });
 
         _stopping = new();
+        _isStopping = false;
 
         var thisPlusStoppingToken = new object[] { this, _stopping.Token };
 
@@ -103,8 +105,17 @@ public class ChannelScheduler : AsyncSchedulerService
     /// <inheritdoc />
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
+        // From here on a consumer that dequeues an item declines it instead of running it: the drain
+        // below races consumers that are between their read and their execute.
+        _isStopping = true;
+
         // We close the channel so consumers end gracefully.
         _channel.Writer.Complete();
+
+        // Next, we decline everything that is currently dangling, before paused consumers are released
+        // and could dequeue it themselves.
+        while (_channel.Reader.TryRead(out var scheduled))
+            scheduled.Decline();
 
         // However, we need to unblock them if we're currently paused. Otherwise, they keep hanging.
         using (await _pauseMonitor.EnterAsync(cancellationToken).ConfigureAwait(false))
@@ -114,19 +125,17 @@ public class ChannelScheduler : AsyncSchedulerService
                 _pauseMonitor.PulseAll();
             }
 
-        // Next, we decline everything that is currently dangling.
-        while (_channel.Reader.TryRead(out var scheduled))
-            scheduled.Decline();
-
         Timer? gracefulStopTimeout = null;
 
         switch (_options.GracefulStopDelay)
         {
             case { TotalMilliseconds: > 0 } dueTime:
-                // We have a delay greater than zero, so we start a timer to cancel pending work.
+                // We have a delay greater than zero, so we start a timer to cancel pending work. The
+                // token source travels as the timer state: on netstandard2.0, Timer.Dispose does not
+                // wait for a callback that is already running, and the field is cleared right after.
                 gracefulStopTimeout = new Timer(
                     CancelRunningWork,
-                    state: this,
+                    state: _stopping,
                     dueTime,
                     period: TimeSpan.FromMilliseconds(-1) /* no periodic signaling */);
 
@@ -147,9 +156,11 @@ public class ChannelScheduler : AsyncSchedulerService
         {
             await _consumers.ConfigureAwait(false);
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException)
         {
-            // Exceptions due to cancellation are being discarded purposely.
+            // Exceptions due to cancellation are being discarded purposely. A running item that honors
+            // the stop token with ThrowIfCancellationRequested surfaces the base type, not
+            // TaskCanceledException, so the base type is what has to be caught here.
         }
         finally
         {
@@ -176,7 +187,19 @@ public class ChannelScheduler : AsyncSchedulerService
 
         ThrowIfStopped();
 
-        return _channel.Writer.WriteAsync(scheduled, cancellationToken).AsTask();
+        if (cancellationToken.IsCancellationRequested)
+            return Task.FromCanceled(cancellationToken);
+
+        // Read the field once: a stop that begins right after the state check above completes the
+        // writer and, once it has run to the end, clears the field. The channel is unbounded, so
+        // TryWrite fails only for a completed writer. Decline the item in both cases instead of leaking
+        // ChannelClosedException or NullReferenceException to the caller.
+        var channel = _channel;
+
+        if (channel is null || !channel.Writer.TryWrite(scheduled))
+            scheduled.Decline();
+
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -220,6 +243,15 @@ public class ChannelScheduler : AsyncSchedulerService
             if (!reader.TryRead(out var scheduled))
                 continue;
 
+            // A stop that began after the item was queued declines everything still queued; an item we
+            // dequeued in that window is ours to decline.
+            if (_isStopping)
+            {
+                scheduled.Decline();
+
+                continue;
+            }
+
             await scheduled.ExecuteAsync(cancellationToken).ConfigureAwait(false);
         }
     }
@@ -235,8 +267,16 @@ public class ChannelScheduler : AsyncSchedulerService
 
     private static void CancelRunningWork(object? state)
     {
-        var @this = (ChannelScheduler)state!;
+        var stopping = (CancellationTokenSource)state!;
 
-        @this._stopping.Cancel();
+        try
+        {
+            stopping.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // The consumers finished in the same instant the grace period expired, and the stop path
+            // disposed the source before this callback reached it. Nothing is left to cancel.
+        }
     }
 }

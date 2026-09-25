@@ -180,12 +180,6 @@
         }
       },
       "josupeit.practices.schedulers.abstractions": {
-        "type": "Project",
-        "dependencies": {
-          "Josupeit.Practices.Services.Abstractions": "[1.0.0, )"
-        }
-      },
-      "josupeit.practices.services.abstractions": {
         "type": "Project"
       }
     },
@@ -417,12 +411,6 @@
         }
       },
       "josupeit.practices.schedulers.abstractions": {
-        "type": "Project",
-        "dependencies": {
-          "Josupeit.Practices.Services.Abstractions": "[1.0.0, )"
-        }
-      },
-      "josupeit.practices.services.abstractions": {
         "type": "Project"
       }
     },
@@ -586,12 +574,6 @@
         }
       },
       "josupeit.practices.schedulers.abstractions": {
-        "type": "Project",
-        "dependencies": {
-          "Josupeit.Practices.Services.Abstractions": "[1.0.0, )"
-        }
-      },
-      "josupeit.practices.services.abstractions": {
         "type": "Project"
       }
     },
@@ -755,12 +737,6 @@
         }
       },
       "josupeit.practices.schedulers.abstractions": {
-        "type": "Project",
-        "dependencies": {
-          "Josupeit.Practices.Services.Abstractions": "[1.0.0, )"
-        }
-      },
-      "josupeit.practices.services.abstractions": {
         "type": "Project"
       }
     }

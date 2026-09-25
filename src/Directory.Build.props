@@ -62,6 +62,8 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')" />
+    <None Include="llms.txt" Pack="true" PackagePath="\" Condition="Exists('llms.txt')" />
+    <None Include="llms-full.txt" Pack="true" PackagePath="\" Condition="Exists('llms-full.txt')" />
     <None Include="$(MSBuildThisFileDirectory)..\LICENSE.md" Pack="true" PackagePath="\" Link="LICENSE.md" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\Icon.png" Pack="true" PackagePath="\" Link="Icon.png" Visible="false" />
   </ItemGroup>

@@ -31,14 +31,19 @@ public class TaskPoolJobWithProgressAndResult<TProgress, TResult> : JobWithProgr
     }
 
     /// <inheritdoc />
-    public override async void Start()
+    public override void Start()
     {
         ThrowIfCannotStart();
 
         NotifyPending();
 
-        await Task.Yield();
+        // Task.Run rather than an awaited Task.Yield: the latter posts back to the caller's
+        // SynchronizationContext when there is one, so the delegate would run on a UI thread.
+        _ = Task.Run(RunAsync);
+    }
 
+    private async Task RunAsync()
+    {
         NotifyExecuting();
 
         var progress = new Progress<TProgress>(NotifyProgress);
@@ -49,7 +54,7 @@ public class TaskPoolJobWithProgressAndResult<TProgress, TResult> : JobWithProgr
         {
             result = await _startFunc(progress, CancellationToken).ConfigureAwait(false);
         }
-        catch (TaskCanceledException) when (CancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (CancellationToken.IsCancellationRequested)
         {
             NotifyCanceled();
 

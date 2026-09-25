@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
 
 namespace Josupeit.Practices.Mixins.Disposable
 {
-    [global::System.AttributeUsageAttribute(global::System.AttributeTargets.Class | global::System.AttributeTargets.Struct)]
+    [global::System.AttributeUsageAttribute(global::System.AttributeTargets.Class)]
     [global::System.Diagnostics.ConditionalAttribute("JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Josupeit.Practices.Mixins.Disposable.Generator", "1.0.0.0")]

@@ -35,7 +35,7 @@ public sealed class DisposeManagedResourcesAsyncCodeFixProvider : CodeFixProvide
         var diagnostic = context.Diagnostics[0];
         var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-        var classDeclaration = root.FindToken(diagnosticSpan.Start).Parent?.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+        var classDeclaration = root.FindToken(diagnosticSpan.Start).Parent?.AncestorsAndSelf().OfType<TypeDeclarationSyntax>().FirstOrDefault();
         if (classDeclaration == null)
             return;
 
@@ -47,7 +47,7 @@ public sealed class DisposeManagedResourcesAsyncCodeFixProvider : CodeFixProvide
             diagnostic);
     }
 
-    private static async Task<Document> AddDisposeManagedResourcesAsyncMethodAsync(Document document, ClassDeclarationSyntax classDeclaration, CancellationToken cancellationToken)
+    private static async Task<Document> AddDisposeManagedResourcesAsyncMethodAsync(Document document, TypeDeclarationSyntax classDeclaration, CancellationToken cancellationToken)
     {
         var modifiers = classDeclaration.Modifiers.Any(SyntaxKind.SealedKeyword) switch
         {

@@ -1,0 +1,541 @@
+# Josupeit.Practices.Schedulers.Core
+
+> Abstract base classes that implement all 56 members of `IScheduler` on top of a single override: `Enqueue(IScheduled)` on `Scheduler`, `EnqueueAsync(IScheduled, CancellationToken)` on `AsyncScheduler`. `SchedulerService` and `AsyncSchedulerService` add the `Service`/`AsyncService` lifecycle; every class also exists as a `Disposable*` and an `AsyncDisposable*` variant - twelve classes in all. For each call the base class captures the execution context (or not, for `Unsafe*`), wraps the delegate in an `IScheduled` work item with its own promise, hands it to your override, and waits; you decide where and when to `Execute` or `Decline` it. Exceptions from the item reach the caller unwrapped, never your consumer loop. Targets netstandard2.0, netstandard2.1, and net8.0; depends on `Josupeit.Practices.Schedulers.Abstractions` and `Josupeit.Practices.Services`; lives in the `Josupeit.Practices.Schedulers` namespace.
+
+## At a glance
+
+- **Package:** `Josupeit.Practices.Schedulers.Core`
+- **Namespace:** `Josupeit.Practices.Schedulers` - shared with the Abstractions, TaskPool, and Channel packages. The `.Core` suffix is package-name only; `using Josupeit.Practices.Schedulers.Core;` does not compile.
+- **Target frameworks:** `netstandard2.0`, `netstandard2.1`, `net8.0`. The four `AsyncDisposable*` classes exist only on `netstandard2.1` and `net8.0`.
+- **Native AOT and trimming:** compatible. The `net8.0` target is built with `IsAotCompatible`, which also marks the assembly trimmable, and is verified by an analyzer-clean build plus a native smoke-test binary published and run in CI. On `net8.0` the one internal access to a non-public runtime field uses `UnsafeAccessor`, which the trimmer understands; the netstandard targets use reflection for it and are not AOT-analyzed. See [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md).
+- **Dependencies:** `Josupeit.Practices.Schedulers.Abstractions` `[1.0, 2.0)` (the `IScheduler` contract) and `Josupeit.Practices.Services` `[1.0, 2.0)` (the lifecycle base classes of the `*Service` variants), both pulled in transitively. The disposable variants are produced by the `Josupeit.Practices.Mixins.Disposable` source generator at build time of this package; nothing of it ships to you. The `[PublicAPI]` annotations visible in the source are compile-time only and are not shipped.
+- **Contents:** twelve abstract base classes, the `IScheduled` interface your override receives, and two public delegate types (`SyncEnqueueCallback`, `AsyncEnqueueCallback`) that no public member takes or returns - you will not need them.
+- **Nullability:** every declaration in this document is shown as compiled under `#nullable enable`. Delegates passed to the `Schedule*` members and the `IScheduled` passed to your override are non-nullable; a `null` delegate throws `ArgumentNullException`.
+- **Authoritative inventory:** [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/PublicAPI.Shipped.txt) lists every member present on all target frameworks; [PublicAPI.Shipped.netstandard2.1.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/PublicAPI.Shipped.netstandard2.1.txt) and [PublicAPI.Shipped.net8.0.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/PublicAPI.Shipped.net8.0.txt) list the additions that exist only on that framework - the `AsyncDisposable*` classes; the two are identical. All three are analyzer-enforced (RS0016/RS0017), including the generated members. Format key: `!` marks a non-nullable and `?` a nullable reference type; members are prefixed with `abstract`, `virtual`, `override`, or `static` where applicable - `abstract` marks the one method you must implement; accessibility is not shown, so public and protected members look alike.
+- **This document:** ships inside the NuGet package as `llms-full.txt` and is published at https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/llms-full.txt. The packaged copy matches its package version; the published copy describes the latest release.
+- **Ready-made schedulers:** `Josupeit.Practices.Schedulers.TaskPool` and `Josupeit.Practices.Schedulers.Channel` are built on these classes. Reach for this package only when neither fits.
+- **License:** EUPL-1.2
+
+Install:
+
+```
+dotnet add package Josupeit.Practices.Schedulers.Core
+```
+
+## Concepts
+
+`IScheduler` has 56 members that differ only in delegate shape, waiting style, and context capture. Implementing them by hand is repetitive and error-prone, so these base classes do it once. Every `Schedule*` call runs the same pipeline:
+
+1. Validate the delegate (`ArgumentNullException` on `null`) and, on a `Disposable*` class, the disposed state (`ObjectDisposedException`).
+2. Capture the caller's `ExecutionContext` - or skip capture for `Unsafe*` members.
+3. Wrap the delegate, the captured context, and the caller's `CancellationToken` in an `IScheduled` work item that owns a promise (`TaskCompletionSource`).
+4. Hand the item to your override: `Enqueue(IScheduled)` or `EnqueueAsync(IScheduled, CancellationToken)`.
+5. Wait for the promise: block on it for `Schedule`/`UnsafeSchedule`, await it for the `*Async` families. Unwrap the result or rethrow the original exception.
+
+Your override owns steps 4 onward: put the item somewhere, run it later on whatever thread you like, or refuse it. Nothing runs until you call `Execute`/`ExecuteAsync`; nothing completes for the caller until you do, or call `Decline`.
+
+### The work item
+
+`IScheduled` is a delegate wrapped with everything needed to run it correctly later. Four things you can do with it:
+
+- **`IsCancellationRequested`** - `true` if the caller's token was canceled after the item reached you. Its caller is already being released with `OperationCanceledException`; skip it. Always `false` for non-cancellable delegate shapes.
+- **`Execute(executionCancellationToken)`** - runs the delegate synchronously on the current thread under the captured context, then completes the promise. For asynchronous delegates it blocks until their task completes.
+- **`ExecuteAsync(executionCancellationToken)`** - the same, but returns a task that completes when the delegate has completed; never blocks on an asynchronous delegate.
+- **`Decline()`** - refuses the item without running it. The caller receives `ExecutionDeclinedException`.
+
+The `executionCancellationToken` you pass is the scheduler's own token - typically the one you cancel on stop. It is not the caller's token. The delegate receives a token linked to both, so it observes cancellation from either side.
+
+### Who sees what
+
+Outcomes as observed by the caller of `Schedule*` and by your `Execute`/`ExecuteAsync` call:
+
+| Situation                                                              | Caller of `Schedule*` observes                                     | Your `Execute` / `ExecuteAsync` observes                                                                                                                                            |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Delegate completes                                                     | its result                                                         | returns normally                                                                                                                                                                    |
+| Delegate throws `X`                                                    | `X`, the original instance - not `AggregateException`, not wrapped | returns normally - the exception went to the caller                                                                                                                                 |
+| You call `Decline()`                                                   | `ExecutionDeclinedException`                                       | not called                                                                                                                                                                          |
+| Your execution token is canceled before or while the delegate runs     | `ExecutionDeclinedException`                                       | `Execute` throws `OperationCanceledException`; `ExecuteAsync` throws it or returns a canceled task. Catch `OperationCanceledException` around the `await`, as the sample below does |
+| Caller's token canceled before you execute (`IsCancellationRequested`) | `OperationCanceledException`                                       | `Execute` is a no-op and returns normally; the delegate is not invoked                                                                                                              |
+| Caller's token canceled while the delegate runs and it honors it       | `OperationCanceledException`                                       | returns normally                                                                                                                                                                    |
+| Delegate throws `OperationCanceledException` with no token canceled    | `OperationCanceledException`                                       | returns normally                                                                                                                                                                    |
+| Your `Enqueue`/`EnqueueAsync` throws                                   | that exception, directly                                           | not reached; the item is dropped and nobody waits on it                                                                                                                             |
+
+Two consequences: your consumer loop never has to catch the delegate's exceptions, and the only exception `Execute` throws on its own account is `OperationCanceledException` for your execution token. `ExecutionDeclinedException` is what the caller gets whenever the scheduler - not the caller - is the reason the item did not run.
+
+For non-cancellable delegate shapes (`Action`, `Func<Task>`, `Func<TResult>`, `Func<Task<TResult>>`), the caller's token governs only the enqueue phase: on the synchronous-enqueue classes it is checked before your `Enqueue` is called and throws `OperationCanceledException` if already canceled; on the asynchronous-enqueue classes it is passed to your `EnqueueAsync` for you to honor - your `EnqueueAsync` is invoked even when the token is already canceled. Once the item has been accepted, the caller waits for it regardless of that token. Cancellable shapes additionally cancel the item itself.
+
+### Execution context
+
+`Schedule`/`ScheduleAsync` capture the caller's `ExecutionContext` and run the delegate under it, so `AsyncLocal<T>` values flow into the item exactly as with `Task.Run`. `UnsafeSchedule`/`UnsafeScheduleAsync` skip the capture; the delegate runs under the default, empty context, where every `AsyncLocal<T>.Value` reads `default(T)`. In both cases the executing thread's own context is restored after the delegate returns, so a caller's ambient state never leaks into your consumer loop, and your loop's state never leaks into a caller's item.
+
+### Threading
+
+- `Schedule`/`UnsafeSchedule` block the caller with `GetAwaiter().GetResult()` on the promise. On the asynchronous-enqueue classes they also block on your `EnqueueAsync`.
+- The promise runs continuations asynchronously (`TaskCreationOptions.RunContinuationsAsynchronously`). When you complete an item, the awaiting caller resumes on the thread pool, never inline on your consumer thread.
+- `Execute` on an asynchronous delegate is sync-over-async: it blocks the current thread until the delegate's task completes. In an asynchronous consumer, await `ExecuteAsync` instead.
+- The base classes hold no locks and no queue; whatever thread safety your storage needs is yours to provide. `Schedule*` may be called concurrently from any thread.
+
+### Twelve classes, one grid
+
+The name encodes three independent choices. Read it from the end:
+
+- **Lifecycle:** `...Scheduler` has none; `...SchedulerService` derives from the `Josupeit.Practices.Services` base classes and gains `Start`/`Stop`/`Pause`/`Resume`, `State`, and the `On*` hooks.
+- **Enqueue style:** `Scheduler`/`SchedulerService` give you `protected abstract void Enqueue(IScheduled)`; `AsyncScheduler`/`AsyncSchedulerService` give you `protected abstract Task EnqueueAsync(IScheduled, CancellationToken)`. The service variants couple this to the lifecycle: `SchedulerService` has the synchronous `Service` lifecycle, `AsyncSchedulerService` the asynchronous `AsyncService` one.
+- **Disposal prefix:** none, `Disposable` (`IDisposable`), or `AsyncDisposable` (`IDisposable` and `IAsyncDisposable`; netstandard2.1 and net8.0 only).
+
+| Class                                  | Override                                           | Lifecycle base                | Disposal                             | Frameworks           |
+| -------------------------------------- | -------------------------------------------------- | ----------------------------- | ------------------------------------ | -------------------- |
+| `Scheduler`                            | `void Enqueue(IScheduled)`                         | none                          | none                                 | all                  |
+| `DisposableScheduler`                  | `void Enqueue(IScheduled)`                         | none                          | `IDisposable`                        | all                  |
+| `AsyncDisposableScheduler`             | `void Enqueue(IScheduled)`                         | none                          | `IDisposable` and `IAsyncDisposable` | netstandard2.1, net8 |
+| `AsyncScheduler`                       | `Task EnqueueAsync(IScheduled, CancellationToken)` | none                          | none                                 | all                  |
+| `DisposableAsyncScheduler`             | `Task EnqueueAsync(IScheduled, CancellationToken)` | none                          | `IDisposable`                        | all                  |
+| `AsyncDisposableAsyncScheduler`        | `Task EnqueueAsync(IScheduled, CancellationToken)` | none                          | `IDisposable` and `IAsyncDisposable` | netstandard2.1, net8 |
+| `SchedulerService`                     | `void Enqueue(IScheduled)`                         | `Service`                     | none                                 | all                  |
+| `DisposableSchedulerService`           | `void Enqueue(IScheduled)`                         | `DisposableService`           | `IDisposable`                        | all                  |
+| `AsyncDisposableSchedulerService`      | `void Enqueue(IScheduled)`                         | `AsyncDisposableService`      | `IDisposable` and `IAsyncDisposable` | netstandard2.1, net8 |
+| `AsyncSchedulerService`                | `Task EnqueueAsync(IScheduled, CancellationToken)` | `AsyncService`                | none                                 | all                  |
+| `DisposableAsyncSchedulerService`      | `Task EnqueueAsync(IScheduled, CancellationToken)` | `DisposableAsyncService`      | `IDisposable`                        | all                  |
+| `AsyncDisposableAsyncSchedulerService` | `Task EnqueueAsync(IScheduled, CancellationToken)` | `AsyncDisposableAsyncService` | `IDisposable` and `IAsyncDisposable` | netstandard2.1, net8 |
+
+The confusable pair: `AsyncDisposableScheduler` has a **synchronous** `Enqueue` with asynchronous disposal; `DisposableAsyncScheduler` has an **asynchronous** `EnqueueAsync` with synchronous disposal. The word directly before `Scheduler` decides the override.
+
+The `*Service` classes do not consult their lifecycle state before calling your override: `Schedule` on a service that was never started, or was stopped, still reaches `Enqueue`/`EnqueueAsync`. Enforce state yourself - `ThrowIfNotRunning()` from the `Services` base, or `Decline()` - and decline whatever is still queued when you stop. The `Disposable*` classes do check `IsDisposed` and throw `ObjectDisposedException` from every `Schedule*` member after `Dispose`.
+
+## Types
+
+| Type                                                                                               | Kind           | Role                                                                                                   |
+| -------------------------------------------------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------ |
+| `IScheduled`                                                                                       | interface      | the work item handed to your override: `IsCancellationRequested`, `Execute`, `ExecuteAsync`, `Decline` |
+| `Scheduler`, `DisposableScheduler`, `AsyncDisposableScheduler`                                     | abstract class | `IScheduler` over `Enqueue`, no lifecycle                                                              |
+| `AsyncScheduler`, `DisposableAsyncScheduler`, `AsyncDisposableAsyncScheduler`                      | abstract class | `IScheduler` over `EnqueueAsync`, no lifecycle                                                         |
+| `SchedulerService`, `DisposableSchedulerService`, `AsyncDisposableSchedulerService`                | abstract class | `Service` lifecycle plus `IScheduler` over `Enqueue`                                                   |
+| `AsyncSchedulerService`, `DisposableAsyncSchedulerService`, `AsyncDisposableAsyncSchedulerService` | abstract class | `AsyncService` lifecycle plus `IScheduler` over `EnqueueAsync`                                         |
+| `SyncEnqueueCallback`, `AsyncEnqueueCallback`                                                      | delegate       | public but taken or returned by no public member; not needed to use the package                        |
+
+All twelve classes have a single protected parameterless constructor; there is nothing to pass to `base(...)`. Their 56 `IScheduler` members are public and non-virtual; the exact signatures are in the [Schedulers.Abstractions reference](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/llms-full.txt). The lifecycle and disposal members are those of the `Josupeit.Practices.Services` base classes, documented in the [Services reference](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/llms-full.txt); only the members this package adds are shown below.
+
+### `IScheduled`
+
+```csharp
+namespace Josupeit.Practices.Schedulers;
+
+public interface IScheduled
+{
+    bool IsCancellationRequested { get; }                    // caller canceled after enqueue; promise already canceled - skip the item
+
+    void Decline();                                          // caller gets ExecutionDeclinedException; delegate never runs
+
+    void Execute(CancellationToken executionCancellationToken);          // runs the delegate now, on this thread; blocks on async delegates
+
+    Task ExecuteAsync(CancellationToken executionCancellationToken);     // runs the delegate now; completes when the delegate has completed
+}
+```
+
+Call exactly one of `Execute`, `ExecuteAsync`, or `Decline` per item, once. A second `Execute` or `ExecuteAsync` on the same item is a mistake with undefined behavior; depending on runtime and item it may run the delegate again or do nothing, and the caller never sees a second outcome. `Decline` after a completed `Execute` is a no-op.
+
+### `Scheduler`
+
+```csharp
+namespace Josupeit.Practices.Schedulers;
+
+public abstract class Scheduler : IScheduler
+{
+    protected Scheduler();
+
+    // All 56 IScheduler members - Schedule, ScheduleAsync, UnsafeSchedule, UnsafeScheduleAsync - public, non-virtual.
+
+    protected abstract void Enqueue(IScheduled scheduled);   // the one member you implement
+}
+```
+
+### `DisposableScheduler`
+
+Everything in `Scheduler`, plus the dispose pattern from the `Josupeit.Practices.Mixins.Disposable` generator. Every `Schedule*` member throws `ObjectDisposedException` once `IsDisposed` is `true`.
+
+```csharp
+namespace Josupeit.Practices.Schedulers;
+
+public abstract class DisposableScheduler : IScheduler, IDisposable
+{
+    protected DisposableScheduler();
+
+    public event EventHandler? Disposing;                    // raised by Dispose() before the hooks run
+
+    public bool IsDisposed { get; }
+
+    public void Dispose();
+
+    protected virtual void DisposeManagedResources();        // release owned IDisposable instances here
+
+    protected virtual void DisposeUnmanagedResources();      // release handles here; also called from the finalizer
+
+    protected void ThrowIfDisposed();                        // ObjectDisposedException when IsDisposed
+
+    protected abstract void Enqueue(IScheduled scheduled);
+
+    ~DisposableScheduler();
+}
+```
+
+### `AsyncDisposableScheduler`
+
+`netstandard2.1` and `net8.0` only. Everything in `DisposableScheduler`, plus:
+
+```csharp
+namespace Josupeit.Practices.Schedulers;
+
+public abstract class AsyncDisposableScheduler : IScheduler, IDisposable, IAsyncDisposable
+{
+    public ValueTask DisposeAsync();
+
+    protected virtual ValueTask DisposeManagedResourcesAsync();   // awaited by DisposeAsync instead of DisposeManagedResources
+}
+```
+
+### `AsyncScheduler`
+
+```csharp
+namespace Josupeit.Practices.Schedulers;
+
+public abstract class AsyncScheduler : IScheduler
+{
+    protected AsyncScheduler();
+
+    // All 56 IScheduler members, public, non-virtual.
+
+    protected abstract Task EnqueueAsync(IScheduled scheduled, CancellationToken cancellationToken);   // cancellationToken is the caller's
+}
+```
+
+`Schedule`/`UnsafeSchedule` on this class block on `EnqueueAsync` before blocking on the item.
+
+### `DisposableAsyncScheduler`
+
+Everything in `AsyncScheduler`, plus the same disposal members as `DisposableScheduler`: `Disposing`, `IsDisposed`, `Dispose()`, `DisposeManagedResources()`, `DisposeUnmanagedResources()`, `ThrowIfDisposed()`, and a finalizer.
+
+### `AsyncDisposableAsyncScheduler`
+
+`netstandard2.1` and `net8.0` only. Everything in `DisposableAsyncScheduler`, plus `DisposeAsync()` and `DisposeManagedResourcesAsync()`.
+
+### `SchedulerService`
+
+```csharp
+namespace Josupeit.Practices.Schedulers;
+
+public abstract class SchedulerService : Service, IScheduler
+{
+    protected SchedulerService();
+
+    // From Service: CanPause, State, Start(), Stop(), Pause(), Resume(), OnStart(), OnStop(), OnPause(), OnResume(), ThrowIf*().
+    // All 56 IScheduler members, public, non-virtual.
+
+    protected abstract void Enqueue(IScheduled scheduled);
+}
+```
+
+### `DisposableSchedulerService` and `AsyncDisposableSchedulerService`
+
+`SchedulerService` on `DisposableService` and `AsyncDisposableService` respectively; the disposal members come from those bases, and `Schedule*` throws `ObjectDisposedException` after `Dispose`. The `AsyncDisposable` variant is `netstandard2.1` and `net8.0` only.
+
+### `AsyncSchedulerService`
+
+```csharp
+namespace Josupeit.Practices.Schedulers;
+
+public abstract class AsyncSchedulerService : AsyncService, IScheduler
+{
+    protected AsyncSchedulerService();
+
+    // From AsyncService: CanPause, State, StartAsync(), StopAsync(), PauseAsync(), ResumeAsync() with and without token,
+    // OnStartAsync(ct), OnStopAsync(ct), OnPauseAsync(ct), OnResumeAsync(ct), ThrowIf*().
+    // All 56 IScheduler members, public, non-virtual.
+
+    protected abstract Task EnqueueAsync(IScheduled scheduled, CancellationToken cancellationToken);
+}
+```
+
+### `DisposableAsyncSchedulerService` and `AsyncDisposableAsyncSchedulerService`
+
+`AsyncSchedulerService` on `DisposableAsyncService` and `AsyncDisposableAsyncService` respectively. The `AsyncDisposable` variant is `netstandard2.1` and `net8.0` only.
+
+## Contract expectations
+
+What the base classes guarantee, given that your override does its part:
+
+1. **Every `IScheduler` member behaves as the Abstractions reference specifies:** `Schedule*` blocks until the item has completed and returns the unwrapped result; `*Async` returns a task that completes when it has; token-less overloads call the token-accepting sibling with `CancellationToken.None`; `Unsafe*` runs without the caller's context.
+2. **Exactly one `IScheduled` per call** reaches your override, created before the call and after argument validation. The base never executes it itself.
+3. **The delegate runs where you call `Execute`/`ExecuteAsync`,** under the captured or default context, with a token linked to the caller's and yours.
+4. **Exceptions from the delegate go to the caller,** as the original instance. Your `Execute`/`ExecuteAsync` call throws only `OperationCanceledException`, and only when your execution token is canceled.
+5. **Argument and disposed-state validation** happen before your override is called: `ArgumentNullException` for a `null` delegate, `ObjectDisposedException` on a disposed `Disposable*` instance. The synchronous families throw these directly; the asynchronous families are `async` methods, so the same exceptions arrive through the returned task rather than at the call.
+6. **Your part:** every item you accept must end in exactly one `Execute`, `ExecuteAsync`, or `Decline`. An item that gets neither leaves its caller waiting forever.
+7. **Not provided:** any queue, thread, ordering, concurrency limit, or lifecycle check around your override. The `*Service` variants provide the lifecycle state machine but do not consult it on `Schedule*`.
+
+## Usage
+
+### A FIFO scheduler with one consumer thread
+
+`SchedulerService` for a synchronous lifecycle and a synchronous `Enqueue`. Submitting while not running throws; stopping declines whatever is still queued.
+
+```csharp
+using System;
+using System.Collections.Concurrent;
+using System.Threading;
+using Josupeit.Practices.Schedulers;
+using Josupeit.Practices.Services;
+
+public sealed class SingleThreadScheduler : SchedulerService
+{
+    private BlockingCollection<IScheduled>? _queue;
+    private CancellationTokenSource? _stopping;
+    private Thread? _consumer;
+
+    protected override void OnStart()
+    {
+        _queue = new BlockingCollection<IScheduled>();
+        _stopping = new CancellationTokenSource();
+        _consumer = new Thread(Consume) { IsBackground = true, Name = nameof(SingleThreadScheduler) };
+
+        _consumer.Start();
+    }
+
+    protected override void OnStop()
+    {
+        _stopping!.Cancel();          // items already running observe it through their linked token
+        _queue!.CompleteAdding();
+        _consumer!.Join();
+
+        foreach (var pending in _queue.GetConsumingEnumerable())
+            pending.Decline();        // callers waiting on these get ExecutionDeclinedException
+
+        _stopping.Dispose();
+        _queue.Dispose();
+    }
+
+    protected override void Enqueue(IScheduled scheduled)
+    {
+        ThrowIfNotRunning();          // InvalidOperationException straight to the caller; the item is dropped
+
+        _queue!.Add(scheduled);
+    }
+
+    private void Consume()
+    {
+        foreach (var scheduled in _queue!.GetConsumingEnumerable())
+        {
+            if (_stopping!.IsCancellationRequested)
+            {
+                scheduled.Decline();
+                continue;
+            }
+
+            if (scheduled.IsCancellationRequested)
+                continue;             // caller gave up; its promise is already canceled
+
+            try
+            {
+                scheduled.Execute(_stopping.Token);   // the delegate's own exceptions do not surface here
+            }
+            catch (OperationCanceledException)
+            {
+                // Stop was requested while this item ran; its caller got ExecutionDeclinedException.
+            }
+        }
+    }
+}
+```
+
+```csharp
+var scheduler = new SingleThreadScheduler();
+
+scheduler.Start();
+
+var answer = scheduler.Schedule(() => 6 * 7);                       // 42, computed on the consumer thread
+await scheduler.ScheduleAsync(ct => SaveAsync(ct), cancellationToken);
+
+scheduler.Stop();
+```
+
+### An asynchronous scheduler over a channel
+
+`AsyncSchedulerService` when the enqueue itself may wait - here for a bounded channel to have room. The writer is completed on stop; an item that arrives after that is declined rather than failing with `ChannelClosedException`.
+
+```csharp
+using System;
+using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks;
+using Josupeit.Practices.Schedulers;
+
+public sealed class ChannelQueueScheduler : AsyncSchedulerService
+{
+    private Channel<IScheduled>? _channel;
+    private CancellationTokenSource? _stopping;
+    private Task? _consumer;
+
+    protected override Task OnStartAsync(CancellationToken cancellationToken)
+    {
+        _channel = Channel.CreateBounded<IScheduled>(capacity: 100);
+        _stopping = new CancellationTokenSource();
+        _consumer = ConsumeAsync(_channel.Reader, _stopping.Token);
+
+        return Task.CompletedTask;
+    }
+
+    protected override async Task OnStopAsync(CancellationToken cancellationToken)
+    {
+        _stopping!.Cancel();
+        _channel!.Writer.Complete();
+
+        await _consumer!.ConfigureAwait(false);
+
+        _stopping.Dispose();
+    }
+
+    protected override async Task EnqueueAsync(IScheduled scheduled, CancellationToken cancellationToken)
+    {
+        if (_channel is null)
+        {
+            scheduled.Decline();      // never started
+            return;
+        }
+
+        try
+        {
+            await _channel.Writer.WriteAsync(scheduled, cancellationToken).ConfigureAwait(false);
+        }
+        catch (ChannelClosedException)
+        {
+            scheduled.Decline();      // stopped while we waited for room
+        }
+    }
+
+    private static async Task ConsumeAsync(ChannelReader<IScheduled> reader, CancellationToken stopping)
+    {
+        await foreach (var scheduled in reader.ReadAllAsync().ConfigureAwait(false))
+        {
+            if (stopping.IsCancellationRequested)
+            {
+                scheduled.Decline();
+                continue;
+            }
+
+            if (scheduled.IsCancellationRequested)
+                continue;
+
+            try
+            {
+                await scheduled.ExecuteAsync(stopping).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // stop requested mid-item; the caller received ExecutionDeclinedException
+            }
+        }
+    }
+}
+```
+
+If the caller's token is already canceled when `EnqueueAsync` runs, `WriteAsync` throws `OperationCanceledException`, which travels to the caller as-is - the correct outcome.
+
+### A decorator without its own lifecycle
+
+`Scheduler` when the class only forwards. An `IScheduled` cannot be handed to another `IScheduler` directly, but its `ExecuteAsync` is a `Func<CancellationToken, Task>` - schedule that. Should the inner scheduler refuse the item, decline it so the outer caller does not wait forever.
+
+```csharp
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Schedulers;
+
+public sealed class CountingScheduler : Scheduler
+{
+    private readonly IScheduler _inner;
+    private int _submitted;
+
+    public CountingScheduler(IScheduler inner) => _inner = inner;
+
+    public int Submitted => _submitted;
+
+    protected override void Enqueue(IScheduled scheduled)
+    {
+        Interlocked.Increment(ref _submitted);
+
+        _ = ForwardAsync(scheduled);
+    }
+
+    private async Task ForwardAsync(IScheduled scheduled)
+    {
+        try
+        {
+            // Unsafe: the item already carries the caller's context; capturing this thread's would be wasted work.
+            await _inner.UnsafeScheduleAsync(scheduled.ExecuteAsync).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            scheduled.Decline();      // inner declined or was disposed; a no-op if the item already ran
+        }
+    }
+}
+```
+
+### Owning resources
+
+Pick the `Disposable*` variant when the scheduler owns something disposable. `Dispose` does not stop a `*Service` variant; stop first, or stop from the hook.
+
+```csharp
+using System.Threading;
+using Josupeit.Practices.Schedulers;
+
+public sealed class TimerScheduler : DisposableScheduler
+{
+    private readonly Timer _timer;
+
+    public TimerScheduler() => _timer = new Timer(_ => { }, null, Timeout.Infinite, Timeout.Infinite);
+
+    protected override void Enqueue(IScheduled scheduled) => scheduled.Execute(CancellationToken.None);
+
+    protected override void DisposeManagedResources() => _timer.Dispose();
+}
+```
+
+After `Dispose`, every `Schedule*` call throws `ObjectDisposedException` - directly from the synchronous members, through the returned task from the asynchronous ones.
+
+## Choosing a base class
+
+- Need `Start`/`Stop` (background consumers, resources acquired on start): a `*SchedulerService`. Otherwise a `*Scheduler`.
+- Your enqueue can complete synchronously (add to a collection, dispatch to the pool): `Enqueue`, that is `Scheduler`/`SchedulerService`. Your enqueue must await (bounded channel, remote queue): `EnqueueAsync`, that is `AsyncScheduler`/`AsyncSchedulerService`. On the service variants this also picks the lifecycle style.
+- Owns `IDisposable` resources: the `Disposable*` prefix. Owns resources with `DisposeAsync` and you target netstandard2.1 or net8.0: the `AsyncDisposable*` prefix.
+- Just need thread-pool dispatch or a FIFO queue with bounded concurrency: use `Josupeit.Practices.Schedulers.TaskPool` or `Josupeit.Practices.Schedulers.Channel` instead of deriving.
+- In your consumer: synchronous loop on a dedicated thread -> `Execute(token)`; asynchronous loop -> `await ExecuteAsync(token)`. Pass your stop token, not `CancellationToken.None`, so a stop can decline running items.
+
+## Common mistakes
+
+- **Wrong namespace.** The types live in `Josupeit.Practices.Schedulers`. A `Josupeit.Practices.Schedulers.Core` namespace does not exist.
+- **Overriding the wrong method.** `Scheduler` and `SchedulerService` have `Enqueue`; `AsyncScheduler` and `AsyncSchedulerService` have `EnqueueAsync`. Overriding the other one fails with CS0115.
+- **Passing arguments to the base constructor.** All twelve constructors are parameterless; `base(...)` with arguments is CS1729.
+- **Neither executing nor declining an item.** The caller blocks or awaits forever. Every accepted `IScheduled` needs exactly one `Execute`, `ExecuteAsync`, or `Decline` - including items still queued when you stop or dispose.
+- **Executing an item twice.** Undefined behavior; the caller sees only the first outcome. Execute each item exactly once.
+- **Catching the delegate's exceptions around `Execute`.** They never surface there - they go to the caller. The only exception `Execute` throws is `OperationCanceledException` for your own token.
+- **Expecting the base class to enforce lifecycle state.** `Schedule` on an unstarted or stopped `*SchedulerService` still calls your override. Guard with `ThrowIfNotRunning()` or `Decline()`.
+- **Expecting a stop to decline queued items.** Nothing declines them but your `OnStop`.
+- **`Execute` in an asynchronous consumer.** For asynchronous delegates it blocks the thread until the task completes. Use `ExecuteAsync`.
+- **Passing `CancellationToken.None` as the execution token in a stoppable scheduler.** Running items cannot then be declined on stop; the delegate sees only the caller's cancellation.
+- **Assuming the caller's token cancels a non-cancellable item after enqueue.** It does not; for `Action`, `Func<Task>`, `Func<TResult>`, and `Func<Task<TResult>>` it governs only the enqueue phase.
+- **Mixing up `AsyncDisposableScheduler` and `DisposableAsyncScheduler`.** The first has synchronous `Enqueue` with async disposal; the second `EnqueueAsync` with sync disposal. The word before `Scheduler` is the override.
+- **Using an `AsyncDisposable*` class on netstandard2.0.** It does not exist there (CS0246); it needs netstandard2.1 or net8.0.
+- **Writing the 56 members by hand or implementing `IScheduler` directly.** Derive from one of these classes; the surface is generated from a template and kept in step with the interface.
+- **Expecting `Dispose` to stop a `*SchedulerService`.** It does not; the lifecycle and disposal are independent, as in `Josupeit.Practices.Services`.
+
+## Related packages
+
+- **[Josupeit.Practices.Schedulers.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/llms-full.txt)** - `IScheduler` with all 56 signatures and `ExecutionDeclinedException`: the contract these classes implement. Human-oriented README: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/README.md
+- **[Josupeit.Practices.Services](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/llms-full.txt)** - `Service`, `AsyncService`, and their disposable variants: the lifecycle state machine, hooks, and guards inherited by the `*SchedulerService` classes.
+- **[Josupeit.Practices.Schedulers.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.TaskPool/llms-full.txt)** - `TaskPoolScheduler`, built on these classes: immediate thread-pool dispatch, no lifecycle.
+- **[Josupeit.Practices.Schedulers.Channel](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Channel/llms-full.txt)** - `ChannelScheduler`, built on these classes: FIFO queue with configurable parallelism and pause support.
+- **[Josupeit.Practices.Mixins.Disposable](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Mixins.Disposable/llms-full.txt)** - the source generator that produces the disposal members of the `Disposable*` variants; documents their exact semantics.
+- **[Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md)** - all packages in the family.
+
+## License
+
+EUPL-1.2. Full text: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md

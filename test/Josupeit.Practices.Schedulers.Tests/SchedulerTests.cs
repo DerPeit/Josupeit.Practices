@@ -312,7 +312,7 @@ public abstract class SchedulerTests<TScheduler> where TScheduler : class, ISche
 
             Assert.Fail("Promise should have been canceled.");
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException)
         {
             // Test succeeds
         }

@@ -1,0 +1,50 @@
+# Josupeit.Practices
+
+> A family of small, focused .NET libraries, one NuGet package per pattern: CQRS commands and queries, the specification pattern, background-service lifecycles, work schedulers, observable background jobs, and a source-generated dispose pattern. Every runtime package targets netstandard2.0 as its minimum and carries a Native-AOT-verified net8.0 target; the disposable mixin is a compile-time package on netstandard2.0 alone. No package has an application-framework dependency, and all are licensed under EUPL-1.2. Each package ships its own `llms.txt` and `llms-full.txt`; this file is the index across the family.
+
+Install packages individually with `dotnet add package <PackageId>`; the `*.Abstractions` packages are interface-only and the implementation packages depend on them. Conventions that hold across the family and that LLMs predictably get wrong:
+
+- Namespaces omit the `.Abstractions` suffix: the types of `Josupeit.Practices.Commands.Abstractions` live in `Josupeit.Practices.Commands`, and likewise for Services, Schedulers, and Jobs. `Josupeit.Practices.Jobs.Core` and `Josupeit.Practices.Schedulers.Core` are package ids, not namespaces.
+- Commands, queries, specifications, and jobs are the executable objects themselves, with behavior and injected collaborators inside. There is no mediator, no handler interface, and no `Send()`.
+- Sync and async are bridged by the base classes: override exactly one direction and the other is derived. Calling the base implementation from an override is detected and reported as `InvalidOperationException`.
+- Public API surfaces are analyzer-enforced; each implementation package's `PublicAPI.Shipped.txt` is linked from its `llms-full.txt` as the machine-verified inventory. Load a package's `llms-full.txt` before writing code against it; do not infer overloads that are not listed there.
+
+## Specifications
+
+- [Josupeit.Practices.Specifications](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Specifications/llms-full.txt): `Specification<TCandidate>`, one abstract class for named, composable in-memory business rules with `&&`, `||`, `^`, `!` operators and sync/async bridging.
+
+## Commands
+
+- [Josupeit.Practices.Commands.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands.Abstractions/llms-full.txt): the six interfaces `ICommand`, `ICommand<TInput>`, `ICommandWithOutput<TOutput>`, `ICommandWithOutput<TInput, TOutput>`, `IQuery<TOutput>`, `IQuery<TInput, TOutput>`, each with `Execute` and two `ExecuteAsync` overloads.
+- [Josupeit.Practices.Commands](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands/llms-full.txt): the matching abstract base classes `Command`, `CommandWithOutput`, `Query` that bridge sync and async and detect accidental recursion.
+
+## Services
+
+- [Josupeit.Practices.Services.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services.Abstractions/llms-full.txt): `IService`, `IAsyncService` (start, stop, pause, resume) and the `ServiceState` enum.
+- [Josupeit.Practices.Services](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/llms-full.txt): `Service`, `AsyncService`, and their `Disposable*`/`AsyncDisposable*` variants; you override the `On*` hooks, the base class validates transitions.
+
+## Schedulers
+
+- [Josupeit.Practices.Schedulers.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/llms-full.txt): `IScheduler`, 56 overloads in the four families `Schedule`, `ScheduleAsync`, `UnsafeSchedule`, `UnsafeScheduleAsync`, plus `ExecutionDeclinedException`.
+- [Josupeit.Practices.Schedulers.Core](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/llms-full.txt): twelve abstract base classes that implement `IScheduler` on top of a single `Enqueue`/`EnqueueAsync` override receiving `IScheduled` work items.
+- [Josupeit.Practices.Schedulers.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.TaskPool/llms-full.txt): `TaskPoolScheduler`, immediate `Task.Run` dispatch, no queue, no lifecycle.
+- [Josupeit.Practices.Schedulers.Channel](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Channel/llms-full.txt): `ChannelScheduler`, a FIFO queue with a fixed number of consumers, pause support, and an `AsyncService` lifecycle that must be started before use.
+
+## Jobs
+
+- [Josupeit.Practices.Jobs.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Abstractions/llms-full.txt): `IJob` with its state flags and `Changed` event, the typed variants `IJobWithResult<TResult>`, `IJobWithProgress<TProgress>`, `IJobWithProgressAndResult<TProgress, TResult>`, `IJobFactory`, and awaiting support.
+- [Josupeit.Practices.Jobs.Core](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs/llms-full.txt): `JobBase` and the four base classes `Job`, `JobWithResult`, `JobWithProgress`, `JobWithProgressAndResult` with the protected `Notify*` transitions.
+- [Josupeit.Practices.Jobs.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.TaskPool/llms-full.txt): `TaskPoolJobFactory`, jobs that run their delegate on the thread pool the moment `Start()` is called.
+- [Josupeit.Practices.Jobs.Scheduler](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Scheduler/llms-full.txt): `SchedulerJobFactory`, jobs routed through an `IScheduler` you supply for ordering and bounded concurrency.
+
+## Disposable mixin
+
+- [Josupeit.Practices.Mixins.Disposable](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Mixins.Disposable/llms-full.txt): development dependency; `[DisposableMixin]` on a partial class generates `IDisposable`/`IAsyncDisposable`, a finalizer, `ThrowIfDisposed()`, and the `Dispose*Resources` hooks, with analyzer diagnostics JPMD010 to JPMD060. Bundles the generator and analyzer assemblies; neither is published on its own.
+
+## Optional
+
+- [Repository README](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md): human-oriented overview with the package table.
+- [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md): what Native AOT compatibility means here and how CI verifies it.
+- [Source code](https://codeberg.org/DerPeit/Josupeit.Practices): the repository on Codeberg; every package lives under `src/`.
+- [NuGet packages](https://www.nuget.org/profiles/DerPeit): release history and download counts.
+- [License](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md): EUPL-1.2 full text.

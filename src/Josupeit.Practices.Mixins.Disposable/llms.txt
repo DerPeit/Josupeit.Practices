@@ -1,0 +1,30 @@
+# Josupeit.Practices.Mixins.Disposable
+
+> Development-dependency NuGet package bundling a Roslyn incremental source generator and a companion analyzer. Put `[DisposableMixin]` on a `partial class` and the generator adds the whole dispose pattern at compile time: `IDisposable` with `Dispose()`, `IAsyncDisposable` with `DisposeAsync()` where the target framework has it, a finalizer, `ThrowIfDisposed()`, an idempotency guard, and three `protected virtual` hooks - `DisposeManagedResources()`, `DisposeManagedResourcesAsync()`, `DisposeUnmanagedResources()` - of which you implement the ones you need. Options add an `IsDisposed` property and a `Disposing` event, or drop the guard or the asynchronous half. The attribute and its options enum are emitted into your compilation, never appear in your assembly's metadata, and the package leaves no runtime dependency behind. Analyzer diagnostics JPMD010 to JPMD060 with code fixes catch a missing `partial`, a disposable base class, mis-declared hooks, contradictory options, and a record target. Works in projects of any target framework and C# version from 5 upward; requires a C# compiler of Roslyn 4.3.1 or later.
+
+Install with `dotnet add package Josupeit.Practices.Mixins.Disposable`. The attribute lives in `Josupeit.Practices.Mixins.Disposable`; the generated members land in your class. What exists:
+
+- `DisposableMixinAttribute` (emitted, internal) - `[DisposableMixin]` or `[DisposableMixin(DisposableMixinOptions.WithProperty | DisposableMixinOptions.WithEvent)]`; also the named argument `Options = ...`
+- `DisposableMixinOptions` (emitted, internal, flags) - `None`, `WithProperty` (adds `bool IsDisposed`), `WithEvent` (adds `event EventHandler? Disposing`), `WithoutIdempotencyGuarantees` (removes the guard and `ThrowIfDisposed()`), `WithoutAsyncDisposable` (removes `IAsyncDisposable`)
+- generated into your class: `Dispose()`, `DisposeAsync()`, a finalizer, `protected void ThrowIfDisposed()`, and `protected virtual` stubs for the hooks you did not write; on sealed classes `ThrowIfDisposed()` is `private` and no stubs are emitted
+- hooks you write, matched by exact name and empty parameter list: `DisposeManagedResources()`, `DisposeManagedResourcesAsync()` returning `ValueTask`, `DisposeUnmanagedResources()`
+
+`Dispose()` runs `Disposing`, `DisposeManagedResources`, `DisposeUnmanagedResources`; `DisposeAsync()` runs `Disposing`, `DisposeManagedResourcesAsync`, `DisposeUnmanagedResources`; neither calls the other path's managed hook, and the first path wins. The finalizer runs only `DisposeUnmanagedResources`. The class and all enclosing types must be `partial` (JPMD020/021 errors); a disposable base class is unsupported (JPMD010 error); structs are a compiler error (CS0592) and record classes are rejected by the analyzer (JPMD060); the guard is not atomic under simultaneous first calls.
+
+## Documentation
+
+- [Complete reference](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Mixins.Disposable/llms-full.txt): what you write, what is generated per option, the two dispose paths step by step, sealed classes, inheritance, hook detection rules, the attribute's metadata behavior and opt-out symbols, the analyzer table, usage, and common mistakes. Load this to write code against the package.
+- [README](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Mixins.Disposable/README.md): human-oriented package overview as shown on NuGet.
+- [Generator README](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Mixins.Disposable.Generator/README.md) and [Analyzer README](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Mixins.Disposable.Analyzer/README.md): the bundled components, including every diagnostic and code fix.
+
+## Related packages
+
+- [Josupeit.Practices.Services](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/llms-full.txt): base classes built with this mixin, seen from the consumer's side.
+- [Josupeit.Practices.Schedulers.Core](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/llms-full.txt): likewise.
+
+## Optional
+
+- [Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md): all packages in the family.
+- [Source code](https://codeberg.org/DerPeit/Josupeit.Practices/src/branch/main/src/Josupeit.Practices.Mixins.Disposable): the meta-package, with the generator and analyzer in the sibling directories, on Codeberg.
+- [NuGet package](https://www.nuget.org/packages/Josupeit.Practices.Mixins.Disposable): release history and download counts.
+- [License](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md): EUPL-1.2 full text.

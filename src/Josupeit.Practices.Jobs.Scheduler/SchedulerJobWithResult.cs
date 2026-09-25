@@ -64,7 +64,7 @@ public class SchedulerJobWithResult<TResult> : JobWithResult<TResult>
         {
             result = await _startFunc(CancellationToken).ConfigureAwait(false);
         }
-        catch (TaskCanceledException) when (CancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (CancellationToken.IsCancellationRequested)
         {
             NotifyCanceled();
 

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (c) Manuel Josupeit-Walter
 
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Josupeit.Practices.Specifications.Tests;
@@ -141,5 +143,65 @@ public class SpecificationTests
     public void Not_operator_throws_when_operand_is_null()
     {
         Assert.Throws<ArgumentNullException>(() => _ = !(Specification<int>)null!);
+    }
+
+    [Test]
+    public async Task IsSatisfiedByAsync_allows_concurrent_evaluation_of_a_shared_instance_through_the_bridge()
+    {
+        var specification = new SlowSyncSpecification();
+
+        var results = await Task.WhenAll(Enumerable.Range(0, 16).Select(_ => Task.Run(() => specification.IsSatisfiedByAsync(1))));
+
+        Assert.That(results, Is.All.True);
+    }
+
+    [Test]
+    public void IsSatisfiedBy_allows_concurrent_evaluation_of_a_shared_instance_through_the_bridge()
+    {
+        var specification = new SlowAsyncSpecification();
+        var results = new bool[16];
+
+        Parallel.For(0, results.Length, i => results[i] = specification.IsSatisfiedBy(1));
+
+        Assert.That(results, Is.All.True);
+    }
+
+    [Test]
+    public async Task IsSatisfiedByAsync_does_not_accumulate_execution_context_state_across_instances()
+    {
+        // The recursion guard lives in an AsyncLocal per instance. A guard that leaves its entry behind
+        // makes every later evaluation in the same flow copy a growing map: 20,000 instances then take
+        // tens of seconds instead of milliseconds. The bound is generous to stay clear of slow CI machines.
+        var stopwatch = Stopwatch.StartNew();
+
+        for (var i = 0; i < 20_000; i++)
+            await new PositiveSpecification().IsSatisfiedByAsync(1);
+
+        Assert.That(stopwatch.Elapsed, Is.LessThan(TimeSpan.FromSeconds(2)));
+    }
+
+    private sealed class PositiveSpecification : Specification<int>
+    {
+        public override bool IsSatisfiedBy(int candidate) => candidate > 0;
+    }
+
+    private sealed class SlowSyncSpecification : Specification<int>
+    {
+        public override bool IsSatisfiedBy(int candidate)
+        {
+            Thread.Sleep(20);
+
+            return candidate > 0;
+        }
+    }
+
+    private sealed class SlowAsyncSpecification : Specification<int>
+    {
+        public override async Task<bool> IsSatisfiedByAsync(int candidate, CancellationToken cancellationToken)
+        {
+            await Task.Delay(20, cancellationToken);
+
+            return candidate > 0;
+        }
     }
 }

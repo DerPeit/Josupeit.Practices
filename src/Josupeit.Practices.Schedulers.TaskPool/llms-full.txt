@@ -1,0 +1,203 @@
+# Josupeit.Practices.Schedulers.TaskPool
+
+> `TaskPoolScheduler`, the simplest ready-made `IScheduler`: every item is queued to the .NET thread pool through `Task.Run` the moment it is scheduled. No queue of its own, no ordering, no concurrency limit beyond the pool's, no lifecycle to start or stop, and therefore never an `ExecutionDeclinedException`. `Schedule` blocks the caller until the pool has run the item; `ScheduleAsync` returns a task that completes when it has. One public class, derived from `Scheduler` in `Josupeit.Practices.Schedulers.Core`. Targets netstandard2.0, netstandard2.1, and net8.0; lives in the `Josupeit.Practices.Schedulers` namespace.
+
+## At a glance
+
+- **Package:** `Josupeit.Practices.Schedulers.TaskPool`
+- **Namespace:** `Josupeit.Practices.Schedulers` - shared with the Abstractions, Core, and Channel packages. The `.TaskPool` suffix is package-name only; `using Josupeit.Practices.Schedulers.TaskPool;` does not compile.
+- **Target frameworks:** `netstandard2.0`, `netstandard2.1`, `net8.0`
+- **Native AOT and trimming:** compatible. The `net8.0` target is built with `IsAotCompatible`, which also marks the assembly trimmable, and is verified by an analyzer-clean build plus a native smoke-test binary that instantiates and drives this scheduler, published and run in CI. See [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md).
+- **Dependencies:** `Josupeit.Practices.Schedulers.Core` `[1.0, 2.0)`, which brings `Josupeit.Practices.Schedulers.Abstractions` and `Josupeit.Practices.Services` transitively. The `[PublicAPI]` annotation visible in the source is compile-time only and is not shipped.
+- **Contents:** one class, `TaskPoolScheduler`. Public and not sealed, with a public parameterless constructor and one `protected override`.
+- **Nullability:** every declaration in this document is shown as compiled under `#nullable enable`. Nothing in this package is nullable; a `null` delegate throws `ArgumentNullException`.
+- **Authoritative inventory:** [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.TaskPool/PublicAPI.Shipped.txt) is the analyzer-enforced list of every public member declared by this package: the type, its constructor, and the `Enqueue` override. The 56 `IScheduler` members are inherited and listed in the Core package's inventory. Format key: `!` marks a non-nullable and `?` a nullable reference type; members are prefixed with `abstract`, `virtual`, `override`, or `static` where applicable; accessibility is not shown.
+- **This document:** ships inside the NuGet package as `llms-full.txt` and is published at https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.TaskPool/llms-full.txt. The packaged copy matches its package version; the published copy describes the latest release.
+- **Alternative:** `Josupeit.Practices.Schedulers.Channel` when you need FIFO order, bounded concurrency, or pausing.
+- **License:** EUPL-1.2
+
+Install:
+
+```
+dotnet add package Josupeit.Practices.Schedulers.TaskPool
+```
+
+## Concepts
+
+`TaskPoolScheduler` is `IScheduler` over `Task.Run`. Its only logic is the `Enqueue` override inherited from `Scheduler`:
+
+```csharp
+protected override void Enqueue(IScheduled scheduled)
+{
+    ArgumentNullException.ThrowIfNull(scheduled);
+
+    _ = Task.Run(() => scheduled.ExecuteAsync(CancellationToken.None));
+}
+```
+
+Everything else - the 56 `IScheduler` members, argument validation, execution-context capture, the promise the caller waits on, result unwrapping, exception routing, and cancellation - is the Core base class. Read that package's reference for the mechanics; this document states what they add up to for this scheduler:
+
+- **Where the item runs.** On a thread-pool thread, via `Task.Run`, so under `TaskScheduler.Default`. Never on the calling thread - not even for a trivially short synchronous delegate. An asynchronous delegate starts on the pool thread and continues wherever its own awaits resume.
+- **When.** As soon as the pool picks it up. Items do not wait for each other. Two items scheduled back to back may run in either order or at the same time.
+- **Concurrency.** Unbounded from this class's point of view; the thread pool decides. There is no queue you can inspect, bound, or drain.
+- **Lifecycle.** None. The class has no `Start`, `Stop`, or `State`, does not implement `IService` or `IAsyncService`, and is not disposable. It is ready after `new` and stays ready.
+- **Declining.** Never. The execution token it passes is `CancellationToken.None`, so no item is ever refused and `ExecutionDeclinedException` is never raised by this scheduler. The only failure modes are the delegate's own exception and the caller's own cancellation.
+- **The delegate's token.** With nothing of its own to link, the scheduler hands the caller's token through unchanged: a cancellable delegate receives exactly the `CancellationToken` passed to `Schedule*`, or `CancellationToken.None` for token-less overloads. It is canceled when, and only when, the caller cancels.
+- **Execution context.** `Schedule`/`ScheduleAsync` capture the caller's `ExecutionContext` and the pool thread runs the delegate under it, so `AsyncLocal<T>` values flow exactly as with `Task.Run`. `UnsafeSchedule`/`UnsafeScheduleAsync` run under the default, empty context, where every `AsyncLocal<T>.Value` reads `default(T)`. The pool thread's own context is restored afterwards.
+- **Waiting.** `Schedule`/`UnsafeSchedule` block the calling thread until the pool has finished the item and return its result, rethrowing the delegate's exception as the original instance. `ScheduleAsync`/`UnsafeScheduleAsync` return promptly with a pending task that completes, faults, or cancels when the item does. The continuation of an awaiting caller is queued to the thread pool as its own work item rather than run inline when the item completes; it may land on the same pool thread afterwards, but never inside the completion.
+
+Why use it instead of calling `Task.Run` yourself: the call site depends on `IScheduler`, so a test can substitute a synchronous inline scheduler and production can later swap in a `ChannelScheduler` for ordering or throttling without touching the call site.
+
+## Types
+
+| Type                | Kind  | Role                                                                                       |
+| ------------------- | ----- | ------------------------------------------------------------------------------------------ |
+| `TaskPoolScheduler` | class | `IScheduler` that runs each item on the thread pool via `Task.Run`; no lifecycle, no queue |
+
+### `TaskPoolScheduler`
+
+```csharp
+namespace Josupeit.Practices.Schedulers;
+
+public class TaskPoolScheduler : Scheduler
+{
+    public TaskPoolScheduler();
+
+    // All 56 IScheduler members inherited from Scheduler - Schedule, ScheduleAsync, UnsafeSchedule, UnsafeScheduleAsync.
+
+    protected override void Enqueue(IScheduled scheduled);   // Task.Run(() => scheduled.ExecuteAsync(CancellationToken.None))
+}
+```
+
+The class is not sealed. Deriving from it is possible but rarely useful; to change how items are dispatched, derive from `Scheduler` in the Core package and write your own `Enqueue` instead of overriding this one.
+
+## Contract expectations
+
+What callers can rely on, over and above the `IScheduler` contract:
+
+1. **Every item runs**, on a thread-pool thread, unless the caller's token was already canceled when it was scheduled - then it is not dispatched at all and the caller sees `OperationCanceledException` (thrown from `Schedule`, a canceled task from `ScheduleAsync`).
+2. **No ordering and no mutual exclusion** between items. If two items must not overlap, synchronize inside them or use `ChannelScheduler` with a parallelism of one.
+3. **`ExecutionDeclinedException` is never raised** by this scheduler.
+4. **The delegate's token is the caller's token.** Cancel it and a cancellable delegate that honors it ends with `OperationCanceledException` at the caller. A non-cancellable delegate cannot be interrupted once dispatched, and its caller's task then completes with the delegate's outcome - success or fault - not as canceled; the caller's token only prevents dispatch if it is already canceled beforehand.
+5. **Exceptions from the delegate reach the caller unwrapped** and leave the scheduler fully operational; there is no state to poison.
+6. **Thread safety.** The instance holds no state; any number of threads may schedule concurrently. One instance per application is enough.
+
+## Usage
+
+### Register once, depend on the interface
+
+```csharp
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Schedulers;
+
+public sealed class ReportRenderer
+{
+    private readonly IScheduler _scheduler;
+
+    public ReportRenderer(IScheduler scheduler) => _scheduler = scheduler;
+
+    // Blocks until the pool has rendered; returns the result.
+    public byte[] Render(Report report) => _scheduler.Schedule(() => RenderCore(report));
+
+    // Returns a pending task; completes when the pool has rendered.
+    public Task<byte[]> RenderAsync(Report report, CancellationToken cancellationToken) =>
+        _scheduler.ScheduleAsync(ct => RenderCoreAsync(report, ct), cancellationToken);
+
+    private static byte[] RenderCore(Report report) => new byte[0];
+
+    private static Task<byte[]> RenderCoreAsync(Report report, CancellationToken cancellationToken) => Task.FromResult(new byte[0]);
+}
+
+public sealed class Report
+{
+}
+```
+
+```csharp
+IScheduler scheduler = new TaskPoolScheduler();   // e.g. services.AddSingleton<IScheduler, TaskPoolScheduler>()
+var renderer = new ReportRenderer(scheduler);
+```
+
+### Fan out, then await all
+
+Items run concurrently, so a batch is one `Task.WhenAll` away. Exceptions surface per item through each task.
+
+```csharp
+public static async Task<int[]> ChecksumAllAsync(IScheduler scheduler, string[] paths, CancellationToken cancellationToken)
+{
+    var tasks = new Task<int>[paths.Length];
+
+    for (var i = 0; i < paths.Length; i++)
+    {
+        var path = paths[i];
+
+        tasks[i] = scheduler.ScheduleAsync(ct => ChecksumAsync(path, ct), cancellationToken);
+    }
+
+    return await Task.WhenAll(tasks).ConfigureAwait(false);
+}
+```
+
+### Cancel from the caller
+
+The delegate receives the caller's token. Honor it and the caller observes `OperationCanceledException`.
+
+```csharp
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+try
+{
+    await scheduler.ScheduleAsync(ct => LongRunningAsync(ct), cts.Token);
+}
+catch (OperationCanceledException)
+{
+    // timed out or canceled by us; the delegate observed cts.Token
+}
+```
+
+### Skip the context capture on hot paths
+
+When the item needs no ambient state, the `Unsafe*` twins avoid capturing and restoring the `ExecutionContext` per item.
+
+```csharp
+for (var i = 0; i < samples.Length; i++)
+{
+    var sample = samples[i];
+
+    tasks[i] = scheduler.UnsafeScheduleAsync(() => Analyze(sample));
+}
+```
+
+## Choosing this scheduler
+
+- Items are independent, may run in any order, and may overlap: `TaskPoolScheduler`.
+- Items must run in submission order, or at most N at a time, or you need pausing: `ChannelScheduler` from `Josupeit.Practices.Schedulers.Channel`.
+- You need to stop accepting work and drain on shutdown: not this class; it cannot stop. Use `ChannelScheduler` or derive from a `*SchedulerService` in the Core package.
+- Tracked background jobs with results and progress rather than awaited calls: `Josupeit.Practices.Jobs` with `TaskPoolJobFactory`, which uses the same thread pool.
+- Prefer `ScheduleAsync` on thread-pool threads; a blocking `Schedule` there occupies one pool thread while another runs the item.
+
+## Common mistakes
+
+- **Wrong namespace.** The type lives in `Josupeit.Practices.Schedulers`. A `Josupeit.Practices.Schedulers.TaskPool` namespace does not exist.
+- **Expecting order.** Two items scheduled in sequence may run in either order or concurrently. Use `ChannelScheduler` for FIFO.
+- **Looking for `Start`/`Stop`/`Dispose`.** None exist; the class has no lifecycle and does not implement `IService`, `IAsyncService`, or `IDisposable`. `scheduler is IService` is `false`.
+- **Catching `ExecutionDeclinedException`.** This scheduler never raises it. A handler is harmless but dead code.
+- **Passing constructor arguments.** The only constructor is parameterless; `new TaskPoolScheduler(x)` is CS1729.
+- **Expecting `Schedule` to return before the item ran.** It blocks until the pool has finished the item. Use `ScheduleAsync` and await it, or discard the task deliberately if you truly do not care about its outcome.
+- **Expecting the caller's token to stop a non-cancellable delegate.** `Action`, `Func<Task>`, `Func<TResult>`, and `Func<Task<TResult>>` cannot observe the token; once dispatched they run to completion. Use a cancellable shape and honor the token inside.
+- **Expecting the item's `AsyncLocal<T>` writes to be visible to the caller afterwards.** The item runs under a copy of the caller's context on another thread; writes do not flow back.
+- **Blocking `Schedule` inside another `Schedule` on a starved pool.** Each blocked caller occupies a pool thread while waiting for another pool thread. It works because the pool injects threads, but slowly; prefer `ScheduleAsync` when the caller is itself pool work.
+
+## Related packages
+
+- **[Josupeit.Practices.Schedulers.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/llms-full.txt)** - `IScheduler` with all 56 signatures: the contract this class implements. Human-oriented README: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/README.md
+- **[Josupeit.Practices.Schedulers.Core](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/llms-full.txt)** - `Scheduler`, the base class that provides everything but the one-line `Enqueue`; explains exception routing, both tokens, and execution-context handling in detail.
+- **[Josupeit.Practices.Schedulers.Channel](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Channel/llms-full.txt)** - `ChannelScheduler`: FIFO queue with configurable parallelism and pause support - the choice when this class is too simple.
+- **[Josupeit.Practices.Jobs.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.TaskPool/llms-full.txt)** - `TaskPoolJobFactory`: tracked, observable jobs on the same thread pool.
+- **[Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md)** - all packages in the family.
+
+## License
+
+EUPL-1.2. Full text: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md

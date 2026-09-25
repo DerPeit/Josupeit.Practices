@@ -29,8 +29,8 @@
       "Microsoft.Sbom.Targets": {
         "type": "Direct",
         "requested": "[*, )",
-        "resolved": "4.1.5",
-        "contentHash": "i5z+cNu/cOcdO0AgFB8aXk8w6In2H+haaDfSgd9ImvQIK+rSHavHZIogVoAZLL8jLwYx4bAcs5b7EyuMMG4mQQ=="
+        "resolved": "4.1.12",
+        "contentHash": "LMQwnMxrQkZWXRKCE0KXfDJraAwRpVgldtGdLQrYBvKP46m5+Ugiudw36JJy3N6ZUBuFHFiSOkubZh3BDL7j6Q=="
       },
       "Microsoft.SourceLink.Gitea": {
         "type": "Direct",
@@ -129,9 +129,6 @@
         "type": "Transitive",
         "resolved": "6.1.2",
         "contentHash": "2hBr6zdbIBTDE3EhK7NSVNdX58uTK6iHW/P/Axmm9sl1xoGSLqDvMtpecn226TNwHByFokYwJmt/aQQNlO5CRw=="
-      },
-      "josupeit.practices.services.abstractions": {
-        "type": "Project"
       }
     },
     "net8.0": {
@@ -168,8 +165,8 @@
       "Microsoft.Sbom.Targets": {
         "type": "Direct",
         "requested": "[*, )",
-        "resolved": "4.1.5",
-        "contentHash": "i5z+cNu/cOcdO0AgFB8aXk8w6In2H+haaDfSgd9ImvQIK+rSHavHZIogVoAZLL8jLwYx4bAcs5b7EyuMMG4mQQ=="
+        "resolved": "4.1.12",
+        "contentHash": "LMQwnMxrQkZWXRKCE0KXfDJraAwRpVgldtGdLQrYBvKP46m5+Ugiudw36JJy3N6ZUBuFHFiSOkubZh3BDL7j6Q=="
       },
       "Microsoft.SourceLink.Gitea": {
         "type": "Direct",
@@ -225,9 +222,6 @@
         "type": "Transitive",
         "resolved": "10.0.12",
         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
-      },
-      "josupeit.practices.services.abstractions": {
-        "type": "Project"
       }
     }
   }

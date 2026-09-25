@@ -39,7 +39,7 @@ internal sealed class XorSpecification<TCandidate> : Specification<TCandidate>
         var isRightSatisfiedPromise = _right.IsSatisfiedByAsync(candidate, cancellationToken);
 
         if (!isRightSatisfiedPromise.IsCompleted)
-            return AwaitedRight(isRightSatisfiedPromise.Result, isRightSatisfiedPromise);
+            return AwaitedRight(isLeftSatisfiedPromise.Result, isRightSatisfiedPromise);
 
         if (isRightSatisfiedPromise.IsCanceled || isRightSatisfiedPromise.IsFaulted)
             return isRightSatisfiedPromise;

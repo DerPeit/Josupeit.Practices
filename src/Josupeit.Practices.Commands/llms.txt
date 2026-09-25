@@ -1,0 +1,34 @@
+# Josupeit.Practices.Commands
+
+> Abstract base classes for the CQRS contracts in `Josupeit.Practices.Commands.Abstractions`: `Command`, `Command<TInput>`, `CommandWithOutput<TOutput>`, `CommandWithOutput<TInput, TOutput>`, `Query<TOutput>`, and `Query<TInput, TOutput>`. Override either the synchronous `Execute` or the asynchronous `ExecuteAsync(CancellationToken)` and the other direction is bridged automatically; calling the base implementation from an override, or overriding neither, is detected at run time and reported as an `InvalidOperationException` instead of a stack overflow. Targets netstandard2.0 and net8.0, depends only on the Abstractions package, and lives in the `Josupeit.Practices.Commands` namespace.
+
+Install with `dotnet add package Josupeit.Practices.Commands`; the Abstractions package comes along transitively. All types live in the `Josupeit.Practices.Commands` namespace, the same one as the interfaces. The package contains `Executable` (root class, not for direct use) and six abstract base classes:
+
+- `Command` implements `ICommand` - no input, no output
+- `Command<TInput>` implements `ICommand<TInput>` - one input, no output
+- `CommandWithOutput<TOutput>` implements `ICommandWithOutput<TOutput>` - no input, returns `TOutput`
+- `CommandWithOutput<TInput, TOutput>` implements `ICommandWithOutput<TInput, TOutput>` - one input, returns `TOutput`
+- `Query<TOutput>` implements `IQuery<TOutput>` - no input, returns `TOutput`, must be pure
+- `Query<TInput, TOutput>` implements `IQuery<TInput, TOutput>` - one input, returns `TOutput`, must be pure
+
+Each base class has exactly two `virtual` override points - `Execute(...)` and `ExecuteAsync(..., CancellationToken)` - plus a non-virtual token-less `ExecuteAsync(...)` that funnels into the token-accepting overload. There are no abstract members: overriding nothing compiles and throws on first use. Never call `base.Execute` or `base.ExecuteAsync` from an override. The bridged synchronous path blocks with `.GetAwaiter().GetResult()` and cannot be canceled; the bridged asynchronous path runs synchronously and checks the token once up front. The recursion guard is scoped to the logical call chain (`AsyncLocal`), so one instance can serve concurrent callers and any DI lifetime works.
+
+Unlike MediatR-style libraries, a command is the executable object itself - behavior plus injected collaborators - not a message dispatched to a separate handler; there is no `Send()` or `IRequestHandler`.
+
+## Documentation
+
+- [Complete reference](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands/llms-full.txt): every class declaration with its override points, the base bridging implementation, recursion detection, cancellation and exception semantics, usage patterns, and common mistakes. Load this to write code against the package.
+- [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands/PublicAPI.Shipped.txt): analyzer-enforced inventory of every public member. `!` marks non-nullable and `?` nullable reference types; the `virtual` prefix marks the override points; accessibility is not shown.
+- [README](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands/README.md): human-oriented package overview as shown on NuGet.
+
+## Related packages
+
+- [Josupeit.Practices.Commands.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands.Abstractions/llms-full.txt): the six interfaces these classes implement, with their variance and purity contracts. Depend on these interfaces in consumers; derive from the base classes in implementations.
+
+## Optional
+
+- [Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md): all packages in the family.
+- [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md): Native AOT compatibility statement and how CI verifies it.
+- [Source code](https://codeberg.org/DerPeit/Josupeit.Practices/src/branch/main/src/Josupeit.Practices.Commands): the seven class files on Codeberg.
+- [NuGet package](https://www.nuget.org/packages/Josupeit.Practices.Commands): release history and download counts.
+- [License](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md): EUPL-1.2 full text.

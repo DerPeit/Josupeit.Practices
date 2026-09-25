@@ -91,4 +91,20 @@ internal static class Diagnostics
         category: "Usage",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor PropertyRequiresIdempotencyGuarantees = new(
+        "JPMD050",
+        title: "WithProperty requires idempotency guarantees",
+        messageFormat: "Class '{0}' combines DisposableMixinOptions.WithProperty with WithoutIdempotencyGuarantees; IsDisposed cannot be tracked without the guard and is not generated",
+        category: "Usage",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor RecordTargetNotSupported = new(
+        "JPMD060",
+        title: "Records are not supported",
+        messageFormat: "Record '{0}' cannot use the disposable mixin: the generated disposal state would take part in the record's synthesized equality and hash code; nothing is generated",
+        category: "Usage",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

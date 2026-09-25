@@ -1,16 +1,18 @@
 # Josupeit.Practices.Services
 
-Managing a service lifecycle correctly is surprisingly subtle. State transitions need to be valid (you cannot resume a service that was never paused), thread safety matters, and disposal has to be coordinated with the running state. This package provides abstract base classes that handle all of that bookkeeping, leaving you to focus on what the service actually does.
+Managing a service lifecycle correctly is surprisingly subtle. State transitions need to be valid (you cannot resume a service that was never paused), and callers need to see consistent intermediate states while a transition is in progress. This package provides abstract base classes that handle that bookkeeping, leaving you to focus on what the service actually does.
 
 ```
 dotnet add package Josupeit.Practices.Services
 ```
 
+All types live in the `Josupeit.Practices.Services` namespace, shared with the Abstractions package.
+
 ## How to implement a service
 
 ### Synchronous service
 
-Inherit from `Service` and implement the two abstract lifecycle hooks. The base class manages the `State` property and validates transitions — if you call `Start()` on an already-running service, it throws an `InvalidOperationException` rather than silently misbehaving.
+Inherit from `Service` and implement the two abstract lifecycle hooks. The base class manages the `State` property and validates transitions. Calling `Start()` on a service that is already running is a no-op; a conflicting call such as `Resume()` on a running service throws an `InvalidOperationException` rather than silently misbehaving. Lifecycle calls are not synchronized; concurrent `Start`/`Stop`/`Pause`/`Resume` calls on the same instance must be serialized by the caller.
 
 ```csharp
 public sealed class DataSyncService : Service
@@ -76,7 +78,7 @@ await worker.StopAsync(cancellationToken);
 
 ### Service with disposal
 
-When the service owns resources that must be released, choose a base class that also implements `IDisposable` or `IAsyncDisposable`. Override the resource cleanup methods to release what the service owns.
+When the service owns resources that must be released, choose a base class that also implements `IDisposable` or `IAsyncDisposable`. Override the resource cleanup methods to release what the service owns. Disposing does not stop the service: stop a running service before disposing it, or do so from your cleanup method.
 
 ```csharp
 public sealed class ResourceService : DisposableService
@@ -92,13 +94,13 @@ public sealed class ResourceService : DisposableService
 
 ## Available base classes
 
-| Base class | Lifecycle | Disposal |
-|---|---|---|
-| `Service` | Sync | — |
-| `DisposableService` | Sync | `IDisposable` |
-| `AsyncDisposableService` | Sync | `IDisposable` + `IAsyncDisposable` |
-| `AsyncService` | Async | — |
-| `DisposableAsyncService` | Async | `IDisposable` |
-| `AsyncDisposableAsyncService` | Async | `IDisposable` + `IAsyncDisposable` |
+| Base class                    | Lifecycle | Disposal                           |
+| ----------------------------- | --------- | ---------------------------------- |
+| `Service`                     | Sync      | —                                  |
+| `DisposableService`           | Sync      | `IDisposable`                      |
+| `AsyncDisposableService`      | Sync      | `IDisposable` + `IAsyncDisposable` |
+| `AsyncService`                | Async     | —                                  |
+| `DisposableAsyncService`      | Async     | `IDisposable`                      |
+| `AsyncDisposableAsyncService` | Async     | `IDisposable` + `IAsyncDisposable` |
 
 The interfaces that these classes implement live in `Josupeit.Practices.Services.Abstractions`, which is pulled in automatically as a transitive dependency.

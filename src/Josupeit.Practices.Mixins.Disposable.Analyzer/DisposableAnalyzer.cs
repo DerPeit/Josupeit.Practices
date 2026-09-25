@@ -28,7 +28,9 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
             Diagnostics.TargetDoesNotImplementDisposeManagedResourcesAsync,
             Diagnostics.TargetDoesNotImplementDisposeUnmanagedResources,
             Diagnostics.MethodShouldBeProtectedVirtual,
-            Diagnostics.MethodShouldBePrivate);
+            Diagnostics.MethodShouldBePrivate,
+            Diagnostics.PropertyRequiresIdempotencyGuarantees,
+            Diagnostics.RecordTargetNotSupported);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -36,7 +38,7 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
 
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
-        context.RegisterSyntaxNodeAction(AnalyzeClass, SyntaxKind.ClassDeclaration);
+        context.RegisterSyntaxNodeAction(AnalyzeClass, SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration);
     }
 
     private static void AnalyzeClass(SyntaxNodeAnalysisContext context)
@@ -45,6 +47,9 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
             return;
 
         if (TryGetAttributeSyntaxAndData(context, classSyntax, classSemantics) is not var (attributeSyntax, attributeData))
+            return;
+
+        if (ReportRecordTargetNotSupported(context, classSyntax, classSemantics, attributeSyntax))
             return;
 
         var mixinOptions = GetMixinOptions(attributeData);
@@ -58,6 +63,12 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
 
         if (FindCallbacks(classSyntax, classSemantics, ["DisposeManagedResources", "DisposeManagedResourcesAsync", "DisposeUnmanagedResources"]) is not [var disposeManagedResources, var disposeManagedResourcesAsync, var disposeUnmanagedResources])
             throw new NotImplementedException();
+
+        ReportPropertyRequiresIdempotencyGuarantees(
+            context,
+            classSemantics,
+            attributeSyntax,
+            mixinOptions);
 
         ReportMissingCallbacks(
             context,
@@ -77,15 +88,15 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
             disposeUnmanagedResources);
     }
 
-    private static (ClassDeclarationSyntax Syntax, INamedTypeSymbol Semantics)? TryGetClassSyntaxAndSemantic(SyntaxNodeAnalysisContext context)
+    private static (TypeDeclarationSyntax Syntax, INamedTypeSymbol Semantics)? TryGetClassSyntaxAndSemantic(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is ClassDeclarationSyntax classSyntax && context.SemanticModel.GetDeclaredSymbol(classSyntax, context.CancellationToken) is { } classSemantics)
+        if (context.Node is ClassDeclarationSyntax or RecordDeclarationSyntax { ClassOrStructKeyword.RawKind: not (int)SyntaxKind.StructKeyword } && context.Node is TypeDeclarationSyntax classSyntax && context.SemanticModel.GetDeclaredSymbol(classSyntax, context.CancellationToken) is { } classSemantics)
             return (classSyntax, classSemantics);
 
         return null;
     }
 
-    private static (AttributeSyntax Syntax, AttributeData Data)? TryGetAttributeSyntaxAndData(SyntaxNodeAnalysisContext context, ClassDeclarationSyntax classSyntax, INamedTypeSymbol classSemantics)
+    private static (AttributeSyntax Syntax, AttributeData Data)? TryGetAttributeSyntaxAndData(SyntaxNodeAnalysisContext context, TypeDeclarationSyntax classSyntax, INamedTypeSymbol classSemantics)
     {
         var attributeSyntax = classSyntax
             .AttributeLists
@@ -118,6 +129,32 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
 
         var mixinOptions = (DisposableMixinOptions)mixinOptionsValue;
         return mixinOptions;
+    }
+
+    private static bool ReportRecordTargetNotSupported(SyntaxNodeAnalysisContext context, TypeDeclarationSyntax classSyntax, INamedTypeSymbol classSemantics, AttributeSyntax attributeSyntax)
+    {
+        if (classSyntax is not RecordDeclarationSyntax)
+            return false;
+
+        context.ReportDiagnostic(
+            Diagnostic.Create(
+                Diagnostics.RecordTargetNotSupported,
+                attributeSyntax.GetLocation(),
+                classSemantics.Name));
+
+        return true;
+    }
+
+    private static void ReportPropertyRequiresIdempotencyGuarantees(SyntaxNodeAnalysisContext context, INamedTypeSymbol classSemantics, AttributeSyntax attributeSyntax, DisposableMixinOptions options)
+    {
+        if (!options.HasFlag(DisposableMixinOptions.WithProperty) || !options.HasFlag(DisposableMixinOptions.WithoutIdempotencyGuarantees))
+            return;
+
+        context.ReportDiagnostic(
+            Diagnostic.Create(
+                Diagnostics.PropertyRequiresIdempotencyGuarantees,
+                attributeSyntax.GetLocation(),
+                classSemantics.Name));
     }
 
     private static (INamedTypeSymbol Disposable, INamedTypeSymbol? AsyncDisposable) GetDisposableInterfaces(SyntaxNodeAnalysisContext context)
@@ -155,7 +192,7 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private static bool ReportTargetAndParentsMustBePartial(SyntaxNodeAnalysisContext context, ClassDeclarationSyntax classSyntax)
+    private static bool ReportTargetAndParentsMustBePartial(SyntaxNodeAnalysisContext context, TypeDeclarationSyntax classSyntax)
     {
         for (SyntaxNode? node = classSyntax; node is TypeDeclarationSyntax typeDeclaration; node = typeDeclaration.Parent)
         {
@@ -174,7 +211,7 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private static IReadOnlyList<MethodDeclarationSyntax?> FindCallbacks(ClassDeclarationSyntax classSyntax, INamedTypeSymbol classSemantics, IList<string> names)
+    private static IReadOnlyList<MethodDeclarationSyntax?> FindCallbacks(TypeDeclarationSyntax classSyntax, INamedTypeSymbol classSemantics, IList<string> names)
     {
         var result = new MethodDeclarationSyntax?[names.Count];
         var count = 0;
@@ -220,7 +257,7 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
         return result;
     }
 
-    private static void ReportMissingCallbacks(SyntaxNodeAnalysisContext context, DisposableMixinOptions options, ClassDeclarationSyntax classSyntax, INamedTypeSymbol classSemantics, INamedTypeSymbol? asyncDisposableInterface, MethodDeclarationSyntax? disposeManagedResources, MethodDeclarationSyntax? disposeManagedResourcesAsync, MethodDeclarationSyntax? disposeUnmanagedResources)
+    private static void ReportMissingCallbacks(SyntaxNodeAnalysisContext context, DisposableMixinOptions options, TypeDeclarationSyntax classSyntax, INamedTypeSymbol classSemantics, INamedTypeSymbol? asyncDisposableInterface, MethodDeclarationSyntax? disposeManagedResources, MethodDeclarationSyntax? disposeManagedResourcesAsync, MethodDeclarationSyntax? disposeUnmanagedResources)
     {
         var mustValidateAsync = asyncDisposableInterface != null && !options.HasFlag(DisposableMixinOptions.WithoutAsyncDisposable);
 
@@ -240,7 +277,7 @@ public sealed class DisposableAnalyzer : DiagnosticAnalyzer
         context.ReportDiagnostic(targetHasNoCallbackDiagnostic);
     }
 
-    private static bool ReportMissingCallback(SyntaxNodeAnalysisContext context, ClassDeclarationSyntax classSyntax, INamedTypeSymbol classSemantics, MethodDeclarationSyntax? callbackSyntax, DiagnosticDescriptor diagnosticDescriptor)
+    private static bool ReportMissingCallback(SyntaxNodeAnalysisContext context, TypeDeclarationSyntax classSyntax, INamedTypeSymbol classSemantics, MethodDeclarationSyntax? callbackSyntax, DiagnosticDescriptor diagnosticDescriptor)
     {
         if (callbackSyntax != null)
             return false;

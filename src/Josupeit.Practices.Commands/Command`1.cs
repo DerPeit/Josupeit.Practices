@@ -36,11 +36,7 @@ public abstract class Command<TInput> : Executable, ICommand<TInput>
         }
     }
 
-    /// <summary>
-    /// Executes this instance asynchronously.
-    /// </summary>
-    /// <param name="input">An input parameter.</param>
-    /// <returns>The <see cref="Task"/> that represents the asynchronous progress.</returns>
+    /// <inheritdoc />
     public Task ExecuteAsync(TInput input) => ExecuteAsync(input, CancellationToken.None);
 
     /// <summary>

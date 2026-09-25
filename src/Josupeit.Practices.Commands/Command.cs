@@ -34,10 +34,7 @@ public abstract class Command : Executable, ICommand
         }
     }
 
-    /// <summary>
-    /// Executes this instance asynchronously.
-    /// </summary>
-    /// <returns>The <see cref="Task"/> that represents the asynchronous progress.</returns>
+    /// <inheritdoc />
     public Task ExecuteAsync() => ExecuteAsync(CancellationToken.None);
 
     /// <summary>

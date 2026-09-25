@@ -17,7 +17,7 @@ public class ScheduledNonCancellableSyncFunctionTests
     public void Decline_cancels_wait_without_invoking_callback([ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
-        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext?.CreateCopy());
 
         subject.Decline();
 
@@ -30,7 +30,7 @@ public class ScheduledNonCancellableSyncFunctionTests
     public void Decline_cancels_promise_without_invoking_callback([ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
-        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext?.CreateCopy());
 
         subject.Decline();
 
@@ -45,7 +45,7 @@ public class ScheduledNonCancellableSyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
-        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext?.CreateCopy());
 
         Assert.That(Execute(subject, executeMethod, new CancellationToken(canceled: true)), Throws.InstanceOf<OperationCanceledException>());
         Assert.That(() => subject.WaitAndUnwrap(), Throws.TypeOf<ExecutionDeclinedException>());
@@ -59,7 +59,7 @@ public class ScheduledNonCancellableSyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
-        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext?.CreateCopy());
 
         Assert.That(Execute(subject, executeMethod, new CancellationToken(canceled: true)), Throws.InstanceOf<OperationCanceledException>());
         Assert.That(async () => await subject.Promise, Throws.TypeOf<ExecutionDeclinedException>());
@@ -74,7 +74,7 @@ public class ScheduledNonCancellableSyncFunctionTests
     {
         var callback = Substitute.For<Func<int>>();
         callback().Returns(SENTINEL_RESULT);
-        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext?.CreateCopy());
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
         Assert.That(subject.WaitAndUnwrap(), Is.EqualTo(SENTINEL_RESULT));
@@ -171,7 +171,7 @@ public class ScheduledNonCancellableSyncFunctionTests
     {
         var callback = Substitute.For<Func<int>>();
         callback().Returns(SENTINEL_RESULT);
-        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext?.CreateCopy());
 
         switch (Execute(subject, executeMethod, CancellationToken.None))
         {
@@ -194,7 +194,7 @@ public class ScheduledNonCancellableSyncFunctionTests
     {
         var callback = Substitute.For<Func<int>>();
         callback().Returns(SENTINEL_RESULT);
-        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext?.CreateCopy());
 
         switch (Execute(subject, executeMethod, CancellationToken.None))
         {
@@ -217,7 +217,7 @@ public class ScheduledNonCancellableSyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
-        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext?.CreateCopy());
 
         using var cancellationTokenSource = new CancellationTokenSource();
         var proposedCancellationToken = cancellationTokenSource.Token;
@@ -240,7 +240,7 @@ public class ScheduledNonCancellableSyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
-        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext?.CreateCopy());
 
         using var cancellationTokenSource = new CancellationTokenSource();
         var proposedCancellationToken = cancellationTokenSource.Token;
@@ -263,7 +263,7 @@ public class ScheduledNonCancellableSyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
-        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext?.CreateCopy());
 
         using var cancellationTokenSource = new CancellationTokenSource();
         var unknownCancellationToken = cancellationTokenSource.Token;
@@ -286,7 +286,7 @@ public class ScheduledNonCancellableSyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
-        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext?.CreateCopy());
 
         using var cancellationTokenSource = new CancellationTokenSource();
         var unknownCancellationToken = cancellationTokenSource.Token;
@@ -309,7 +309,7 @@ public class ScheduledNonCancellableSyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
-        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext?.CreateCopy());
 
         callback.When(x => x()).Throw<TestException>();
 
@@ -323,7 +323,7 @@ public class ScheduledNonCancellableSyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
-        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext?.CreateCopy());
 
         callback.When(x => x()).Throw<TestException>();
 
@@ -335,7 +335,7 @@ public class ScheduledNonCancellableSyncFunctionTests
     public void IsCancellationRequested_returns_false([ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<int>>();
-        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableSyncFunction<int>(callback, executionContext?.CreateCopy());
 
         Assert.That(((IScheduled)subject).IsCancellationRequested, Is.False);
     }

@@ -1,0 +1,36 @@
+# Josupeit.Practices.Schedulers.Core
+
+> Abstract base classes that implement all 56 members of `IScheduler` on top of a single override: `Enqueue(IScheduled)` on `Scheduler`, `EnqueueAsync(IScheduled, CancellationToken)` on `AsyncScheduler`. `SchedulerService` and `AsyncSchedulerService` add the `Service`/`AsyncService` lifecycle; every class also exists as a `Disposable*` and an `AsyncDisposable*` variant - twelve classes in all. For each call the base class captures the execution context (or not, for `Unsafe*`), wraps the delegate in an `IScheduled` work item with its own promise, hands it to your override, and waits; you decide where and when to `Execute` or `Decline` it. Exceptions from the item reach the caller unwrapped, never your consumer loop. Targets netstandard2.0, netstandard2.1, and net8.0; depends on `Josupeit.Practices.Schedulers.Abstractions` and `Josupeit.Practices.Services`; lives in the `Josupeit.Practices.Schedulers` namespace.
+
+Install with `dotnet add package Josupeit.Practices.Schedulers.Core`. All types live in the `Josupeit.Practices.Schedulers` namespace - not `Josupeit.Practices.Schedulers.Core`. Types:
+
+- `IScheduled` - the work item your override receives: `IsCancellationRequested`, `Execute(CancellationToken)`, `ExecuteAsync(CancellationToken)`, `Decline()`
+- `Scheduler`, `DisposableScheduler`, `AsyncDisposableScheduler` - override `protected abstract void Enqueue(IScheduled scheduled)`; no lifecycle
+- `AsyncScheduler`, `DisposableAsyncScheduler`, `AsyncDisposableAsyncScheduler` - override `protected abstract Task EnqueueAsync(IScheduled scheduled, CancellationToken cancellationToken)`; no lifecycle
+- `SchedulerService`, `DisposableSchedulerService`, `AsyncDisposableSchedulerService` - `Service` lifecycle plus `Enqueue`
+- `AsyncSchedulerService`, `DisposableAsyncSchedulerService`, `AsyncDisposableAsyncSchedulerService` - `AsyncService` lifecycle plus `EnqueueAsync`
+- `SyncEnqueueCallback`, `AsyncEnqueueCallback` - public delegates no public member uses
+
+All constructors are protected and parameterless. `AsyncDisposable*` classes exist only on netstandard2.1 and net8.0. Every accepted item must end in exactly one `Execute`, `ExecuteAsync`, or `Decline`, or its caller waits forever. The delegate's exceptions go to the caller unwrapped; `Execute` itself throws only `OperationCanceledException` when your execution token is canceled, in which case the caller gets `ExecutionDeclinedException`. `Unsafe*` items run under the default, empty execution context. The `*Service` variants do not check lifecycle state before calling your override.
+
+## Documentation
+
+- [Complete reference](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/llms-full.txt): the call pipeline, the who-sees-what outcome table, the twelve-class grid, declarations, three complete schedulers (single thread, channel, decorator), and common mistakes. Load this to write code against the package.
+- [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/PublicAPI.Shipped.txt): analyzer-enforced inventory of every public member on all frameworks; [PublicAPI.Shipped.netstandard2.1.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/PublicAPI.Shipped.netstandard2.1.txt) and [PublicAPI.Shipped.net8.0.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/PublicAPI.Shipped.net8.0.txt) add the `AsyncDisposable*` classes. `!` marks non-nullable and `?` nullable reference types; accessibility is not shown.
+- [README](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/README.md): human-oriented package overview as shown on NuGet.
+
+## Related packages
+
+- [Josupeit.Practices.Schedulers.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/llms-full.txt): `IScheduler` with all 56 signatures and `ExecutionDeclinedException`.
+- [Josupeit.Practices.Services](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/llms-full.txt): the lifecycle base classes behind the `*SchedulerService` variants.
+- [Josupeit.Practices.Schedulers.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.TaskPool/llms-full.txt): ready-made thread-pool scheduler built on these classes.
+- [Josupeit.Practices.Schedulers.Channel](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Channel/llms-full.txt): ready-made FIFO scheduler with parallelism and pause support built on these classes.
+- [Josupeit.Practices.Mixins.Disposable](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Mixins.Disposable/llms-full.txt): the generator behind the `Disposable*` variants.
+
+## Optional
+
+- [Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md): all packages in the family.
+- [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md): Native AOT compatibility statement and how CI verifies it.
+- [Source code](https://codeberg.org/DerPeit/Josupeit.Practices/src/branch/main/src/Josupeit.Practices.Schedulers): the T4 template that generates the twelve classes, the work-item implementations, and the enqueue behaviors on Codeberg.
+- [NuGet package](https://www.nuget.org/packages/Josupeit.Practices.Schedulers.Core): release history and download counts.
+- [License](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md): EUPL-1.2 full text.

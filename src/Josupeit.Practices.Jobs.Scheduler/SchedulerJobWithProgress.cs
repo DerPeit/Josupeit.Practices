@@ -64,7 +64,7 @@ public class SchedulerJobWithProgress<TProgress> : JobWithProgress<TProgress>
         {
             await _startFunc(progress, CancellationToken).ConfigureAwait(false);
         }
-        catch (TaskCanceledException) when (CancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (CancellationToken.IsCancellationRequested)
         {
             NotifyCanceled();
 

@@ -113,4 +113,42 @@ public class TaskPoolJobWithResultTests
         Assert.That(completed.Wait(TimeSpan.FromSeconds(5)), Is.True);
         Assert.That(receivedToken.CanBeCanceled, Is.True);
     }
+
+    [Test]
+    public void Start_throws_synchronously_when_called_twice()
+    {
+        var gate = new ManualResetEventSlim();
+        var job = new TaskPoolJobWithResult<int>(_ => { gate.Wait(); return Task.FromResult(1); });
+
+        job.Start();
+
+        try
+        {
+            Assert.That(() => job.Start(), Throws.InstanceOf<InvalidOperationException>());
+        }
+        finally
+        {
+            gate.Set();
+        }
+    }
+
+    [Test]
+    public void Start_cancels_when_delegate_throws_OperationCanceledException_for_the_job_token()
+    {
+        var completed = new ManualResetEventSlim();
+        var job = new TaskPoolJobWithResult<int>(ct => { ct.WaitHandle.WaitOne(TimeSpan.FromSeconds(5)); ct.ThrowIfCancellationRequested(); return Task.FromResult(1); });
+
+        job.Changed += (_, _) =>
+        {
+            if (job.IsCompleted)
+                completed.Set();
+        };
+
+        job.Cancel();
+        job.Start();
+
+        Assert.That(completed.Wait(TimeSpan.FromSeconds(5)), Is.True);
+        Assert.That(job.IsCanceled, Is.True);
+        Assert.That(job.IsFaulted, Is.False);
+    }
 }

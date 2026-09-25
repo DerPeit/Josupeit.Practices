@@ -1,5 +1,7 @@
 #nullable enable
-abstract Josupeit.Practices.Jobs.JobBase.Start() -> void
+Josupeit.Practices.Jobs.Job
+Josupeit.Practices.Jobs.Job.Job() -> void
+Josupeit.Practices.Jobs.Job.NotifySucceeded() -> void
 Josupeit.Practices.Jobs.JobBase
 Josupeit.Practices.Jobs.JobBase.CancellationToken.get -> System.Threading.CancellationToken
 Josupeit.Practices.Jobs.JobBase.Changed -> System.EventHandler?
@@ -18,5 +20,21 @@ Josupeit.Practices.Jobs.JobBase.NotifyFailed(System.Exception! ex) -> void
 Josupeit.Practices.Jobs.JobBase.NotifyPending() -> void
 Josupeit.Practices.Jobs.JobBase.ThrowIfCannotCancel() -> void
 Josupeit.Practices.Jobs.JobBase.ThrowIfCannotStart() -> void
+Josupeit.Practices.Jobs.JobWithProgress<TProgress>
+Josupeit.Practices.Jobs.JobWithProgress<TProgress>.JobWithProgress() -> void
+Josupeit.Practices.Jobs.JobWithProgress<TProgress>.NotifyProgress(TProgress? progress) -> void
+Josupeit.Practices.Jobs.JobWithProgress<TProgress>.NotifySucceeded() -> void
+Josupeit.Practices.Jobs.JobWithProgress<TProgress>.Progress.get -> TProgress?
+Josupeit.Practices.Jobs.JobWithProgressAndResult<TProgress, TResult>
+Josupeit.Practices.Jobs.JobWithProgressAndResult<TProgress, TResult>.JobWithProgressAndResult() -> void
+Josupeit.Practices.Jobs.JobWithProgressAndResult<TProgress, TResult>.NotifyProgress(TProgress? progress) -> void
+Josupeit.Practices.Jobs.JobWithProgressAndResult<TProgress, TResult>.NotifySucceeded(TResult? result) -> void
+Josupeit.Practices.Jobs.JobWithProgressAndResult<TProgress, TResult>.Progress.get -> TProgress?
+Josupeit.Practices.Jobs.JobWithProgressAndResult<TProgress, TResult>.Result.get -> TResult?
+Josupeit.Practices.Jobs.JobWithResult<TResult>
+Josupeit.Practices.Jobs.JobWithResult<TResult>.JobWithResult() -> void
+Josupeit.Practices.Jobs.JobWithResult<TResult>.NotifySucceeded(TResult? result) -> void
+Josupeit.Practices.Jobs.JobWithResult<TResult>.Result.get -> TResult?
+abstract Josupeit.Practices.Jobs.JobBase.Start() -> void
 virtual Josupeit.Practices.Jobs.JobBase.Cancel() -> void
 virtual Josupeit.Practices.Jobs.JobBase.OnChanged() -> void

@@ -17,7 +17,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
     public void Decline_cancels_wait_without_invoking_callback([ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<Task<int>>>();
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         subject.Decline();
 
@@ -30,7 +30,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
     public void Decline_cancels_promise_without_invoking_callback([ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<Task<int>>>();
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         subject.Decline();
 
@@ -45,7 +45,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<Task<int>>>();
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         Assert.That(Execute(subject, executeMethod, new CancellationToken(canceled: true)), Throws.InstanceOf<OperationCanceledException>());
         Assert.That(() => subject.WaitAndUnwrap(), Throws.TypeOf<ExecutionDeclinedException>());
@@ -59,7 +59,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<Task<int>>>();
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         Assert.That(Execute(subject, executeMethod, new CancellationToken(canceled: true)), Throws.InstanceOf<OperationCanceledException>());
         Assert.That(async () => await subject.Promise, Throws.TypeOf<ExecutionDeclinedException>());
@@ -74,7 +74,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
     {
         var callback = Substitute.For<Func<Task<int>>>();
         callback().Returns(Task.FromResult(SENTINEL_RESULT));
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         Assert.That(Execute(subject, executeMethod, CancellationToken.None), Throws.Nothing);
         Assert.That(subject.WaitAndUnwrap(), Is.EqualTo(SENTINEL_RESULT));
@@ -171,7 +171,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
     {
         var callback = Substitute.For<Func<Task<int>>>();
         callback().Returns(Task.FromResult(SENTINEL_RESULT));
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         switch (Execute(subject, executeMethod, CancellationToken.None))
         {
@@ -194,7 +194,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
     {
         var callback = Substitute.For<Func<Task<int>>>();
         callback().Returns(Task.FromResult(SENTINEL_RESULT));
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         switch (Execute(subject, executeMethod, CancellationToken.None))
         {
@@ -217,7 +217,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<Task<int>>>();
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         using var cancellationTokenSource = new CancellationTokenSource();
         var proposedCancellationToken = cancellationTokenSource.Token;
@@ -239,7 +239,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<Task<int>>>();
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         using var cancellationTokenSource = new CancellationTokenSource();
         var proposedCancellationToken = cancellationTokenSource.Token;
@@ -261,7 +261,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<Task<int>>>();
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         using var cancellationTokenSource = new CancellationTokenSource();
         var unknownCancellationToken = cancellationTokenSource.Token;
@@ -283,7 +283,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<Task<int>>>();
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         using var cancellationTokenSource = new CancellationTokenSource();
         var unknownCancellationToken = cancellationTokenSource.Token;
@@ -305,7 +305,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<Task<int>>>();
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         callback().Returns(Task.FromException<int>(new TestException()));
 
@@ -319,7 +319,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<Task<int>>>();
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         callback().Returns(Task.FromException<int>(new TestException()));
 
@@ -333,7 +333,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<Task<int>>>();
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         callback.When(x => x()).Throw<TestException>();
 
@@ -347,7 +347,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
         [ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<Task<int>>>();
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         callback.When(x => x()).Throw<TestException>();
 
@@ -359,7 +359,7 @@ public class ScheduledNonCancellableAsyncFunctionTests
     public void IsCancellationRequested_returns_false([ValueSource(nameof(ReturnCapturedContextThenNull))] ExecutionContext? executionContext)
     {
         var callback = Substitute.For<Func<Task<int>>>();
-        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext);
+        var subject = new ScheduledNonCancellableAsyncFunction<int>(callback, executionContext?.CreateCopy());
 
         Assert.That(((IScheduled)subject).IsCancellationRequested, Is.False);
     }
