@@ -1,0 +1,34 @@
+# Josupeit.Practices.Services
+
+> Abstract base classes implementing the lifecycle contracts of `Josupeit.Practices.Services.Abstractions`: `Service` and `AsyncService`, each also as a `Disposable*` variant (adds `IDisposable`) and an `AsyncDisposable*` variant (adds `IDisposable` and `IAsyncDisposable`; netstandard2.1 and net8.0 only). You override the `On*` hooks; the base class validates every transition, exposes the transitional states, treats repeated same-direction calls as no-ops, rolls back when a hook throws, and offers opt-in pausing through `CanPause`. Lifecycle calls are not synchronized, and disposing does not stop the service. Targets netstandard2.0, netstandard2.1, and net8.0; depends only on the Abstractions package; lives in the `Josupeit.Practices.Services` namespace.
+
+Install with `dotnet add package Josupeit.Practices.Services`; the Abstractions package comes along transitively. All types live in the `Josupeit.Practices.Services` namespace, the same one as the interfaces. Six abstract base classes, named lifecycle-last and disposal-first:
+
+- `Service` - synchronous lifecycle, no disposal
+- `DisposableService` - synchronous lifecycle, `IDisposable`
+- `AsyncDisposableService` - synchronous lifecycle, `IDisposable` and `IAsyncDisposable` (netstandard2.1 and net8.0 only)
+- `AsyncService` - asynchronous lifecycle, no disposal
+- `DisposableAsyncService` - asynchronous lifecycle, `IDisposable`
+- `AsyncDisposableAsyncService` - asynchronous lifecycle, `IDisposable` and `IAsyncDisposable` (netstandard2.1 and net8.0 only)
+
+Implement the abstract `OnStart`/`OnStop` (or `OnStartAsync`/`OnStopAsync`) hooks as `protected override`; optionally override `CanPause => true` with `OnPause`/`OnResume`. The lifecycle methods themselves are not virtual. Same-direction calls such as `Start` while `Running` are no-ops; conflicting calls throw `InvalidOperationException`; `Pause`/`Resume` throw `NotSupportedException` when `CanPause` is false. A hook that throws rolls the state back. In the async classes a counter-operation during a transition cancels it through the hook's token rather than performing a transition of its own. Token-less async overloads are, by contract, equivalent to passing `CancellationToken.None`. Protected `ThrowIfNotRunning`/`ThrowIfRunning`/`ThrowIfPaused`/`ThrowIfStopped` guard your own members. Lifecycle calls are not synchronized; disposing does not stop the service.
+
+## Documentation
+
+- [Complete reference](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/llms-full.txt): every class with its members and override points, the full transition table, rollback and cancellation semantics, guards, disposal, usage, and common mistakes. Load this to write code against the package.
+- [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/PublicAPI.Shipped.txt): analyzer-enforced inventory of the members present on every target framework; [netstandard2.1](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/PublicAPI.Shipped.netstandard2.1.txt) and [net8.0](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/PublicAPI.Shipped.net8.0.txt) list the additions on those frameworks. `abstract` marks required hooks, `virtual` optional ones; accessibility is not shown.
+- [README](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/README.md): human-oriented package overview as shown on NuGet.
+
+## Related packages
+
+- [Josupeit.Practices.Services.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services.Abstractions/llms-full.txt): the `IService`, `IAsyncService`, and `ServiceState` contracts these classes implement. Depend on the interfaces in consumers; derive from the base classes in implementations.
+- [Josupeit.Practices.Schedulers.Core](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/llms-full.txt): scheduler base classes that derive from these services to gain a lifecycle.
+
+## Optional
+
+- [Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md): all packages in the family.
+- [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md): Native AOT compatibility statement and how CI verifies it.
+- [Josupeit.Practices.Mixins.Disposable](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Mixins.Disposable/llms-full.txt): exact semantics of the generated disposal members.
+- [Source code](https://codeberg.org/DerPeit/Josupeit.Practices/src/branch/main/src/Josupeit.Practices.Services): templates and state classes on Codeberg.
+- [NuGet package](https://www.nuget.org/packages/Josupeit.Practices.Services): release history and download counts.
+- [License](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md): EUPL-1.2 full text.

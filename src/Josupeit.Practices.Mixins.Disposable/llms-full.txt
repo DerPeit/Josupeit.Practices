@@ -1,0 +1,378 @@
+# Josupeit.Practices.Mixins.Disposable
+
+> Development-dependency NuGet package bundling a Roslyn incremental source generator and a companion analyzer. Put `[DisposableMixin]` on a `partial class` and the generator adds the whole dispose pattern at compile time: `IDisposable` with `Dispose()`, `IAsyncDisposable` with `DisposeAsync()` where the target framework has it, a finalizer, `ThrowIfDisposed()`, an idempotency guard, and three `protected virtual` hooks - `DisposeManagedResources()`, `DisposeManagedResourcesAsync()`, `DisposeUnmanagedResources()` - of which you implement the ones you need. Options add an `IsDisposed` property and a `Disposing` event, or drop the guard or the asynchronous half. The attribute and its options enum are emitted into your compilation, never appear in your assembly's metadata, and the package leaves no runtime dependency behind. Analyzer diagnostics JPMD010 to JPMD060 with code fixes catch a missing `partial`, a disposable base class, mis-declared hooks, contradictory options, and a record target. Works in projects of any target framework and C# version from 5 upward; requires a C# compiler of Roslyn 4.3.1 or later.
+
+## At a glance
+
+- **Package:** `Josupeit.Practices.Mixins.Disposable`
+- **Namespace:** `Josupeit.Practices.Mixins.Disposable` for `DisposableMixinAttribute` and `DisposableMixinOptions`; the generated members are added to your own class in your own namespace. `using Josupeit.Practices.Mixins.Disposable;` is needed for the attribute.
+- **Kind:** analyzer package. It ships two netstandard2.0 analyzer assemblies under `analyzers/dotnet/cs/` and no `lib/` folder; it is marked `DevelopmentDependency` so it is referenced with `PrivateAssets="all"` and does not become a dependency of a package you publish. Nothing of it exists at run time.
+- **Compiler requirement:** Roslyn 4.3.1 or later - .NET SDK 6.0.400 / 7.0 and Visual Studio 2022 17.3 or later. The generator uses `ForAttributeWithMetadataName`, which older compilers lack; there the compiler reports warning CS8785 (the generator threw and will not contribute to the output) and nothing is generated.
+- **Target frameworks of your project:** any. The generator inspects your compilation: without `System.IAsyncDisposable` (netstandard2.0, .NET Framework, unless `Microsoft.Bcl.AsyncInterfaces` is referenced) it omits `DisposeAsync` and the asynchronous hook; below C# 8 it omits nullable annotations; below C# 10 it uses block-scoped namespaces; it compiles down to C# 5.
+- **Native AOT and trimming:** not applicable to the package; the generated code uses no reflection and is AOT-friendly, and the library packages in this repository that use the mixin are AOT-verified in CI.
+- **Dependencies:** none for your project. The analyzer assemblies depend on `Microsoft.CodeAnalysis.CSharp` 4.3.1, supplied by the compiler.
+- **Contents:** the generator (`Josupeit.Practices.Mixins.Disposable.Generator`) and the analyzer with six code fixes (`Josupeit.Practices.Mixins.Disposable.Analyzer`). Neither has a public API of its own; there is no `PublicAPI.Shipped.txt` for this package. The emitted attribute and enum, and the members generated into your classes, are documented below in full.
+- **This document:** ships inside the NuGet package as `llms-full.txt` and is published at https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Mixins.Disposable/llms-full.txt. The packaged copy matches its package version; the published copy describes the latest release.
+- **Used by:** `Josupeit.Practices.Services` and `Josupeit.Practices.Schedulers.Core` build their `Disposable*` and `AsyncDisposable*` base classes with it; their references describe the resulting members from the consumer's side.
+- **License:** EUPL-1.2
+
+Install:
+
+```
+dotnet add package Josupeit.Practices.Mixins.Disposable
+```
+
+## Concepts
+
+The dispose pattern is a few dozen lines that are the same in every class and wrong in a new way each time they are typed. The generator writes them; you write the three lines that are specific to your class - what to release.
+
+### What you write
+
+A `partial` class (all enclosing types `partial` too), the attribute, and any of three hooks with these exact shapes - the name and the empty parameter list are what the generator matches on:
+
+```csharp
+protected virtual void DisposeManagedResources()                   // release owned IDisposable instances
+protected virtual ValueTask DisposeManagedResourcesAsync()        // release owned IAsyncDisposable instances
+protected virtual void DisposeUnmanagedResources()                 // release handles, pointers, native memory
+```
+
+`protected virtual` on a non-sealed class, `private` on a sealed one (the analyzer warns otherwise). On a non-sealed class a hook you do not write is generated as an empty `protected virtual` stub for derived classes to override; on a sealed class it is omitted. Implementing none compiles and disposes nothing. Call the generated `ThrowIfDisposed()` at the top of members that must not run after disposal.
+
+### What is generated
+
+For `[DisposableMixin]` with no options on a non-sealed class, on a framework that has `IAsyncDisposable`:
+
+```csharp
+partial class YourClass : IDisposable, IAsyncDisposable
+{
+    private volatile bool _isDisposed;
+
+    ~YourClass();                                                  // releases unmanaged resources only, if Dispose was never called
+
+    public void Dispose();                                         // guard, Disposing, DisposeManagedResources, DisposeUnmanagedResources, GC.SuppressFinalize
+
+    public ValueTask DisposeAsync();                               // guard, Disposing, await DisposeManagedResourcesAsync, DisposeUnmanagedResources, GC.SuppressFinalize
+
+    protected virtual void DisposeManagedResources();              // stub, unless you wrote it
+    protected virtual ValueTask DisposeManagedResourcesAsync();    // stub, unless you wrote it
+    protected virtual void DisposeUnmanagedResources();            // stub, unless you wrote it
+
+    protected void ThrowIfDisposed();                              // ObjectDisposedException(GetType().ToString()) once disposed
+}
+```
+
+Options add or remove pieces:
+
+| Option                         | Effect on the generated class                                                                                                                                                                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `WithProperty`                 | adds `public bool IsDisposed { get; }`                                                                                                                                                                                                                  |
+| `WithEvent`                    | adds `public event EventHandler? Disposing`, raised before the hooks run                                                                                                                                                                                |
+| `WithoutIdempotencyGuarantees` | removes the `_isDisposed` field, the guard in both dispose paths, **and `ThrowIfDisposed()`**; every call to `Dispose`/`DisposeAsync` runs the hooks again; combined with `WithProperty` the analyzer reports JPMD050 and `IsDisposed` is not generated |
+| `WithoutAsyncDisposable`       | removes `IAsyncDisposable`, `DisposeAsync()`, and the `DisposeManagedResourcesAsync` stub; a hook you wrote with that name stays as an ordinary method nobody calls                                                                                     |
+
+The generated code goes into `YourClass.g.cs` (with a hash suffix when two classes share a name) and can be inspected with `<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>`. Every generated member carries `[GeneratedCode]`; methods and the finalizer also `[DebuggerNonUserCode]`; private members and the field are hidden from IntelliSense with `[EditorBrowsable(Never)]`.
+
+### The two dispose paths
+
+They are alternatives, not a chain, and each calls only its own managed hook:
+
+| Step | `Dispose()`                                     | `DisposeAsync()`                                          | finalizer                     |
+| ---- | ----------------------------------------------- | --------------------------------------------------------- | ----------------------------- |
+| 1    | set `_isDisposed`; return if it was already set | same                                                      | same                          |
+| 2    | raise `Disposing` (in a `try`)                  | raise `Disposing` (in a `try`)                            |                               |
+| 3    | `DisposeManagedResources()` (in the `finally`)  | `await DisposeManagedResourcesAsync()` (in the `finally`) |                               |
+| 4    | `DisposeUnmanagedResources()`                   | `DisposeUnmanagedResources()`                             | `DisposeUnmanagedResources()` |
+| 5    | `GC.SuppressFinalize(this)`                     | `GC.SuppressFinalize(this)`                               |                               |
+
+Consequences worth knowing:
+
+- **`Dispose()` never calls `DisposeManagedResourcesAsync`, and `DisposeAsync()` never calls `DisposeManagedResources`.** A resource released in only one hook leaks through the other path. Implement both hooks when callers may use either, or pick one path with `WithoutAsyncDisposable`.
+- **Whichever path runs first wins.** The flag is set before any hook runs, so `Dispose()` after `DisposeAsync()` (or the reverse, or a second call to either) is a no-op.
+- **The guard is not atomic.** It reads the flag and then sets it, so two threads calling `Dispose()` for the first time at the same instant can both run the hooks. Serialize disposal yourself if that can happen.
+- **A throwing `Disposing` handler does not stop disposal.** The hooks run in the `finally`; the handler's exception propagates from `Dispose()`/`DisposeAsync()` afterwards.
+- **A throwing managed hook skips the unmanaged hook.** The two run in sequence without a nested `try`; the exception propagates. Keep hooks non-throwing.
+- **The finalizer only releases unmanaged resources**, never managed ones, and is suppressed by both dispose paths. On a **non-sealed** class it is always generated, even if you have no unmanaged resources, because a derived class might; instances are therefore finalizable objects until disposed. On a **sealed** class it is generated only when you implemented `DisposeUnmanagedResources`.
+
+### Sealed classes
+
+Nothing can derive from a sealed class, so the generator emits no stubs at all - a hook you did not write is simply absent, together with its call - emits `ThrowIfDisposed()` as `private`, drops the finalizer unless you wrote `DisposeUnmanagedResources`, and the analyzer asks (JPMD041) that the hooks you write be `private` too.
+
+### Inheritance
+
+A class derived from a mixin class overrides the hooks - `protected override void DisposeManagedResources()` - and should call the base implementation so the chain stays intact; `Dispose()`, `DisposeAsync()`, and `ThrowIfDisposed()` are inherited as they are, and the private `Dispose(bool)` is not overridable. Do not apply `[DisposableMixin]` to a class whose base already implements `IDisposable` or `IAsyncDisposable`: the analyzer reports JPMD010 as an error and the generator skips the class; use the base's hooks instead.
+
+### Hook detection
+
+The generator treats a member as your implementation of a hook when a method with that name exists on the class, has no parameters, is not generic, and is not a partial declaration without a body - regardless of accessibility or `virtual`. A method with the right name but a parameter, or a type parameter, is not a hook: the stub is still generated beside it and your method is never called. The analyzer warns (JPMD040/JPMD041) when a hook has the wrong accessibility; it still works.
+
+### The attribute and the options
+
+Both types are emitted into every compilation that references the package, as `internal`:
+
+- `DisposableMixinAttribute` targets classes only (`AttributeTargets.Class`); on a struct or record struct the compiler reports CS0592. Record classes can carry the attribute, but the generator skips them and the analyzer reports JPMD060 (see Common mistakes). It carries `[Conditional("JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE")]`, so its applications are stripped from the compiled assembly, and `[Microsoft.CodeAnalysis.Embedded]`, so the type is invisible to other assemblies even with `InternalsVisibleTo`.
+- `DisposableMixinOptions` is a `[Flags]` enum: `None = 0`, `WithProperty = 1`, `WithEvent = 2`, `WithoutIdempotencyGuarantees = 4`, `WithoutAsyncDisposable = 8`. Pass it to the constructor or as the named argument `Options = ...`; both are read.
+- A bare `Microsoft.CodeAnalysis.EmbeddedAttribute` declaration is emitted alongside, `partial` and attribute-free so that it merges with the copy other generators (PolySharp, Roslyn itself) may declare.
+
+Two preprocessor symbols opt out: `JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_ATTRIBUTES` emits none of the three types (you declare the attribute and enum yourself, matched by full name), `JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_EMBEDDED_ATTRIBUTE` emits only the mixin's two types (you must then declare `EmbeddedAttribute` yourself, or the generated code fails with CS0234).
+
+### The analyzer
+
+| ID                  | Severity | Trigger                                                                                            | Code fix                    |
+| ------------------- | -------- | -------------------------------------------------------------------------------------------------- | --------------------------- |
+| JPMD010             | error    | the class derives from a base implementing `IDisposable` or `IAsyncDisposable`                     | none - use the base's hooks |
+| JPMD020             | error    | the `[DisposableMixin]` class is not `partial`                                                     | add `partial`               |
+| JPMD021             | error    | an enclosing type is not `partial`                                                                 | add `partial`               |
+| JPMD050             | error    | `WithProperty` combined with `WithoutIdempotencyGuarantees`; `IsDisposed` is not generated         | none - drop one option      |
+| JPMD060             | error    | the target is a record; nothing is generated                                                       | none - use a class          |
+| JPMD030             | warning  | a sealed class implements none of the three hooks                                                  | none                        |
+| JPMD031             | info     | a non-sealed class implements none of the three hooks (may be a base class)                        | none                        |
+| JPMD032 / 033 / 034 | hidden   | `DisposeManagedResources` / `DisposeManagedResourcesAsync` / `DisposeUnmanagedResources` is absent | scaffold the hook           |
+| JPMD040             | warning  | a hook on a non-sealed class is not `protected virtual`                                            | make it `protected virtual` |
+| JPMD041             | warning  | a hook on a sealed class is not `private`                                                          | make it `private`           |
+
+Except for JPMD050, errors mean the generator produced nothing for that class; the compiler then also reports whatever your code assumed about it, such as CS0266 (CS0029 for a sealed class) when assigning it to `IDisposable`. With JPMD050 the generator still runs and only omits `IsDisposed`.
+
+## Types
+
+| Type                       | Kind                             | Where                                  | Members                                                                                       |
+| -------------------------- | -------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `DisposableMixinAttribute` | internal sealed class, emitted   | `Josupeit.Practices.Mixins.Disposable` | `()`, `(DisposableMixinOptions options)`, `Options { get; set; }`                             |
+| `DisposableMixinOptions`   | internal `[Flags]` enum, emitted | `Josupeit.Practices.Mixins.Disposable` | `None`, `WithProperty`, `WithEvent`, `WithoutIdempotencyGuarantees`, `WithoutAsyncDisposable` |
+| the generated members      | added to your class              | your namespace                         | see the listing above                                                                         |
+
+### `DisposableMixinAttribute` and `DisposableMixinOptions`
+
+```csharp
+namespace Josupeit.Practices.Mixins.Disposable;
+
+[AttributeUsage(AttributeTargets.Class)]
+[Conditional("JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE")]
+[Microsoft.CodeAnalysis.Embedded]
+internal sealed class DisposableMixinAttribute : Attribute
+{
+    public DisposableMixinAttribute();
+
+    public DisposableMixinAttribute(DisposableMixinOptions options);
+
+    public DisposableMixinOptions Options { get; set; }
+}
+
+[Flags]
+[Microsoft.CodeAnalysis.Embedded]
+internal enum DisposableMixinOptions
+{
+    None = 0,
+    WithProperty = 1,
+    WithEvent = 2,
+    WithoutIdempotencyGuarantees = 4,
+    WithoutAsyncDisposable = 8,
+}
+```
+
+### The generated members, all options on, non-sealed class
+
+```csharp
+partial class YourClass : IDisposable, IAsyncDisposable
+{
+    public event EventHandler? Disposing;                         // WithEvent
+
+    public bool IsDisposed { get; }                                // WithProperty
+
+    public void Dispose();
+
+    public ValueTask DisposeAsync();                               // absent with WithoutAsyncDisposable or without IAsyncDisposable
+
+    protected virtual void DisposeManagedResources();              // absent if you wrote it, and absent on sealed classes
+
+    protected virtual ValueTask DisposeManagedResourcesAsync();    // idem; also absent with WithoutAsyncDisposable
+
+    protected virtual void DisposeUnmanagedResources();            // idem
+
+    protected void ThrowIfDisposed();                              // private on sealed classes; absent with WithoutIdempotencyGuarantees
+
+    ~YourClass();                                                  // absent on sealed classes without DisposeUnmanagedResources
+}
+```
+
+## Contract expectations
+
+What the generated code guarantees, given that your hooks do their part:
+
+1. **Exactly one disposal** runs the hooks under the default options, whichever path is used first and however often either is called afterwards - modulo the non-atomic guard under true simultaneous first calls.
+2. **Hook order** is `Disposing`, then the path's managed hook, then `DisposeUnmanagedResources`, then finalization is suppressed. The finalizer runs only `DisposeUnmanagedResources`.
+3. **`ThrowIfDisposed()` throws `ObjectDisposedException`** with the runtime type name as the object name once either path has begun, and never before.
+4. **`IsDisposed`** (with `WithProperty`) turns `true` at the start of disposal, before the hooks run, and stays `true`.
+5. **Nothing you did not write is public** beyond `Dispose`, `DisposeAsync`, `IsDisposed`, and `Disposing`; generated hook stubs are `protected virtual`, `ThrowIfDisposed` is `protected` (`private` when sealed), and sealed classes get no stubs.
+6. **Your part:** keep the class and its parents `partial`, implement hooks with the exact names and no parameters, release each resource in the hook of the path callers will use (or in both), call `base` in overrides, do not throw from hooks, and call `ThrowIfDisposed()` where post-disposal use must fail.
+7. **Not provided:** thread-safe first disposal, a `Dispose(bool)` you can override, a hook for the `Disposing` event's exceptions, struct support, or composition with a disposable base class.
+
+## Usage
+
+### The common case
+
+```csharp
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Mixins.Disposable;
+
+[DisposableMixin]
+public partial class LogWriter
+{
+    private readonly Stream _output;
+
+    public LogWriter(string path) => _output = File.Create(path);
+
+    public Task WriteAsync(string line, CancellationToken cancellationToken)
+    {
+        ThrowIfDisposed();                                          // generated
+
+        var bytes = System.Text.Encoding.UTF8.GetBytes(line + Environment.NewLine);
+
+        return _output.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
+    }
+
+    protected virtual void DisposeManagedResources() => _output.Dispose();
+
+    protected virtual async ValueTask DisposeManagedResourcesAsync() => await _output.DisposeAsync().ConfigureAwait(false);
+}
+```
+
+```csharp
+using (var writer = new LogWriter("a.log"))
+    await writer.WriteAsync("hello", CancellationToken.None);
+
+await using (var writer = new LogWriter("b.log"))
+    await writer.WriteAsync("hello", CancellationToken.None);
+```
+
+### Observable disposal
+
+```csharp
+[DisposableMixin(DisposableMixinOptions.WithProperty | DisposableMixinOptions.WithEvent)]
+public partial class Connection
+{
+    protected virtual void DisposeManagedResources()
+    {
+    }
+}
+
+var connection = new Connection();
+
+connection.Disposing += (_, _) => Console.WriteLine("closing");     // raised before the hooks
+connection.Dispose();
+Console.WriteLine(connection.IsDisposed);                            // True
+```
+
+### A sealed class
+
+```csharp
+[DisposableMixin(DisposableMixinOptions.WithoutAsyncDisposable)]
+public sealed partial class NativeBuffer
+{
+    private IntPtr _memory = System.Runtime.InteropServices.Marshal.AllocHGlobal(1024);
+
+    private void DisposeUnmanagedResources()                        // private: nothing derives from a sealed class
+    {
+        if (_memory == IntPtr.Zero)
+            return;
+
+        System.Runtime.InteropServices.Marshal.FreeHGlobal(_memory);
+        _memory = IntPtr.Zero;
+    }
+}
+```
+
+The finalizer is generated here because an unmanaged hook exists; without one, a sealed class gets no finalizer.
+
+### Deriving from a mixin class
+
+```csharp
+public class BufferedLogWriter : LogWriter
+{
+    private readonly MemoryStream _buffer = new();
+
+    public BufferedLogWriter(string path) : base(path)
+    {
+    }
+
+    protected override void DisposeManagedResources()
+    {
+        _buffer.Dispose();
+
+        base.DisposeManagedResources();                             // keep the chain
+    }
+
+    protected override async ValueTask DisposeManagedResourcesAsync()
+    {
+        await _buffer.DisposeAsync().ConfigureAwait(false);
+        await base.DisposeManagedResourcesAsync().ConfigureAwait(false);
+    }
+}
+```
+
+### Nested in another type
+
+Every enclosing type must be `partial`; the generator reproduces the nesting, including struct, record, and interface parents.
+
+```csharp
+public partial struct Host
+{
+    [DisposableMixin]
+    public partial class Session
+    {
+        protected virtual void DisposeManagedResources()
+        {
+        }
+    }
+}
+```
+
+### Seeing the generated code
+
+```xml
+<PropertyGroup>
+  <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+</PropertyGroup>
+```
+
+The files appear under `obj/.../generated/Josupeit.Practices.Mixins.Disposable.Generator/...`.
+
+## Choosing the options
+
+- Default (no options): you want `IDisposable` and `IAsyncDisposable`, safe repeated disposal, and `ThrowIfDisposed()`.
+- `WithProperty`: something needs to read the state - a UI, a guard in a derived class.
+- `WithEvent`: other objects must react to this one going away.
+- `WithoutAsyncDisposable`: the class owns only synchronous resources and you do not want to offer `await using`; on netstandard2.0 without `Microsoft.Bcl.AsyncInterfaces` this happens automatically.
+- `WithoutIdempotencyGuarantees`: you can prove `Dispose` is called exactly once and want to save one field - and you accept losing `ThrowIfDisposed()`.
+- A disposable base class already exists: do not use the mixin; implement its hooks.
+
+## Common mistakes
+
+- **Forgetting `partial`.** JPMD020 (error); nothing is generated, and the class does not implement `IDisposable`.
+- **Applying the attribute to a struct.** The attribute targets classes only; a struct or record struct target is CS0592 at compile time.
+- **Applying the attribute to a record class.** JPMD060 (error); nothing is generated. A record's synthesized `Equals` and `GetHashCode` include every instance field, so the generated `_isDisposed` field and the `Disposing` backing field would make equal records unequal once one is disposed or has a subscriber. Use a class, or implement disposal by hand on the record.
+- **A base class that is already disposable.** JPMD010 (error); the generator skips the class. Override the base's `Dispose(bool)` or equivalent instead.
+- **Calling `ThrowIfDisposed()` with `WithoutIdempotencyGuarantees`.** That option removes it (CS0103). Keep the guarantees if you need the guard.
+- **Combining `WithProperty` with `WithoutIdempotencyGuarantees`.** JPMD050 (error): without the guard there is no state to expose, and `IsDisposed` is not generated.
+- **Releasing a resource in only one managed hook.** The other path leaks it. Implement both, or choose one path.
+- **Expecting `Dispose(bool)`.** It exists but is `private`; extend through the hooks.
+- **Writing a hook with a parameter or a type parameter.** It is not recognized; a stub is generated beside it and yours is never called.
+- **Not calling `base` in an overriding hook.** The base class's resources leak.
+- **Expecting the finalizer to release managed resources.** It calls only `DisposeUnmanagedResources`.
+- **Throwing from a hook or a `Disposing` handler.** A throwing managed hook skips the unmanaged hook; a throwing handler still lets the hooks run but surfaces from `Dispose`.
+- **Referencing `DisposableMixinAttribute` from another assembly.** It is `[Embedded]`; each assembly gets its own copy and cannot see another's.
+- **Using an old compiler.** Below Roslyn 4.3.1 the generator throws on initialization; the compiler reports warning CS8785, easy to miss among build output, and the class lacks the members.
+- **Adding the package as a normal dependency of your own package.** It is a development dependency; keep `PrivateAssets="all"` (the default the package requests) so your consumers do not inherit the generator.
+
+## Related packages
+
+- **[Josupeit.Practices.Services](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/llms-full.txt)** - `DisposableService` and friends: base classes produced with this mixin, documented from the consumer's side.
+- **[Josupeit.Practices.Schedulers.Core](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/llms-full.txt)** - `DisposableScheduler` and friends, likewise.
+- **[Generator README](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Mixins.Disposable.Generator/README.md)** and **[Analyzer README](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Mixins.Disposable.Analyzer/README.md)** - the two bundled components, human-oriented.
+- **[Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md)** - all packages in the family.
+
+## License
+
+EUPL-1.2. Full text: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md

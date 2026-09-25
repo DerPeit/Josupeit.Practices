@@ -1,0 +1,34 @@
+# Josupeit.Practices.Jobs.Abstractions
+
+> Interface-only NuGet package defining the observable job model: `IJob` (identity, `IsPending`/`IsExecuting`/`IsCompleted`/`IsCompletedSuccessfully`/`IsFaulted`/`IsCanceled`, `Exception`, a `Changed` event, `Start()`, `Cancel()`), its covariant typed variants `IJobWithResult<TResult>`, `IJobWithProgress<TProgress>`, and `IJobWithProgressAndResult<TProgress, TResult>`, and `IJobFactory` with eight `Create` overloads over asynchronous delegates. Ships the awaiting support itself: `await job` and `job.Wait()` complete when the job completes and never throw; call `job.ThrowIfFaulted()` to rethrow. Targets netstandard2.0 and net8.0, has no dependencies, and lives in the `Josupeit.Practices.Jobs` namespace.
+
+Install with `dotnet add package Josupeit.Practices.Jobs.Abstractions`. All types live in the `Josupeit.Practices.Jobs` namespace - not `Josupeit.Practices.Jobs.Abstractions`. Types:
+
+- `IJob` - `event EventHandler Changed`, `Guid Id`, `Exception? Exception`, `IsPending`, `IsExecuting`, `IsCompleted`, `IsCompletedSuccessfully`, `IsFaulted`, `IsCanceled`, `Start()`, `Cancel()`
+- `IJobWithResult<out TResult>`, `IJobWithProgress<out TProgress>`, `IJobWithProgressAndResult<out TProgress, out TResult>` - `IJob` plus `TResult? Result` and/or `TProgress? Progress`; covariant
+- `IHasResult`/`IHasResult<out TResult>`, `IHasProgress`/`IHasProgress<out TProgress>` - the value interfaces, with `object?` non-generic parents
+- `IJobFactory` - eight `Create` overloads: `Func<Task>`, `Func<CancellationToken, Task>`, `Func<IProgress<TProgress>, Task>`, `Func<IProgress<TProgress>, CancellationToken, Task>`, and the four `Task<TResult>` counterparts; asynchronous delegates only, progress before token
+- `AwaitableExtensions` (`GetAwaiter()`, `ConfigureAwait(bool)`, `Wait()`), `IJobAwaiter`, `ConfiguredJobAwaitable`, `RethrowExtensions.ThrowIfFaulted()`
+
+`Create` does not start the job; `Start()` does. `Changed` fires on every state transition and progress report and is what awaiting is built on. `await job` never throws and is `void` - read `Result` afterwards and call `ThrowIfFaulted()` to rethrow. An untyped single-parameter lambda binds to the `CancellationToken` overload, not the progress one. `TResult?` is `int` for `int`, not `int?`. Base classes live in `Josupeit.Practices.Jobs.Core`; factories in `Josupeit.Practices.Jobs.TaskPool` and `Josupeit.Practices.Jobs.Scheduler`.
+
+## Documentation
+
+- [Complete reference](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Abstractions/llms-full.txt): the state table, awaiting semantics, all declarations, variance, contract expectations and what is left open, usage for every factory shape, and common mistakes. Load this to write code against the package.
+- [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Abstractions/PublicAPI.Shipped.txt): analyzer-enforced inventory of every public member. `!` marks non-nullable and `?` nullable reference types; accessibility is not shown.
+- [README](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Abstractions/README.md): human-oriented package overview as shown on NuGet.
+
+## Related packages
+
+- [Josupeit.Practices.Jobs.Core](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs/llms-full.txt): `JobBase` and typed base classes implementing these interfaces.
+- [Josupeit.Practices.Jobs.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.TaskPool/llms-full.txt): `TaskPoolJobFactory`, jobs on the thread pool.
+- [Josupeit.Practices.Jobs.Scheduler](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Scheduler/llms-full.txt): `SchedulerJobFactory`, jobs routed through an `IScheduler`.
+- [Josupeit.Practices.Schedulers.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/llms-full.txt): `IScheduler`, the awaited-call model for work nobody needs to watch.
+
+## Optional
+
+- [Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md): all packages in the family.
+- [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md): Native AOT compatibility statement and how CI verifies it.
+- [Source code](https://codeberg.org/DerPeit/Josupeit.Practices/src/branch/main/src/Josupeit.Practices.Jobs.Abstractions): the interfaces, the awaiter, and the extensions on Codeberg.
+- [NuGet package](https://www.nuget.org/packages/Josupeit.Practices.Jobs.Abstractions): release history and download counts.
+- [License](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md): EUPL-1.2 full text.

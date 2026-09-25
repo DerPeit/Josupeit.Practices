@@ -1,0 +1,241 @@
+# Josupeit.Practices.Specifications
+
+> One abstract class, `Specification<TCandidate>`, for named, composable business rules. Override `IsSatisfiedBy(TCandidate)` or `IsSatisfiedByAsync(TCandidate, CancellationToken)` - whichever suits the rule - and the base class bridges the other direction. Compose with the C# operators `&&`/`&`, `||`/`|`, `^`, and `!`; the result is again a `Specification<TCandidate>`, evaluates lazily per candidate, short-circuits, and works in both the synchronous and the asynchronous direction. No expression trees, no lambda factory, no query translation: rules are classes, evaluation is in memory. Targets netstandard2.0 and net8.0; no dependencies; lives in the `Josupeit.Practices.Specifications` namespace.
+
+## At a glance
+
+- **Package:** `Josupeit.Practices.Specifications`
+- **Namespace:** `Josupeit.Practices.Specifications` - the same as the package name; there is no `.Abstractions` or `.Core` companion.
+- **Target frameworks:** `netstandard2.0`, `net8.0`
+- **Native AOT and trimming:** compatible. The `net8.0` target is built with `IsAotCompatible`, which also marks the assembly trimmable, and is verified by an analyzer-clean build plus a native smoke-test binary published and run in CI. See [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md).
+- **Dependencies:** none. The `[PublicAPI]` annotation visible in the source is compile-time only and is not shipped.
+- **Contents:** one public type. The composites the operators create (`AndSpecification<T>`, `OrSpecification<T>`, `XorSpecification<T>`, `NotSpecification<T>`) are internal; you only ever see them as `Specification<TCandidate>`.
+- **Nullability:** every declaration in this document is shown as compiled under `#nullable enable`. The operators throw `ArgumentNullException` for a `null` operand. `TCandidate` is unconstrained and not annotated, so a `null` candidate reaches your override unchanged when `TCandidate` is a reference type.
+- **Authoritative inventory:** [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Specifications/PublicAPI.Shipped.txt) is the analyzer-enforced list of every public and protected member, kept in sync with the compiled assembly by RS0016/RS0017. Format key: `!` marks a non-nullable and `?` a nullable reference type; members are prefixed with `abstract`, `virtual`, `override`, or `static` where applicable - `virtual` marks the two overridable evaluation methods; accessibility is not shown, so the protected constructor looks like a public one.
+- **This document:** ships inside the NuGet package as `llms-full.txt` and is published at https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Specifications/llms-full.txt. The packaged copy matches its package version; the published copy describes the latest release.
+- **License:** EUPL-1.2
+
+Install:
+
+```
+dotnet add package Josupeit.Practices.Specifications
+```
+
+## Concepts
+
+A specification answers one question about one candidate: is this order eligible, is this user active. Naming the rule as a class makes it testable, reusable, and composable. This package provides the base class and the composition; the rules and their evaluation are yours.
+
+### Two directions, one override
+
+`Specification<TCandidate>` has two evaluation entry points, `IsSatisfiedBy` and `IsSatisfiedByAsync(candidate, cancellationToken)`, and bridges between them:
+
+- Override **`IsSatisfiedBy`** for rules that need no I/O. The base `IsSatisfiedByAsync` then checks the token first (an already-canceled token yields a canceled task without calling your code), calls your `IsSatisfiedBy`, and returns `Task.FromResult` - or a faulted task if your code throws, so the asynchronous caller always gets a task, never a synchronous throw.
+- Override **`IsSatisfiedByAsync(candidate, cancellationToken)`** for rules that do I/O. The base `IsSatisfiedBy` then calls it with `CancellationToken.None` and blocks on the result with `GetAwaiter().GetResult()`, rethrowing your exception as the original instance. This is sync-over-async: do not call `IsSatisfiedBy` on a rule that overrides only the asynchronous side from a thread the rule needs to complete on, such as a UI thread.
+- Override **both** when you can offer a genuinely synchronous and a genuinely asynchronous path.
+- Override **neither**, or call `base.IsSatisfiedBy`/`base.IsSatisfiedByAsync` from your override, and evaluation throws `InvalidOperationException` explaining that at least one method must be overridden and base calls are prohibited. The base class detects the mutual recursion instead of overflowing the stack.
+
+The token-less `IsSatisfiedByAsync(candidate)` is by contract equivalent to `IsSatisfiedByAsync(candidate, CancellationToken.None)` and is not virtual; override the two-parameter one.
+
+### Composition
+
+The operators build a new specification; nothing is evaluated until it is asked about a candidate. Each composite evaluates in whichever direction it is asked and passes the direction down, so a composite of synchronous rules evaluated asynchronously never blocks, and one of asynchronous rules evaluated synchronously blocks only where the base bridge does.
+
+| Expression           | Result satisfied when     | Evaluation                                    |
+| -------------------- | ------------------------- | --------------------------------------------- |
+| `a && b`, `a & b`    | both are satisfied        | `b` is evaluated only if `a` is satisfied     |
+| `a \|\| b`, `a \| b` | at least one is satisfied | `b` is evaluated only if `a` is not satisfied |
+| `a ^ b`              | exactly one is satisfied  | both are evaluated                            |
+| `!a`                 | `a` is not satisfied      | `a` is evaluated                              |
+
+`&&` and `||` produce the same specifications as `&` and `|`: the class defines `operator true` and `operator false` to both return `false`, which makes the C# compiler rewrite `a && b` into `a & b` and `a || b` into `a | b`. Both operands are always constructed; the short-circuiting above happens at evaluation time, per candidate. In the asynchronous direction a composite passes the same `CancellationToken` to each operand and, when the left operand's task completes synchronously, avoids allocating a state machine where it can; a canceled or faulted left task is returned as-is.
+
+The side effect of `operator true` returning `false`: a specification used directly as a condition - `if (spec)`, `spec ? x : y`, `while (spec)` - compiles and is always `false`. Call `IsSatisfiedBy(candidate)`.
+
+### What it is not
+
+There is no lambda factory (`Specification.Create(x => ...)`), no expression tree, no `ToExpression()`, and no query translation: these specifications evaluate objects in memory and cannot be pushed into a database query. There are no named composition methods (`And`, `Or`, `Not`), only the operators. There is no interface; the abstract class is the contract.
+
+## Types
+
+| Type                        | Kind           | Members                                                                                               |
+| --------------------------- | -------------- | ----------------------------------------------------------------------------------------------------- |
+| `Specification<TCandidate>` | abstract class | `IsSatisfiedBy`, `IsSatisfiedByAsync` (two overloads), operators `&`, `\|`, `^`, `!`, `true`, `false` |
+
+### `Specification<TCandidate>`
+
+```csharp
+namespace Josupeit.Practices.Specifications;
+
+public abstract class Specification<TCandidate>
+{
+    protected Specification();
+
+    public virtual bool IsSatisfiedBy(TCandidate candidate);                                              // override this, or
+
+    public Task<bool> IsSatisfiedByAsync(TCandidate candidate);                                           // = IsSatisfiedByAsync(candidate, CancellationToken.None); not virtual
+
+    public virtual Task<bool> IsSatisfiedByAsync(TCandidate candidate, CancellationToken cancellationToken);   // override this (or both)
+
+    public static Specification<TCandidate> operator &(Specification<TCandidate> left, Specification<TCandidate> right);   // AND; ArgumentNullException on null
+
+    public static Specification<TCandidate> operator |(Specification<TCandidate> left, Specification<TCandidate> right);   // OR
+
+    public static Specification<TCandidate> operator ^(Specification<TCandidate> left, Specification<TCandidate> right);   // XOR
+
+    public static Specification<TCandidate> operator !(Specification<TCandidate> operand);                                 // NOT
+
+    public static bool operator true(Specification<TCandidate> _);     // always false: makes && and || build specifications
+    public static bool operator false(Specification<TCandidate> _);    // always false
+}
+```
+
+The class is generic over the candidate only and has no variance: a `Specification<Employee>` is not a `Specification<Person>` and vice versa. Composition requires the same `TCandidate` on both sides.
+
+## Contract expectations
+
+What the base class guarantees, given that your override does its part:
+
+1. **One override suffices.** Whichever entry point a caller uses, your override runs; the base bridges the other.
+2. **Asynchronous callers get a task.** The base `IsSatisfiedByAsync` never throws synchronously for your rule's failure; the exception arrives faulted in the task. An already-canceled token short-circuits to a canceled task before your `IsSatisfiedBy` runs.
+3. **Synchronous callers get the original exception.** The base `IsSatisfiedBy` rethrows your asynchronous rule's exception as the original instance, not an `AggregateException`.
+4. **Composites are lazy, short-circuit, and direction-preserving** as in the table above, and they pass the caller's token to every operand they evaluate.
+5. **Misuse is diagnosed.** Neither method overridden, or a base call from an override, produces `InvalidOperationException` with an explanatory message rather than a stack overflow.
+6. **Operators validate operands.** `null` on either side is `ArgumentNullException` at composition time.
+7. **Instances are safe to share.** The base class holds no per-candidate state, and its recursion detection is scoped to the asynchronous call flow, so one instance may be evaluated concurrently from any number of threads through either direction. Whether your own override is thread-safe, and what it does with a `null` candidate, is left to you.
+
+## Usage
+
+### Synchronous rules
+
+```csharp
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Specifications;
+
+public sealed class ActiveUser : Specification<User>
+{
+    public override bool IsSatisfiedBy(User candidate) => candidate.IsActive;
+}
+
+public sealed class PremiumUser : Specification<User>
+{
+    public override bool IsSatisfiedBy(User candidate) => candidate.Tier == Tier.Premium;
+}
+
+public sealed class User
+{
+    public bool IsActive { get; init; }
+
+    public Tier Tier { get; init; }
+
+    public Guid Id { get; init; }
+}
+
+public enum Tier
+{
+    Standard,
+    Premium,
+}
+```
+
+### An asynchronous rule
+
+```csharp
+public sealed class HasUnpaidInvoice : Specification<User>
+{
+    private readonly IInvoiceRepository _invoices;
+
+    public HasUnpaidInvoice(IInvoiceRepository invoices) => _invoices = invoices;
+
+    public override Task<bool> IsSatisfiedByAsync(User candidate, CancellationToken cancellationToken) =>
+        _invoices.AnyUnpaidAsync(candidate.Id, cancellationToken);
+}
+
+public interface IInvoiceRepository
+{
+    Task<bool> AnyUnpaidAsync(Guid userId, CancellationToken cancellationToken);
+}
+```
+
+### Compose and evaluate
+
+```csharp
+Specification<User> eligible = new ActiveUser() && new PremiumUser() && !new HasUnpaidInvoice(invoices);
+
+bool now = eligible.IsSatisfiedBy(user);                               // blocks on the invoice lookup
+bool later = await eligible.IsSatisfiedByAsync(user, cancellationToken);   // fully asynchronous
+
+var premiumOrActive = new PremiumUser() || new ActiveUser();
+var exactlyOne = new PremiumUser() ^ new ActiveUser();
+```
+
+### Filter collections
+
+`IsSatisfiedBy` converts to `Func<TCandidate, bool>` as a method group.
+
+```csharp
+using System.Linq;
+
+var eligibleUsers = users.Where(eligible.IsSatisfiedBy).ToList();
+```
+
+### Reuse as fields
+
+Composites and the base class hold no per-candidate state, so a composed rule can live in a `static readonly` field and be evaluated concurrently, provided your own overrides are thread-safe.
+
+```csharp
+public static class Rules
+{
+    public static readonly Specification<User> EligibleForPromotion = new ActiveUser() && new PremiumUser();
+}
+```
+
+### Both directions when both are cheap
+
+```csharp
+public sealed class Adult : Specification<Person>
+{
+    public override bool IsSatisfiedBy(Person candidate) => candidate.Age >= 18;
+
+    public override Task<bool> IsSatisfiedByAsync(Person candidate, CancellationToken cancellationToken) =>
+        cancellationToken.IsCancellationRequested
+            ? Task.FromCanceled<bool>(cancellationToken)
+            : Task.FromResult(IsSatisfiedBy(candidate));
+}
+
+public sealed class Person
+{
+    public int Age { get; init; }
+}
+```
+
+## Choosing what to override
+
+- The rule needs no I/O: `IsSatisfiedBy`. Asynchronous callers cost one completed task.
+- The rule needs I/O: `IsSatisfiedByAsync(candidate, cancellationToken)`. Synchronous callers block; avoid them on UI or request threads.
+- Both are cheap and you care about allocations on the asynchronous path: override both; do not call the base from either.
+- You need the rule in a database query: this package cannot help; use an `Expression<Func<T, bool>>` at the query and, if you want, a specification for the in-memory check afterwards.
+
+## Common mistakes
+
+- **Wrong namespace.** `using Josupeit.Practices.Specifications;` - the type is `Specification<TCandidate>`, generic, in that namespace. There is no `ISpecification<T>` interface.
+- **Constructing from a lambda.** `new Specification<User>(u => u.IsActive)` does not compile: the class is abstract with a parameterless constructor (CS0144). Derive a class.
+- **Calling `And`/`Or`/`Not` methods.** They do not exist (CS1061); use `&&`, `||`, `^`, `!`.
+- **Using a specification as a condition.** `if (spec)` compiles and is always `false`. Call `spec.IsSatisfiedBy(candidate)`.
+- **Overriding neither method, or calling `base.IsSatisfiedBy`/`base.IsSatisfiedByAsync` from an override.** `InvalidOperationException` at evaluation.
+- **Overriding the token-less `IsSatisfiedByAsync(candidate)`.** It is not virtual (CS0506); override the overload with the `CancellationToken`.
+- **Expecting `&&` to skip constructing the right operand.** Both operands are constructed; only evaluation short-circuits.
+- **Expecting `ToExpression()` or query translation.** Not provided; evaluation is in memory.
+- **Mixing candidate types.** `Specification<Employee> && Specification<Person>` does not compile; there is no variance.
+- **Blocking on an asynchronous rule from a UI thread.** `IsSatisfiedBy` on a rule that overrides only the asynchronous side blocks with `GetAwaiter().GetResult()`.
+- **Expecting a synchronous throw from `IsSatisfiedByAsync`.** The base bridge converts your exception into a faulted task; `await` to observe it.
+
+## Related packages
+
+- **[Josupeit.Practices.Commands.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands.Abstractions/llms-full.txt)** - commands and queries: the same sync/async bridging idea applied to executable operations rather than predicates.
+- **[Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md)** - all packages in the family.
+
+## License
+
+EUPL-1.2. Full text: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md

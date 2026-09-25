@@ -1,0 +1,287 @@
+# Josupeit.Practices.Schedulers.Channel
+
+> `ChannelScheduler`, an `IScheduler` with an `AsyncService` lifecycle: items go into an unbounded `System.Threading.Channels` queue and are dequeued in FIFO order by a fixed number of consumers (`DegreeOfParallelism`, default `Environment.ProcessorCount`); with one consumer, items run strictly one after another. `PauseAsync` stops dequeuing without dropping anything; `StopAsync` declines everything still queued and gives running items `GracefulStopDelay` (default 3 seconds) before signaling their token. Must be started before use: `Schedule*` on an unstarted or stopped instance throws `InvalidOperationException`. Two types, `ChannelScheduler` and `ChannelSchedulerOptions`; built on `Josupeit.Practices.Schedulers.Core`. Targets netstandard2.0, netstandard2.1, netcoreapp3.0, and net8.0; lives in the `Josupeit.Practices.Schedulers` namespace.
+
+## At a glance
+
+- **Package:** `Josupeit.Practices.Schedulers.Channel`
+- **Namespace:** `Josupeit.Practices.Schedulers` - shared with the Abstractions, Core, and TaskPool packages. The `.Channel` suffix is package-name only; `using Josupeit.Practices.Schedulers.Channel;` does not compile.
+- **Target frameworks:** `netstandard2.0`, `netstandard2.1`, `netcoreapp3.0`, `net8.0`. The `netcoreapp3.0` target exists so that .NET Core 3.x and later consumers get the framework's own `System.Threading.Channels` instead of a NuGet dependency.
+- **Native AOT and trimming:** compatible. The `net8.0` target is built with `IsAotCompatible`, which also marks the assembly trimmable, and is verified by an analyzer-clean build plus a native smoke-test binary that starts, drives, and stops this scheduler, published and run in CI. See [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md).
+- **Dependencies:** `Josupeit.Practices.Schedulers.Core` `[1.0, 2.0)` and `Josupeit.Practices.Services` `[1.0, 2.0)` (which bring `Josupeit.Practices.Schedulers.Abstractions` and `Josupeit.Practices.Services.Abstractions`), `Nito.AsyncEx.Coordination` `[5.0, 6.0)` for the pause monitor, and on `netstandard2.0`/`netstandard2.1` only `System.Threading.Channels` `[4.5.0, 8.0)`. The `[PublicAPI]` annotations visible in the source are compile-time only and are not shipped.
+- **Contents:** two classes, `ChannelScheduler` (public, not sealed) and `ChannelSchedulerOptions` (public, not sealed, mutable).
+- **Nullability:** every declaration in this document is shown as compiled under `#nullable enable`. The constructor's `options` argument is non-nullable and throws `ArgumentNullException` on `null`; nothing in this package is nullable.
+- **Authoritative inventory:** [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Channel/PublicAPI.Shipped.txt) is the analyzer-enforced list of every public member declared by this package. The 56 `IScheduler` members and the lifecycle members are inherited and listed in the Core and Services inventories. Format key: `!` marks a non-nullable and `?` a nullable reference type; members are prefixed with `abstract`, `virtual`, `override`, or `static` where applicable; accessibility is not shown, so the `protected` overrides look like public members.
+- **This document:** ships inside the NuGet package as `llms-full.txt` and is published at https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Channel/llms-full.txt. The packaged copy matches its package version; the published copy describes the latest release.
+- **Alternative:** `Josupeit.Practices.Schedulers.TaskPool` when items are independent and need neither order, a concurrency limit, nor a lifecycle.
+- **License:** EUPL-1.2
+
+Install:
+
+```
+dotnet add package Josupeit.Practices.Schedulers.Channel
+```
+
+## Concepts
+
+`ChannelScheduler` derives from `AsyncSchedulerService` in the Core package, so it is two things at once: an `IScheduler` with all 56 `Schedule*` members, and an `IAsyncService` with `StartAsync`, `StopAsync`, `PauseAsync`, `ResumeAsync`, and `State`. The Core reference explains the mechanics shared by every scheduler - the work item, exception routing, execution context; this document states what this class adds.
+
+### Lifecycle first
+
+Every instance starts in `ServiceState.Stopped` and has no queue and no consumers until `StartAsync` has completed. `Schedule*` in `Stopped` or `Stopping` throws `InvalidOperationException` from the call (synchronous families) or through the returned task (asynchronous families); this is the Services guard `ThrowIfStopped`, and it applies before start as well as after stop. `Schedule*` in `Paused` is accepted and queued. After `StopAsync` the instance can be started again; each start builds a fresh queue and fresh consumers.
+
+### Queue and consumers
+
+`StartAsync` creates an unbounded channel and `DegreeOfParallelism` consumer loops. Because the channel is unbounded, submitting never waits and never fails for lack of room; there is no back-pressure and no capacity option, so the producers' pace is your responsibility. Each consumer dequeues the next item and awaits `ExecuteAsync` on it before dequeuing another. Consequences:
+
+- **FIFO dequeue order.** Items are dequeued in submission order. With one consumer they therefore also begin in that order; with more than one, start order is not guaranteed, because a consumer can be delayed between dequeuing an item and starting it.
+- **At most `DegreeOfParallelism` items run at a time.** With one consumer, items run strictly sequentially and never overlap; with more, completion order is not defined.
+- **Where.** On the consumer loops. Each consumer starts on a dedicated thread (`TaskCreationOptions.LongRunning`) and continues on thread-pool threads after its first asynchronous wait for an item; neither has a `SynchronizationContext`. Never on the submitting thread.
+- **A slow item blocks its consumer**, and with one consumer the whole queue.
+
+### Pause and resume
+
+`CanPause` is `true`. `PauseAsync` sets a flag: each consumer finishes the item it is running, then waits before dequeuing the next. Running items are not interrupted and their token is not signaled; `PauseAsync` returns without waiting for them. Submissions continue to be accepted and queue up. `ResumeAsync` releases the consumers. `StopAsync` while paused works; it releases the consumers itself.
+
+### Stop, step by step
+
+`StopAsync` runs these steps, in order:
+
+1. New submissions are already rejected - the state is `Stopping` before the hook runs.
+2. The channel is completed; the consumers will exit once it is drained.
+3. A paused scheduler is unpaused so the consumers can exit.
+4. Every item still in the queue is declined. Its caller receives `ExecutionDeclinedException`.
+5. Running items get `GracefulStopDelay` (read from the options at this moment):
+   - **positive** - a timer signals their execution token when the delay elapses;
+   - **zero** - the token is signaled immediately;
+   - **negative** - the token is never signaled; the scheduler waits for the items to finish on their own.
+6. `StopAsync` awaits every consumer. A consumer exits when its current item has completed - normally, by fault, or by observing the token. `StopAsync` therefore returns only when every running item has actually returned. Cancellation is cooperative: a delegate that ignores its token keeps `StopAsync` waiting past the delay.
+
+The execution token is the one `ChannelScheduler` passes to `ExecuteAsync`; a cancellable delegate receives a token linked to it and to the caller's. When the delegate honors it during step 5, the caller receives `ExecutionDeclinedException`. When the caller cancels its own token instead, the caller receives `OperationCanceledException`, and, for the cancellable delegate shapes, an item still queued at that moment is skipped without running (non-cancellable items never see the caller's token and still run).
+
+### Options are read when used
+
+`ChannelSchedulerOptions` is a plain mutable object the scheduler keeps a reference to. `DegreeOfParallelism` is read and validated in `StartAsync`: a value of zero or less fails the start with `InvalidOperationException`, and the instance stays `Stopped`. `GracefulStopDelay` is read in `StopAsync`. Changing either while running has no effect until the next stop or start.
+
+## Types
+
+| Type                      | Kind  | Role                                                                                                        |
+| ------------------------- | ----- | ----------------------------------------------------------------------------------------------------------- |
+| `ChannelSchedulerOptions` | class | `DegreeOfParallelism` and `GracefulStopDelay`, with the defaults as static fields                           |
+| `ChannelScheduler`        | class | `AsyncSchedulerService` over an unbounded channel with N consumers; pausable; declines queued items on stop |
+
+### `ChannelSchedulerOptions`
+
+```csharp
+namespace Josupeit.Practices.Schedulers;
+
+public class ChannelSchedulerOptions
+{
+    public static readonly int DefaultDegreeOfParallelism = Environment.ProcessorCount;
+
+    public static readonly TimeSpan DefaultGracefulStopDelay = TimeSpan.FromSeconds(3);
+
+    public ChannelSchedulerOptions();
+
+    public int DegreeOfParallelism { get; set; }             // consumers; must be > 0 when StartAsync runs
+
+    public TimeSpan GracefulStopDelay { get; set; }          // > 0: cancel after; == 0: cancel at once; < 0: never cancel
+}
+```
+
+The properties are initialized to the two static defaults. Nothing is validated in the setter or the constructor; `StartAsync` validates `DegreeOfParallelism`.
+
+### `ChannelScheduler`
+
+```csharp
+namespace Josupeit.Practices.Schedulers;
+
+public class ChannelScheduler : AsyncSchedulerService
+{
+    public ChannelScheduler(ChannelSchedulerOptions options);        // ArgumentNullException on null
+
+    public override bool CanPause { get; }                           // true
+
+    // From AsyncService: State, StartAsync(), StartAsync(ct), StopAsync(), StopAsync(ct),
+    // PauseAsync(), PauseAsync(ct), ResumeAsync(), ResumeAsync(ct).
+    // From Scheduler: all 56 IScheduler members.
+
+    protected override Task OnStartAsync(CancellationToken cancellationToken);     // validates options, creates channel and consumers
+
+    protected override Task OnStopAsync(CancellationToken cancellationToken);      // the six steps above
+
+    protected override Task OnPauseAsync(CancellationToken cancellationToken);
+
+    protected override Task OnResumeAsync(CancellationToken cancellationToken);
+
+    protected override Task EnqueueAsync(IScheduled scheduled, CancellationToken cancellationToken);   // ThrowIfStopped, then TryWrite; declines if the writer closed meanwhile
+
+    protected virtual Task ConsumeAsync(CancellationToken cancellationToken);      // one consumer loop; runs once per consumer
+}
+```
+
+The class is not sealed and does not implement `IDisposable` or `IAsyncDisposable`; `StopAsync` releases everything it owns. `ConsumeAsync` is the only extension point: `StartAsync` calls it once per consumer with the scheduler's stop token, and the base implementation is the whole dequeue-pause-execute loop. The channel is private, so an override cannot read items itself; it can wrap the base call - set up a logging scope or thread state, observe when a consumer exits - and must call `base.ConsumeAsync` to do any work.
+
+## Contract expectations
+
+What callers can rely on, over and above the `IScheduler` and `IAsyncService` contracts:
+
+1. **Start before use.** `Schedule*` before `StartAsync` is called, or after `StopAsync` has begun, throws `InvalidOperationException`. It never queues silently.
+2. **Submission never waits.** `EnqueueAsync` completes as soon as the item is in the unbounded queue. `ScheduleAsync` returns a pending task at once; `Schedule` blocks only for the item's turn and run.
+3. **FIFO dequeue, bounded concurrency.** Items are dequeued in submission order and at most `DegreeOfParallelism` run concurrently. With a degree of one they start in submission order and never overlap; with a higher degree, start order is not guaranteed.
+4. **Pause is between items.** No item starts while paused; no running item is disturbed; nothing is dropped.
+5. **Stop declines the queue and waits for the running.** Every item still queued when `StopAsync` runs ends with `ExecutionDeclinedException` at its caller. Every running item is awaited to completion, with its token signaled after `GracefulStopDelay` if that is non-negative.
+6. **Exceptions from an item reach its caller unwrapped** and leave the scheduler running; a faulting item does not stop a consumer.
+7. **Restartable.** After `StopAsync` completes, `StartAsync` builds a new queue and new consumers, reading the options again.
+8. **Not provided:** a capacity limit or back-pressure, ordering of completion for a degree above one, interruption of running items on pause, or disposal.
+
+## Usage
+
+### Sequential processing with a graceful stop
+
+```csharp
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Schedulers;
+
+var scheduler = new ChannelScheduler(new ChannelSchedulerOptions
+{
+    DegreeOfParallelism = 1,                         // strict FIFO, one at a time
+    GracefulStopDelay = TimeSpan.FromSeconds(5),     // running item gets 5 s after StopAsync before its token fires
+});
+
+await scheduler.StartAsync();
+
+scheduler.Schedule(() => WriteAuditRecord("started"));                          // blocks until the consumer has run it
+await scheduler.ScheduleAsync(ct => FlushAsync(ct), cancellationToken);         // completes when the consumer has run it
+var count = await scheduler.ScheduleAsync(() => CountRecords());                // FIFO: runs after the two above
+
+await scheduler.StopAsync();                                                    // declines queued items, waits for the running one
+```
+
+### Handling the two failure modes at shutdown
+
+An item queued at stop and an item canceled by the graceful delay both surface as `ExecutionDeclinedException`; a rejected submission after stop is `InvalidOperationException`.
+
+```csharp
+public async Task<bool> TrySubmitAsync(IScheduler scheduler, Func<CancellationToken, Task> work, CancellationToken cancellationToken)
+{
+    try
+    {
+        await scheduler.ScheduleAsync(work, cancellationToken).ConfigureAwait(false);
+
+        return true;
+    }
+    catch (ExecutionDeclinedException)
+    {
+        return false;     // was queued or running when the scheduler stopped
+    }
+    catch (InvalidOperationException)
+    {
+        return false;     // scheduler not running at all
+    }
+}
+```
+
+### Pause and resume
+
+```csharp
+await scheduler.PauseAsync();        // consumers finish their current item, then wait
+
+var queued = scheduler.ScheduleAsync(() => Process());   // accepted; runs after ResumeAsync
+
+await scheduler.ResumeAsync();
+await queued;
+```
+
+### Hosting as a background service
+
+The lifecycle maps directly onto `IHostedService`.
+
+```csharp
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Schedulers;
+using Microsoft.Extensions.Hosting;
+
+public sealed class SchedulerHost : IHostedService
+{
+    private readonly ChannelScheduler _scheduler;
+
+    public SchedulerHost(ChannelScheduler scheduler) => _scheduler = scheduler;
+
+    public Task StartAsync(CancellationToken cancellationToken) => _scheduler.StartAsync(cancellationToken);
+
+    public Task StopAsync(CancellationToken cancellationToken) => _scheduler.StopAsync(cancellationToken);
+}
+
+// services.AddSingleton(new ChannelSchedulerOptions { DegreeOfParallelism = 2 });
+// services.AddSingleton<ChannelScheduler>();
+// services.AddSingleton<IScheduler>(sp => sp.GetRequiredService<ChannelScheduler>());
+// services.AddHostedService<SchedulerHost>();
+```
+
+### Observing the consumer loops
+
+```csharp
+public sealed class LoggingChannelScheduler : ChannelScheduler
+{
+    private int _consumers;
+
+    public LoggingChannelScheduler(ChannelSchedulerOptions options) : base(options)
+    {
+    }
+
+    public int ConsumersStarted => _consumers;
+
+    protected override async Task ConsumeAsync(CancellationToken cancellationToken)
+    {
+        Interlocked.Increment(ref _consumers);
+
+        try
+        {
+            await base.ConsumeAsync(cancellationToken).ConfigureAwait(false);   // the whole dequeue-pause-execute loop
+        }
+        finally
+        {
+            // consumer exited: channel drained after stop, or the stop token fired mid-item
+        }
+    }
+}
+```
+
+## Choosing the options
+
+- **`DegreeOfParallelism`:** `1` for strict order and mutual exclusion; the default (`Environment.ProcessorCount`) for CPU-bound items; higher for items that mostly wait on I/O. It is a hard cap on concurrently running items, nothing more.
+- **`GracefulStopDelay`:** how long a running item may keep going after `StopAsync` before its token is signaled. Zero for an immediate signal, negative to never signal. Remember that only cancellable delegates that honor their token react; `StopAsync` waits for the rest regardless.
+- **This class versus `TaskPoolScheduler`:** order, a concurrency cap, pausing, or a stop that declines queued work - this class. None of those - `TaskPoolScheduler`, which needs no start and cannot stop.
+- **Deriving from `Scheduler` in the Core package instead:** when you need a bounded queue, priorities, or a different consumer model.
+
+## Common mistakes
+
+- **Wrong namespace.** The types live in `Josupeit.Practices.Schedulers`. A `Josupeit.Practices.Schedulers.Channel` namespace does not exist.
+- **Scheduling before `StartAsync`.** `InvalidOperationException`: the instance starts `Stopped` and has no consumers until started. Await `StartAsync` first.
+- **Calling `Start()` or `Stop()`.** The lifecycle is asynchronous only; the members are `StartAsync`, `StopAsync`, `PauseAsync`, `ResumeAsync`. Synchronous names are CS1061.
+- **Constructing without options.** There is no parameterless constructor (CS7036); pass a `ChannelSchedulerOptions`, if only `new ChannelSchedulerOptions()` for the defaults.
+- **Expecting back-pressure or a bounded queue.** The channel is unbounded; producers are never slowed down. Bound them yourself or derive your own scheduler.
+- **Expecting `PauseAsync` to interrupt running items.** It only stops the next dequeue. Running items finish; their token is not signaled.
+- **Expecting `StopAsync` to return when `GracefulStopDelay` elapses.** The delay only signals the token. `StopAsync` returns when every running item has actually returned, so a delegate that ignores its token delays the stop indefinitely.
+- **Expecting `ExecutionDeclinedException` when scheduling on a stopped scheduler.** That is `InvalidOperationException`. `ExecutionDeclinedException` is for items that were accepted and then not run.
+- **Expecting start or completion order with a degree above one.** Only the dequeue order is FIFO; neither start nor completion order is guaranteed. Use a degree of one for strict ordering.
+- **Blocking `Schedule` from inside an item with one consumer.** The nested item needs the consumer the outer item occupies: deadlock. Use `ScheduleAsync` and do not await it inside the outer item, or use a degree above one and still prefer `ScheduleAsync`.
+- **Setting `DegreeOfParallelism` to 0 and expecting the constructor to complain.** The constructor accepts any options; `StartAsync` throws `InvalidOperationException`.
+- **Changing options while running.** `DegreeOfParallelism` takes effect at the next `StartAsync`, `GracefulStopDelay` at the next `StopAsync`.
+- **Disposing it.** It is not disposable (CS1061 on `Dispose`); `StopAsync` is the teardown.
+
+## Related packages
+
+- **[Josupeit.Practices.Schedulers.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/llms-full.txt)** - `IScheduler` with all 56 signatures and `ExecutionDeclinedException`: the contract this class implements. Human-oriented README: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/README.md
+- **[Josupeit.Practices.Schedulers.Core](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/llms-full.txt)** - `AsyncSchedulerService`, the base class: the work item, exception routing, both tokens, and execution-context handling in detail.
+- **[Josupeit.Practices.Services](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/llms-full.txt)** - `AsyncService`: the state machine behind `StartAsync`/`StopAsync`/`PauseAsync`/`ResumeAsync`, including what each call does in each state.
+- **[Josupeit.Practices.Schedulers.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.TaskPool/llms-full.txt)** - `TaskPoolScheduler`: no order, no cap, no lifecycle - the choice when this class is more than you need.
+- **[Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md)** - all packages in the family.
+
+## License
+
+EUPL-1.2. Full text: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md

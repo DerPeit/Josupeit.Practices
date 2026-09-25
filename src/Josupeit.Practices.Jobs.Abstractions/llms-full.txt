@@ -1,0 +1,373 @@
+# Josupeit.Practices.Jobs.Abstractions
+
+> Interface-only NuGet package defining the observable job model: `IJob` (identity, `IsPending`/`IsExecuting`/`IsCompleted`/`IsCompletedSuccessfully`/`IsFaulted`/`IsCanceled`, `Exception`, a `Changed` event, `Start()`, `Cancel()`), its covariant typed variants `IJobWithResult<TResult>`, `IJobWithProgress<TProgress>`, and `IJobWithProgressAndResult<TProgress, TResult>`, and `IJobFactory` with eight `Create` overloads over asynchronous delegates. Ships the awaiting support itself: `await job` and `job.Wait()` complete when the job completes and never throw; call `job.ThrowIfFaulted()` to rethrow. Targets netstandard2.0 and net8.0, has no dependencies, and lives in the `Josupeit.Practices.Jobs` namespace.
+
+## At a glance
+
+- **Package:** `Josupeit.Practices.Jobs.Abstractions`
+- **Namespace:** `Josupeit.Practices.Jobs` - the namespace does not carry the `.Abstractions` suffix. `using Josupeit.Practices.Jobs;` is correct; `using Josupeit.Practices.Jobs.Abstractions;` does not compile.
+- **Target frameworks:** `netstandard2.0`, `net8.0`
+- **Native AOT and trimming:** compatible. The `net8.0` target is built with `IsAotCompatible`, which also marks the assembly trimmable, and is verified by an analyzer-clean build plus a native smoke-test binary published and run in CI. See [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md).
+- **Dependencies:** none. The `[PublicAPI]` annotations visible in the source are compile-time only and are not shipped.
+- **Contents:** ten interfaces (`IJob`, `IJobFactory`, `IJobAwaiter`, `IHasResult`, `IHasResult<TResult>`, `IHasProgress`, `IHasProgress<TProgress>`, `IJobWithResult<TResult>`, `IJobWithProgress<TProgress>`, `IJobWithProgressAndResult<TProgress, TResult>`), two static extension classes (`AwaitableExtensions`, `RethrowExtensions`), and one struct (`ConfiguredJobAwaitable`). No classes to derive from - those live in `Josupeit.Practices.Jobs.Core`.
+- **Nullability:** every declaration in this document is shown as compiled under `#nullable enable`. `Exception`, `Result`, and `Progress` are nullable: `Exception` is `null` unless the job is faulted, `Result` and `Progress` are `default` until set. On an unconstrained type parameter, `TResult?` means `int` for `int` (never `int?`) and `string?` for `string`.
+- **Authoritative inventory:** [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Abstractions/PublicAPI.Shipped.txt) is the analyzer-enforced list of every public member, kept in sync with the compiled assembly by RS0016/RS0017. Format key: `!` marks a non-nullable and `?` a nullable reference type; members are prefixed with `abstract`, `virtual`, `override`, or `static` where applicable; accessibility is not shown. The awaiting members appear twice there - once in the C# 14 `extension(IJob)` form they are written in and once as the static `(this IJob job)` methods they compile to; they are the same three methods.
+- **This document:** ships inside the NuGet package as `llms-full.txt` and is published at https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Abstractions/llms-full.txt. The packaged copy matches its package version; the published copy describes the latest release.
+- **Implementations:** `Josupeit.Practices.Jobs.Core` provides `JobBase` and the typed base classes for writing jobs and factories; `Josupeit.Practices.Jobs.TaskPool` (`TaskPoolJobFactory`) and `Josupeit.Practices.Jobs.Scheduler` (`SchedulerJobFactory`) are ready-made factories (see Related packages).
+- **License:** EUPL-1.2
+
+Install:
+
+```
+dotnet add package Josupeit.Practices.Jobs.Abstractions
+```
+
+## Concepts
+
+A scheduler runs a delegate and hands back its result or exception. A job is the same work with an identity and an observable life: it exists before it runs, reports where it is, can be canceled, may publish progress, and keeps its outcome for anyone who asks later. Use jobs when something other than the code that created the work needs to watch it - a UI, a monitor, a status endpoint.
+
+### The life of a job
+
+An `IJob` is created by an `IJobFactory` from an asynchronous delegate, the _start function_. Creating does not run anything: the delegate is invoked when `Start()` is called. From then on the job moves through states exposed as booleans:
+
+| Phase                   | `IsPending` | `IsExecuting` | `IsCompleted` | plus                                                      |
+| ----------------------- | ----------- | ------------- | ------------- | --------------------------------------------------------- |
+| created, not started    | `false`     | `false`       | `false`       |                                                           |
+| started, waiting to run | `true`      | `false`       | `false`       |                                                           |
+| running                 | `false`     | `true`        | `false`       |                                                           |
+| finished normally       | `false`     | `false`       | `true`        | `IsCompletedSuccessfully`; `Result` on the typed variants |
+| threw                   | `false`     | `false`       | `true`        | `IsFaulted`, `Exception`                                  |
+| canceled                | `false`     | `false`       | `true`        | `IsCanceled`                                              |
+
+`IsCompleted` is defined by the interface as "canceled, faulted, or completed successfully" - the three outcomes. The interface does not state that they are mutually exclusive, but the model intends exactly one. `Exception` is documented as the exception of a faulted job and is `null` otherwise.
+
+`Changed` is raised whenever any property of the job changes - every state transition and, on the progress variants, every progress report. It is the single observation channel; the awaiting support below is built on it.
+
+### Awaiting
+
+`await job` is provided by this package through an extension `GetAwaiter()`, so any `IJob` from any implementation is awaitable. The await completes when the job completes - by any of the three outcomes - and **does not throw**, unlike awaiting a `Task`. A faulted or canceled job returns to the awaiter normally; inspect `IsFaulted`/`IsCanceled` afterwards, or call `job.ThrowIfFaulted()` to rethrow the stored exception with its original stack trace. There is no value: `await job` is `void` even for `IJobWithResult<TResult>`; read `job.Result` after the await.
+
+`job.ConfigureAwait(false)` works as for tasks: by default the continuation is posted back to the `SynchronizationContext` that was current when the await began; with `false` it runs on whatever thread completed the job. `job.Wait()` blocks the calling thread until the job completes and, like the await, never throws. Do not block on a job from a context the job needs to complete on.
+
+### Typed variants
+
+`IJobWithResult<TResult>` adds `Result`, valid once `IsCompletedSuccessfully` is `true` and `default` before. `IJobWithProgress<TProgress>` adds `Progress`, the last value the start function reported through its `IProgress<TProgress>`; each report also raises `Changed`. `IJobWithProgressAndResult<TProgress, TResult>` has both, with the type parameters in that order - progress first, result second, matching the delegate parameter order in the factory. All four typed interfaces are covariant (`out`), so `IJobWithResult<string>` is an `IJobWithResult<object>`. The non-generic `IHasResult` and `IHasProgress` expose the same values as `object?` for heterogeneous collections of jobs.
+
+### The factory
+
+`IJobFactory` has eight `Create` overloads: two per job shape, one taking a delegate without a `CancellationToken` and one with. Every delegate is asynchronous - it returns `Task` or `Task<TResult>`. There are no `Action` or `Func<TResult>` overloads. Where a delegate takes both a progress reporter and a token, the order is `(IProgress<TProgress>, CancellationToken)`.
+
+## Types
+
+| Type                                                    | Kind            | Members                                                                                                                                              |
+| ------------------------------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `IJob`                                                  | interface       | `Changed`, `Id`, `Exception`, `IsCanceled`, `IsCompleted`, `IsCompletedSuccessfully`, `IsExecuting`, `IsFaulted`, `IsPending`, `Start()`, `Cancel()` |
+| `IHasResult` / `IHasResult<out TResult>`                | interface       | `object? Result` / `TResult? Result`                                                                                                                 |
+| `IHasProgress` / `IHasProgress<out TProgress>`          | interface       | `object? Progress` / `TProgress? Progress`                                                                                                           |
+| `IJobWithResult<out TResult>`                           | interface       | `IJob` + `IHasResult<TResult>`; no members of its own                                                                                                |
+| `IJobWithProgress<out TProgress>`                       | interface       | `IJob` + `IHasProgress<TProgress>`; no members of its own                                                                                            |
+| `IJobWithProgressAndResult<out TProgress, out TResult>` | interface       | `IJobWithProgress<TProgress>` + `IJobWithResult<TResult>`; no members of its own                                                                     |
+| `IJobFactory`                                           | interface       | eight `Create` overloads                                                                                                                             |
+| `IJobAwaiter`                                           | interface       | `ICriticalNotifyCompletion` + `IsCompleted`, `GetResult()`                                                                                           |
+| `AwaitableExtensions`                                   | static class    | `GetAwaiter()`, `ConfigureAwait(bool)`, `Wait()` on `IJob`                                                                                           |
+| `ConfiguredJobAwaitable`                                | readonly struct | `GetAwaiter()`; returned by `ConfigureAwait`                                                                                                         |
+| `RethrowExtensions`                                     | static class    | `ThrowIfFaulted()` on `IJob`                                                                                                                         |
+
+### `IJob`
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public interface IJob
+{
+    event EventHandler Changed;             // any property changed: every state transition, every progress report
+
+    Guid Id { get; }                        // stable identity for the job's lifetime
+
+    Exception? Exception { get; }           // the exception of a faulted job; null otherwise
+
+    bool IsCanceled { get; }
+
+    bool IsCompleted { get; }               // canceled, faulted, or completed successfully
+
+    bool IsCompletedSuccessfully { get; }
+
+    bool IsExecuting { get; }
+
+    bool IsFaulted { get; }
+
+    bool IsPending { get; }                 // started, waiting for execution
+
+    void Start();                           // invokes the start function - eventually, where the implementation decides
+
+    void Cancel();
+}
+```
+
+### `IHasResult`, `IHasResult<TResult>`, `IHasProgress`, `IHasProgress<TProgress>`
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public interface IHasResult
+{
+    object? Result { get; }
+}
+
+public interface IHasResult<out TResult> : IHasResult
+{
+    new TResult? Result { get; }            // default until IsCompletedSuccessfully
+}
+
+public interface IHasProgress
+{
+    object? Progress { get; }
+}
+
+public interface IHasProgress<out TProgress> : IHasProgress
+{
+    new TProgress? Progress { get; }        // last reported value; default until the first report
+}
+```
+
+### `IJobWithResult<TResult>`, `IJobWithProgress<TProgress>`, `IJobWithProgressAndResult<TProgress, TResult>`
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public interface IJobWithResult<out TResult> : IJob, IHasResult<TResult>
+{
+}
+
+public interface IJobWithProgress<out TProgress> : IJob, IHasProgress<TProgress>
+{
+}
+
+public interface IJobWithProgressAndResult<out TProgress, out TResult> : IJobWithProgress<TProgress>, IJobWithResult<TResult>
+{
+}
+```
+
+### `IJobFactory`
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public interface IJobFactory
+{
+    IJob Create(Func<Task> startFunc);
+    IJob Create(Func<CancellationToken, Task> startFunc);
+
+    IJobWithProgress<TProgress> Create<TProgress>(Func<IProgress<TProgress>, Task> startFunc);
+    IJobWithProgress<TProgress> Create<TProgress>(Func<IProgress<TProgress>, CancellationToken, Task> startFunc);
+
+    IJobWithResult<TResult> Create<TResult>(Func<Task<TResult>> startFunc);
+    IJobWithResult<TResult> Create<TResult>(Func<CancellationToken, Task<TResult>> startFunc);
+
+    IJobWithProgressAndResult<TProgress, TResult> Create<TProgress, TResult>(Func<IProgress<TProgress>, Task<TResult>> startFunc);
+    IJobWithProgressAndResult<TProgress, TResult> Create<TProgress, TResult>(Func<IProgress<TProgress>, CancellationToken, Task<TResult>> startFunc);
+}
+```
+
+Overload resolution follows the lambda. `ct => FetchAsync(ct)` with a `Task<T>`-returning method binds to `Create<TResult>(Func<CancellationToken, Task<TResult>>)` and yields `IJobWithResult<T>`. A single-parameter lambda whose parameter is **untyped** binds to the `CancellationToken` overload, not the progress one, because `TProgress` cannot be inferred from an untyped parameter; write `(IProgress<int> progress) => ...` or `Create<int>(progress => ...)` to get `IJobWithProgress<int>`.
+
+### `IJobAwaiter`, `AwaitableExtensions`, `ConfiguredJobAwaitable`
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public interface IJobAwaiter : ICriticalNotifyCompletion
+{
+    bool IsCompleted { get; }               // the job's IsCompleted
+
+    void GetResult();                       // blocks until completed; never throws
+}
+
+public static class AwaitableExtensions
+{
+    public static IJobAwaiter GetAwaiter(this IJob job);                                         // enables `await job`; a new awaiter per call
+
+    public static ConfiguredJobAwaitable ConfigureAwait(this IJob job, bool continueOnCapturedContext);
+
+    public static void Wait(this IJob job);                                                       // blocks until completed; never throws
+}
+
+public readonly struct ConfiguredJobAwaitable
+{
+    public IJobAwaiter GetAwaiter();
+}
+```
+
+All three throw `ArgumentNullException` for a `null` job. They are written as a C# 14 extension block but compile to ordinary extension methods, so any C# version can call `job.GetAwaiter()`, `await job`, and `job.Wait()`.
+
+### `RethrowExtensions`
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public static class RethrowExtensions
+{
+    public static void ThrowIfFaulted(this IJob job);   // rethrows job.Exception with its original stack trace when IsFaulted; otherwise no-op
+}
+```
+
+## Variance
+
+`IHasResult<out TResult>`, `IHasProgress<out TProgress>`, `IJobWithResult<out TResult>`, `IJobWithProgress<out TProgress>`, and `IJobWithProgressAndResult<out TProgress, out TResult>` are covariant: a job producing a `string` can be held as `IJobWithResult<object>`. Covariance needs a reference conversion between the type arguments, so `IJobWithResult<int>` is not an `IJobWithResult<object>`. Every generic interface also implements its non-generic parent, so `IJobWithResult<int>` is an `IHasResult` whose `Result` boxes the value.
+
+## Contract expectations
+
+What implementers must guarantee and what consumers may rely on:
+
+1. **Creating does not start.** `IJobFactory.Create` returns a job whose start function has not been invoked; `Start()` invokes it. Where and when it then runs is the implementation's choice - a thread pool, a scheduler, inline.
+2. **`IsCompleted` means finished, one way or another.** It is `true` exactly when the job is canceled, faulted, or completed successfully. `Exception` is non-`null` only for a faulted job.
+3. **`Changed` fires on every change**, including the transition to completed. This is what makes `await job` and `job.Wait()` work for every implementation: the awaiter subscribes to `Changed` and resumes when it observes `IsCompleted`. An implementation that completes without raising `Changed` leaves awaiters waiting forever.
+4. **Awaiting never throws.** `await job`, `job.Wait()`, and `IJobAwaiter.GetResult()` return normally for faulted and canceled jobs. Rethrowing is explicit: `ThrowIfFaulted()`.
+5. **Progress and result are the last values set.** `Progress` is whatever the start function last reported; `Result` is valid once `IsCompletedSuccessfully`. Before that both read `default`.
+6. **Left open by the interface:** whether `Start()` may be called twice or after completion; what `Cancel()` does to a job that has not started, has finished, or whose start function takes no token; whether `Cancel()` throws after completion; on which thread `Changed` is raised; whether the typed `Result` is available on a faulted job. Consult the implementation - the Core package's base classes define these for everything built on them.
+7. **Thread affinity.** `Changed` may be raised on the executing thread. Handlers that touch UI state must marshal; awaiting with the default `ConfigureAwait(true)` does so via the captured `SynchronizationContext`.
+
+## Usage
+
+### Create, start, observe, read
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Jobs;
+
+public sealed class ImportRunner
+{
+    private readonly IJobFactory _factory;
+
+    public ImportRunner(IJobFactory factory) => _factory = factory;
+
+    public async Task<int> ImportAsync(string path)
+    {
+        IJobWithProgressAndResult<int, int> job = _factory.Create<int, int>(async (progress, ct) =>
+        {
+            var imported = 0;
+
+            for (var i = 0; i < 10; i++)
+            {
+                ct.ThrowIfCancellationRequested();
+                await Task.Delay(10, ct);
+                progress.Report(++imported * 10);          // percent; raises Changed
+            }
+
+            return imported;
+        });
+
+        job.Changed += (_, _) => Console.WriteLine($"{job.Id}: {job.Progress}%");
+
+        job.Start();                                        // nothing has run before this line
+        await job;                                          // completes on success, fault, or cancel; never throws
+        job.ThrowIfFaulted();                               // opt in to rethrowing
+
+        return job.IsCompletedSuccessfully ? job.Result : -1;
+    }
+}
+```
+
+### Every factory shape
+
+```csharp
+IJob plain = factory.Create(() => Task.CompletedTask);
+IJob cancellable = factory.Create(ct => Task.Delay(100, ct));
+
+IJobWithResult<int> withResult = factory.Create(() => Task.FromResult(42));
+IJobWithResult<int> cancellableWithResult = factory.Create(ct => Task.FromResult(42));
+
+IJobWithProgress<int> withProgress = factory.Create((IProgress<int> progress) => Task.CompletedTask);
+IJobWithProgress<int> cancellableWithProgress = factory.Create<int>((progress, ct) => Task.CompletedTask);
+
+IJobWithProgressAndResult<int, string> both = factory.Create((IProgress<int> progress) => Task.FromResult("done"));
+IJobWithProgressAndResult<int, string> cancellableBoth = factory.Create<int, string>((progress, ct) => Task.FromResult("done"));
+```
+
+The progress overloads need the progress type stated somewhere - a typed lambda parameter or explicit type arguments - because it cannot be inferred from the lambda body.
+
+### Awaiting patterns
+
+```csharp
+await job;                                   // resumes on the captured SynchronizationContext, if any
+await job.ConfigureAwait(false);             // resumes wherever the job completed
+job.Wait();                                  // blocks; never throws
+
+if (job.IsFaulted)
+    logger.Log(job.Exception!);
+else if (job.IsCanceled)
+    logger.Log("canceled");
+```
+
+### Tracking many jobs of different types
+
+```csharp
+var jobs = new List<IJob>
+{
+    factory.Create(() => Task.CompletedTask),
+    factory.Create(() => Task.FromResult(1)),
+    factory.Create((IProgress<double> p) => Task.CompletedTask),
+};
+
+foreach (var job in jobs)
+    job.Start();
+
+foreach (var job in jobs)
+{
+    await job.ConfigureAwait(false);
+
+    var result = job is IHasResult hasResult ? hasResult.Result : null;        // boxed, or null for plain jobs
+    var progress = job is IHasProgress hasProgress ? hasProgress.Progress : null;
+}
+```
+
+### Cancel from outside
+
+```csharp
+var job = factory.Create(ct => Task.Delay(Timeout.Infinite, ct));
+
+job.Start();
+job.Cancel();                                // requests cancellation through the delegate's token
+
+await job;
+
+// job.IsCanceled is true if the start function honored the token; the details are the implementation's
+```
+
+## Choosing a job shape
+
+- Nothing to hand back, nobody watches the middle: `Create(Func<Task>)` or its token-taking twin - still observable and awaitable.
+- A value at the end: `Create<TResult>` with `Func<Task<TResult>>` or `Func<CancellationToken, Task<TResult>>`.
+- Intermediate state for a UI or log: `Create<TProgress>` with an `IProgress<TProgress>` parameter; each report raises `Changed`.
+- Both: `Create<TProgress, TResult>` - progress first, result second, everywhere.
+- Take the `CancellationToken` overload whenever the work can stop early; `Cancel()` has nothing to signal otherwise.
+- Awaited call with the result in hand and no observers: use `IScheduler` from `Josupeit.Practices.Schedulers.Abstractions` instead; a job is overhead without a watcher.
+
+## Common mistakes
+
+- **Wrong namespace.** The types live in `Josupeit.Practices.Jobs`. A `Josupeit.Practices.Jobs.Abstractions` namespace does not exist.
+- **Expecting `await job` to throw.** It never does. Check `IsFaulted`/`IsCanceled` or call `ThrowIfFaulted()` after the await.
+- **`var result = await job;`.** The await is `void` (CS0815). Read `job.Result` after awaiting an `IJobWithResult<TResult>`.
+- **Forgetting `Start()`.** `Create` only builds the job; without `Start()` nothing runs and an `await` never completes.
+- **Passing a synchronous delegate.** `Create(() => DoWork())` with a `void` method does not compile; there are no `Action`/`Func<TResult>` overloads. Return a `Task`: `Create(() => { DoWork(); return Task.CompletedTask; })`.
+- **Untyped lambda for a progress job.** `Create(progress => { progress.Report(1); ... })` binds `progress` as `CancellationToken` and fails on `.Report` (CS1061). Type the parameter or give the type argument.
+- **Reversing the type parameters.** It is `IJobWithProgressAndResult<TProgress, TResult>` and `Create<TProgress, TResult>` - progress first, matching the delegate `(IProgress<TProgress>, CancellationToken)`.
+- **Reading `Result` as nullable for value types.** `IJobWithResult<int>.Result` is `int`, `0` before completion; `TResult?` on an unconstrained type parameter does not make it `int?`.
+- **Assuming covariance over value types.** `IJobWithResult<int>` is not an `IJobWithResult<object>`; use the non-generic `IHasResult` for a boxed `Result`.
+- **Implementing `IJob` and forgetting `Changed` on completion.** Awaiters never resume. Derive from `JobBase` in `Josupeit.Practices.Jobs.Core` instead of implementing by hand.
+- **Blocking with `Wait()` on a UI thread** while the job needs that thread to complete: deadlock, as the XML documentation warns.
+
+## Related packages
+
+- **[Josupeit.Practices.Jobs.Core](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs/llms-full.txt)** - `JobBase` and the typed base classes that implement these interfaces with a state machine, `Notify*` transitions, and the `Start`/`Cancel` rules the interface leaves open. Human-oriented README: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs/README.md
+- **[Josupeit.Practices.Jobs.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.TaskPool/llms-full.txt)** - `TaskPoolJobFactory`: jobs that run on the thread pool when started.
+- **[Josupeit.Practices.Jobs.Scheduler](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Scheduler/llms-full.txt)** - `SchedulerJobFactory`: jobs routed through an `IScheduler`, for ordering and bounded concurrency.
+- **[Josupeit.Practices.Schedulers.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/llms-full.txt)** - `IScheduler`: the awaited-call model, for work nobody needs to watch.
+- **[Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md)** - all packages in the family.
+
+## License
+
+EUPL-1.2. Full text: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md

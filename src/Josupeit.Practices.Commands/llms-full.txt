@@ -1,0 +1,374 @@
+# Josupeit.Practices.Commands
+
+> Abstract base classes for the CQRS contracts in `Josupeit.Practices.Commands.Abstractions`: `Command`, `Command<TInput>`, `CommandWithOutput<TOutput>`, `CommandWithOutput<TInput, TOutput>`, `Query<TOutput>`, and `Query<TInput, TOutput>`. Override either the synchronous `Execute` or the asynchronous `ExecuteAsync(CancellationToken)` and the other direction is bridged automatically; calling the base implementation from an override, or overriding neither, is detected at run time and reported as an `InvalidOperationException` instead of a stack overflow. Targets netstandard2.0 and net8.0, depends only on the Abstractions package, and lives in the `Josupeit.Practices.Commands` namespace.
+
+## At a glance
+
+- **Package:** `Josupeit.Practices.Commands`
+- **Namespace:** `Josupeit.Practices.Commands` - the same namespace as the interfaces in the Abstractions package. One `using Josupeit.Practices.Commands;` covers both.
+- **Target frameworks:** `netstandard2.0`, `net8.0`
+- **Native AOT and trimming:** compatible. The `net8.0` target is built with `IsAotCompatible`, which also marks the assembly trimmable, and is verified by an analyzer-clean build plus a native smoke-test binary published and run in CI. See [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md).
+- **Dependencies:** `Josupeit.Practices.Commands.Abstractions` `[1.0, 2.0)`, pulled in transitively. You do not need to reference it yourself. The `[PublicAPI]` annotations visible in the source are compile-time only and are not shipped.
+- **Contents:** seven public types - `Executable` plus six abstract base classes. No interfaces of its own; those come from the Abstractions package.
+- **Nullability:** every declaration in this document is shown as compiled under `#nullable enable`. An unannotated reference type such as `Task` is non-nullable; nullable members carry `?`.
+- **Authoritative inventory:** [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands/PublicAPI.Shipped.txt) is the analyzer-enforced list of every public member, kept in sync with the compiled assembly by RS0016/RS0017. Format key: `!` marks a non-nullable and `?` a nullable reference type; members are prefixed with `abstract`, `virtual`, `override`, or `static` where applicable - in this package the `virtual` prefix marks exactly the override points; accessibility is not shown, so public and protected members look alike.
+- **This document:** ships inside the NuGet package as `llms-full.txt` and is published at https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands/llms-full.txt. The packaged copy matches its package version; the published copy describes the latest release.
+- **Abstractions:** the interfaces these classes implement are documented in [Josupeit.Practices.Commands.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands.Abstractions/llms-full.txt) (see Related packages).
+- **License:** EUPL-1.2
+
+Install:
+
+```
+dotnet add package Josupeit.Practices.Commands
+```
+
+## Concepts
+
+Implementing both `Execute` and `ExecuteAsync` on every command is tedious and error-prone: when the two diverge, callers on the synchronous path silently get different behavior. These base classes let you implement **one** direction and derive the other.
+
+- Override `ExecuteAsync(CancellationToken)` and the base `Execute` blocks on it.
+- Override `Execute` and the base `ExecuteAsync(CancellationToken)` wraps it in an already-completed `Task`.
+- Override both only when you genuinely have two equivalent implementations; then no bridging happens.
+
+A command or query here is the executable object itself, not a message handed to a separate handler. This differs from MediatR-style libraries, where a `record CreateOrder : IRequest<Guid>` carries the data and a distinct `IRequestHandler<CreateOrder, Guid>` carries the behavior. Here the class deriving from `Command<TInput>` contains the behavior, its constructor receives collaborators such as repositories or clocks, and `TInput` carries the per-invocation data. There is no `Send()`, no handler registration, and no mediator: construct the command (or resolve it from a DI container) and call it.
+
+Every base class derives from `Executable`, which owns a recursion guard scoped to the logical call chain. If an override calls the base implementation, or if nothing is overridden, the two bridged directions would call each other forever; the guard turns that into an `InvalidOperationException` with a clear message instead of a stack overflow.
+
+## Types
+
+| Type                                 | Implements                            | Override points                                                                                  |
+| ------------------------------------ | ------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `Executable`                         | -                                     | none usable by consumers; do not derive from it directly                                         |
+| `Command`                            | `ICommand`                            | `void Execute()`, `Task ExecuteAsync(CancellationToken)`                                         |
+| `Command<TInput>`                    | `ICommand<TInput>`                    | `void Execute(TInput)`, `Task ExecuteAsync(TInput, CancellationToken)`                           |
+| `CommandWithOutput<TOutput>`         | `ICommandWithOutput<TOutput>`         | `TOutput Execute()`, `Task<TOutput> ExecuteAsync(CancellationToken)`                             |
+| `CommandWithOutput<TInput, TOutput>` | `ICommandWithOutput<TInput, TOutput>` | `TOutput Execute(TInput)`, `Task<TOutput> ExecuteAsync(TInput, CancellationToken)`               |
+| `Query<TOutput>`                     | `IQuery<TOutput>`                     | `TOutput Execute()`, `Task<TOutput> ExecuteAsync(CancellationToken)`; must be pure               |
+| `Query<TInput, TOutput>`             | `IQuery<TInput, TOutput>`             | `TOutput Execute(TInput)`, `Task<TOutput> ExecuteAsync(TInput, CancellationToken)`; must be pure |
+
+Every base class has exactly three public members: the two `virtual` override points and one non-virtual token-less `ExecuteAsync(...)` that funnels into the token-accepting overload. There are no abstract members, so a derived class that overrides nothing compiles - and throws on first use (see Recursion detection). Every class has only the implicit protected parameterless constructor; there is nothing to pass to `base(...)`. Type parameters are ordered input first, output second.
+
+The listings below show member signatures; the base implementations are shown once under Bridging behavior.
+
+### `Executable`
+
+Root of every base class. Its only public surface is the protected parameterless constructor; the recursion-guard helper is `private protected` and unusable outside the assembly, so deriving from `Executable` directly gains nothing.
+
+```csharp
+namespace Josupeit.Practices.Commands;
+
+public abstract class Executable
+{
+}
+```
+
+### `Command`
+
+```csharp
+namespace Josupeit.Practices.Commands;
+
+public abstract class Command : Executable, ICommand
+{
+    public virtual void Execute();                                          // override point: sync
+
+    public Task ExecuteAsync();                                             // not virtual; calls ExecuteAsync(CancellationToken.None)
+
+    public virtual Task ExecuteAsync(CancellationToken cancellationToken);  // override point: async
+}
+```
+
+### `Command<TInput>`
+
+```csharp
+namespace Josupeit.Practices.Commands;
+
+public abstract class Command<TInput> : Executable, ICommand<TInput>
+{
+    public virtual void Execute(TInput input);                                            // override point: sync
+
+    public Task ExecuteAsync(TInput input);                                               // not virtual; calls ExecuteAsync(input, CancellationToken.None)
+
+    public virtual Task ExecuteAsync(TInput input, CancellationToken cancellationToken);  // override point: async
+}
+```
+
+### `CommandWithOutput<TOutput>`
+
+```csharp
+namespace Josupeit.Practices.Commands;
+
+public abstract class CommandWithOutput<TOutput> : Executable, ICommandWithOutput<TOutput>
+{
+    public virtual TOutput Execute();                                                // override point: sync
+
+    public Task<TOutput> ExecuteAsync();                                             // not virtual; calls ExecuteAsync(CancellationToken.None)
+
+    public virtual Task<TOutput> ExecuteAsync(CancellationToken cancellationToken);  // override point: async
+}
+```
+
+### `CommandWithOutput<TInput, TOutput>`
+
+```csharp
+namespace Josupeit.Practices.Commands;
+
+public abstract class CommandWithOutput<TInput, TOutput> : Executable, ICommandWithOutput<TInput, TOutput>
+{
+    public virtual TOutput Execute(TInput input);                                                  // override point: sync
+
+    public Task<TOutput> ExecuteAsync(TInput input);                                               // not virtual; calls ExecuteAsync(input, CancellationToken.None)
+
+    public virtual Task<TOutput> ExecuteAsync(TInput input, CancellationToken cancellationToken);  // override point: async
+}
+```
+
+### `Query<TOutput>`
+
+Same shape as `CommandWithOutput<TOutput>`, but implementations must not apply observable state changes. The base class does not repeat the interface's `[System.Diagnostics.Contracts.Pure]` attribute; the contract is carried by `IQuery<TOutput>`.
+
+```csharp
+namespace Josupeit.Practices.Commands;
+
+public abstract class Query<TOutput> : Executable, IQuery<TOutput>
+{
+    public virtual TOutput Execute();                                                // override point: sync
+
+    public Task<TOutput> ExecuteAsync();                                             // not virtual; calls ExecuteAsync(CancellationToken.None)
+
+    public virtual Task<TOutput> ExecuteAsync(CancellationToken cancellationToken);  // override point: async
+}
+```
+
+### `Query<TInput, TOutput>`
+
+```csharp
+namespace Josupeit.Practices.Commands;
+
+public abstract class Query<TInput, TOutput> : Executable, IQuery<TInput, TOutput>
+{
+    public virtual TOutput Execute(TInput input);                                                  // override point: sync
+
+    public Task<TOutput> ExecuteAsync(TInput input);                                               // not virtual; calls ExecuteAsync(input, CancellationToken.None)
+
+    public virtual Task<TOutput> ExecuteAsync(TInput input, CancellationToken cancellationToken);  // override point: async
+}
+```
+
+## Bridging behavior
+
+The base implementation of `Command`, verbatim apart from documentation comments. The generic variants are identical except that they pass `input` through and use `Task.FromResult(result)`, `Task.FromCanceled<TOutput>(...)`, and `Task.FromException<TOutput>(...)`.
+
+```csharp
+public virtual void Execute()
+{
+    using (CreateExecuteScope())
+    {
+        ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
+    }
+}
+
+public Task ExecuteAsync() => ExecuteAsync(CancellationToken.None);
+
+public virtual Task ExecuteAsync(CancellationToken cancellationToken)
+{
+    using (CreateExecuteScope())
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return Task.FromCanceled(cancellationToken);
+
+        try
+        {
+            Execute();
+
+            return Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            return Task.FromException(ex);
+        }
+    }
+}
+```
+
+What follows from it:
+
+- **You override only `ExecuteAsync(CancellationToken)`.** `Execute()` blocks with `.GetAwaiter().GetResult()`, so exceptions surface unwrapped (no `AggregateException`). The synchronous path passes `CancellationToken.None` and can never be canceled. Blocking on a thread that owns a synchronization context - a UI thread, legacy ASP.NET - deadlocks if your override awaits without `ConfigureAwait(false)` and the continuation needs that context; use `ConfigureAwait(false)` inside overrides, and call `ExecuteAsync` rather than `Execute` from asynchronous callers.
+- **You override only `Execute`.** `ExecuteAsync(CancellationToken)` runs `Execute` synchronously on the caller's thread and returns an already-completed `Task`; it never yields. The token is checked once, before `Execute` runs, and a token canceled during execution has no effect. Exceptions thrown by `Execute` come back as a faulted `Task`, unwrapped, rather than being thrown from the `ExecuteAsync` call itself.
+- **You override both.** No bridging occurs and the recursion guard is never entered. You are responsible for keeping the two behaviorally equivalent.
+- **The token-less `ExecuteAsync()`** always resolves to your `ExecuteAsync(CancellationToken)` override, or to the bridged base version if you did not override it. It cannot be overridden.
+
+## Recursion detection
+
+`Executable` keeps a marker in an `AsyncLocal<object?>` - scoped to the logical call chain, so it flows with the execution context and is independent for concurrent callers - that is set while a _base_ implementation of `Execute` or `ExecuteAsync(CancellationToken)` is running and cleared (reset to `null`, which removes the entry from the flow) when it finishes. Entering a base implementation of the same instance within the same call chain while the marker is already set throws:
+
+```
+System.InvalidOperationException: Neither the synchronous method Execute, nor the asynchronous overload ExecuteAsync has been overridden or either base.Execute or base.ExecuteAsync has been called from user-code which is prohibited. Please ensure to override at least one of these methods and remove base calls and try again.
+```
+
+Two situations trigger it:
+
+1. **Nothing is overridden.** The base `Execute()` sets the flag and bridges to the base `ExecuteAsync`, whose own guard entry finds it already set.
+2. **An override calls `base.Execute(...)` or `base.ExecuteAsync(...)` while the other direction is not overridden.** The base implementation bridges to the other base implementation, whose guard entry finds the flag set. If both directions are overridden, a base call merely bridges to the other override - pointless, but not an error.
+
+From `Execute` the exception is thrown directly. From `ExecuteAsync` it arrives as a faulted `Task`, so `await` rethrows it.
+
+**Concurrency.** Because the flag is scoped to the call chain rather than the instance, concurrent callers of the same instance - including a singleton resolved from DI - never see each other's flag; any lifetime is safe. The guard does fire when a _bridged_ (non-overridden) member of the same instance is entered while another bridged frame of that instance is still active in the same call chain. Example: an `ExecuteAsync` override that recurses through `this.Execute(child)` fails on the first or second nested call, depending on which member the outer call used. Recurse through the direction you overrode instead; overridden members never enter the guard.
+
+## Variance
+
+The base classes are classes, so their type parameters are invariant: `Command<Animal>` is not assignable to `Command<Dog>`. The interfaces they implement do carry variance - `TInput` is contravariant (`in`) on `ICommand<TInput>`, `ICommandWithOutput<TInput, TOutput>`, and `IQuery<TInput, TOutput>`, while `TOutput` is invariant everywhere. Expose commands to consumers through the interfaces when you need that flexibility.
+
+```csharp
+Command<Animal> feedAnimal = new FeedAnimalCommand();
+ICommand<Dog> feedDog = feedAnimal;        // compiles: via the contravariant interface
+Command<Dog> alsoFeedDog = feedAnimal;     // does not compile: the class is invariant
+```
+
+## Usage
+
+### Override the asynchronous path
+
+The common case: the work is I/O. `Execute()` is bridged automatically. `ConfigureAwait(false)` keeps the bridged synchronous path deadlock-free when a caller holds a synchronization context.
+
+```csharp
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Commands;
+
+public sealed class SendWelcomeEmailCommand : Command
+{
+    private readonly IEmailService _email;
+
+    public SendWelcomeEmailCommand(IEmailService email) => _email = email;
+
+    public override async Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        await _email.SendAsync("welcome@example.com", cancellationToken).ConfigureAwait(false);
+    }
+}
+
+// Both call sites work without any extra effort.
+new SendWelcomeEmailCommand(email).Execute();
+await new SendWelcomeEmailCommand(email).ExecuteAsync(cancellationToken);
+```
+
+### Command with input
+
+```csharp
+public sealed class DeleteUserCommand : Command<Guid>
+{
+    private readonly IUserRepository _repository;
+
+    public DeleteUserCommand(IUserRepository repository) => _repository = repository;
+
+    public override async Task ExecuteAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        await _repository.DeleteAsync(userId, cancellationToken).ConfigureAwait(false);
+    }
+}
+```
+
+### Command with output
+
+```csharp
+public sealed class CreateOrderCommand : CommandWithOutput<Order>
+{
+    private readonly IOrderRepository _repository;
+
+    public CreateOrderCommand(IOrderRepository repository) => _repository = repository;
+
+    public override async Task<Order> ExecuteAsync(CancellationToken cancellationToken)
+    {
+        return await _repository.CreateAsync(cancellationToken).ConfigureAwait(false);
+    }
+}
+```
+
+### Override the synchronous path
+
+When the implementation involves no I/O, override `Execute` and let the base class wrap it in a completed `Task`.
+
+```csharp
+public sealed class GetUserQuery : Query<Guid, User>
+{
+    private readonly IUserRepository _repository;
+
+    public GetUserQuery(IUserRepository repository) => _repository = repository;
+
+    public override User Execute(Guid id) => _repository.Find(id);
+}
+```
+
+### Override both paths
+
+Only when both implementations are real. Nothing is bridged, so you own their equivalence.
+
+```csharp
+public sealed class CountPendingInvoicesQuery : Query<int>
+{
+    private readonly IInvoiceCounter _counter;
+
+    public CountPendingInvoicesQuery(IInvoiceCounter counter) => _counter = counter;
+
+    public override int Execute() => _counter.CountPending();
+
+    public override Task<int> ExecuteAsync(CancellationToken cancellationToken) => _counter.CountPendingAsync(cancellationToken);
+}
+```
+
+### Registering and consuming through the interfaces
+
+Register by the interface from the Abstractions package and depend on that interface. Any lifetime works; instances are safe to share across concurrent callers.
+
+```csharp
+services.AddTransient<ICommand<Guid>, DeleteUserCommand>();
+services.AddTransient<IQuery<Guid, User>, GetUserQuery>();
+
+public sealed class UserController
+{
+    private readonly ICommand<Guid> _deleteUser;
+
+    public UserController(ICommand<Guid> deleteUser) => _deleteUser = deleteUser;
+
+    public Task DeleteAsync(Guid id, CancellationToken cancellationToken) => _deleteUser.ExecuteAsync(id, cancellationToken);
+}
+```
+
+## Choosing a base class
+
+| Need                                                   | Base class                           |
+| ------------------------------------------------------ | ------------------------------------ |
+| Side effect, no input, no result                       | `Command`                            |
+| Side effect driven by one argument                     | `Command<TInput>`                    |
+| Side effect that reports a result                      | `CommandWithOutput<TOutput>`         |
+| Side effect driven by one argument, reporting a result | `CommandWithOutput<TInput, TOutput>` |
+| Pure read, no input                                    | `Query<TOutput>`                     |
+| Pure read driven by one argument                       | `Query<TInput, TOutput>`             |
+
+- Several arguments: bundle them into a record and use it as `TInput`. There is no multi-input base class.
+- Override the path that matches your collaborators: `ExecuteAsync(CancellationToken)` for I/O, `Execute` for in-memory work. Override both only when both are real.
+- Do not model a read as `CommandWithOutput` for convenience; the purity contract of `Query` is what lets callers cache or retry it safely.
+- None of the six shapes fits: implement the matching interface from `Josupeit.Practices.Commands.Abstractions` directly and write both directions yourself. That package's documentation shows the hand-implementation layout, including how to bridge the synchronous path when only an asynchronous collaborator exists.
+
+## Common mistakes
+
+- **Overriding the token-less overload.** `public override Task ExecuteAsync()` fails with CS0506: that member is not virtual. Override `ExecuteAsync(CancellationToken cancellationToken)`.
+- **Calling `base.Execute(...)` or `base.ExecuteAsync(...)` from an override.** Compiles, throws `InvalidOperationException` at run time via the recursion guard.
+- **Overriding nothing.** Compiles - there are no abstract members - and throws `InvalidOperationException` on the first call.
+- **Deriving from `Executable` directly.** Gains nothing; its guard helper is inaccessible outside the assembly. Derive from one of the six base classes.
+- **Expecting `Execute()` to honor cancellation.** The bridged synchronous path passes `CancellationToken.None`.
+- **Expecting mid-execution cancellation when only `Execute` is overridden.** The bridged `ExecuteAsync` checks the token once, before `Execute` runs.
+- **Recursing through the bridged direction.** An override that calls `this.Execute(...)` or `this.ExecuteAsync(...)` on the same instance for recursive work trips the guard when that member is the bridged one and is re-entered while an earlier bridged frame is still active. Recurse through the direction you overrode.
+- **Awaiting without `ConfigureAwait(false)` in an `ExecuteAsync` override that may be invoked through `Execute()`** from a UI or legacy ASP.NET thread - deadlock.
+- **Referencing `Josupeit.Practices.Commands.Abstractions` explicitly.** Harmless but unnecessary; it is a transitive dependency and shares the namespace.
+- **Passing `Command<Animal>` where `Command<Dog>` is expected.** The classes are invariant; go through `ICommand<TInput>`, which is contravariant.
+
+## Related packages
+
+- **[Josupeit.Practices.Commands.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands.Abstractions/llms-full.txt)** - the six interfaces these classes implement: `ICommand`, `ICommand<TInput>`, `ICommandWithOutput<TOutput>`, `ICommandWithOutput<TInput, TOutput>`, `IQuery<TOutput>`, `IQuery<TInput, TOutput>`, with their variance and purity contracts. Human-oriented README: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands.Abstractions/README.md
+- **[Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md)** - all packages in the family: specifications, commands, services, schedulers, jobs, and the disposable mixin source generator.
+
+## License
+
+EUPL-1.2. Full text: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md
