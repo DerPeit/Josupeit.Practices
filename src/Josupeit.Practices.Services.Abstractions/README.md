@@ -6,6 +6,8 @@ Background services tend to share the same lifecycle: they start, optionally pau
 dotnet add package Josupeit.Practices.Services.Abstractions
 ```
 
+All types live in the `Josupeit.Practices.Services` namespace; the package name's `.Abstractions` suffix is not part of it.
+
 ## The lifecycle
 
 A service always begins in the `Stopped` state and transitions through the following states:

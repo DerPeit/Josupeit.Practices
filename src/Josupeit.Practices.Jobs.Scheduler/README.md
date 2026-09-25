@@ -2,11 +2,13 @@
 
 `TaskPoolJobFactory` is convenient, but it offers no control over how many jobs run at the same time or in what order. When those guarantees matter — for example, when jobs modify shared state, process a queue of user-submitted tasks one at a time, or must be paused while the application is busy — you need to route them through a scheduler.
 
-`SchedulerJobFactory` bridges the job model and the scheduler model: it creates `IJob` instances that, when started, submit their work to a given `IScheduler`. The scheduler's own concurrency and ordering rules apply automatically. Any `IScheduler` implementation works, but `ChannelScheduler` is the natural partner because it supports backpressure, configurable parallelism, and pausing.
+`SchedulerJobFactory` bridges the job model and the scheduler model: it creates `IJob` instances that, when started, submit their work to a given `IScheduler`. The scheduler's own concurrency and ordering rules apply automatically. Any `IScheduler` implementation works, but `ChannelScheduler` is the natural partner because it supports FIFO ordering, configurable parallelism, and pausing.
 
 ```
 dotnet add package Josupeit.Practices.Jobs.Scheduler
 ```
+
+All types live in the `Josupeit.Practices.Jobs` namespace, shared by every Jobs package; the package name's `.Scheduler` suffix is not part of it.
 
 ## How to use
 

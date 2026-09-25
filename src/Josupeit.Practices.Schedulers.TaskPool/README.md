@@ -8,6 +8,8 @@ Because it extends `Scheduler` from `Josupeit.Practices.Schedulers.Core`, you ge
 dotnet add package Josupeit.Practices.Schedulers.TaskPool
 ```
 
+All types live in the `Josupeit.Practices.Schedulers` namespace, shared by every Schedulers package; the package name's `.TaskPool` suffix is not part of it.
+
 ## How to use
 
 ```csharp
@@ -24,4 +26,4 @@ int value = scheduler.Schedule(() => ComputeValue());
 Task<int> pending = scheduler.ScheduleAsync(ct => Task.FromResult(ComputeValue()), cancellationToken);
 ```
 
-Because items are dispatched to the thread pool immediately and independently of one another, there is no guaranteed ordering between them. If your workload requires items to run sequentially — or if you need back-pressure, pausing, or bounded concurrency — use `Josupeit.Practices.Schedulers.Channel` instead.
+Because items are dispatched to the thread pool immediately and independently of one another, there is no guaranteed ordering between them. If your workload requires items to run sequentially — or if you need pausing or bounded concurrency — use `Josupeit.Practices.Schedulers.Channel` instead.

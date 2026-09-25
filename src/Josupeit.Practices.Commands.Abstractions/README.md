@@ -8,22 +8,24 @@ A deliberate design choice here is that every interface exposes **both a synchro
 dotnet add package Josupeit.Practices.Commands.Abstractions
 ```
 
+All types live in the `Josupeit.Practices.Commands` namespace; the package name's `.Abstractions` suffix is not part of it.
+
 ## Interfaces
 
 The interfaces are organized along two axes: whether the operation takes an input parameter, and whether it returns a result.
 
-| Interface | Input | Output | Notes |
-|---|---|---|---|
-| `ICommand` | — | — | Side-effecting, no return value |
-| `ICommand<TInput>` | `TInput` | — | |
-| `ICommandWithOutput<TOutput>` | — | `TOutput` | |
-| `ICommandWithOutput<TInput, TOutput>` | `TInput` | `TOutput` | |
-| `IQuery<TOutput>` | — | `TOutput` | Pure — implementations must not produce observable side effects |
-| `IQuery<TInput, TOutput>` | `TInput` | `TOutput` | Pure |
+| Interface                             | Input    | Output    | Notes                                                           |
+| ------------------------------------- | -------- | --------- | --------------------------------------------------------------- |
+| `ICommand`                            | —        | —         | Side-effecting, no return value                                 |
+| `ICommand<TInput>`                    | `TInput` | —         |                                                                 |
+| `ICommandWithOutput<TOutput>`         | —        | `TOutput` |                                                                 |
+| `ICommandWithOutput<TInput, TOutput>` | `TInput` | `TOutput` |                                                                 |
+| `IQuery<TOutput>`                     | —        | `TOutput` | Pure — implementations must not produce observable side effects |
+| `IQuery<TInput, TOutput>`             | `TInput` | `TOutput` | Pure                                                            |
 
 The distinction between `ICommandWithOutput` and `IQuery` is intentional. A command with output is still allowed to modify state; a query is not. The `IQuery` methods are annotated with `[Pure]` to make this contract explicit.
 
-Every interface provides three overloads per direction:
+Every interface provides three members, one synchronous and two asynchronous:
 
 ```csharp
 void Execute();                                    // synchronous
