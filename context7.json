@@ -1,5 +1,7 @@
 {
   "$schema": "https://context7.com/schema/context7.json",
+  "url": "https://context7.com/git_codeberg_org/derpeit_josupeit.practices",
+  "public_key": "pk_wvFRsoyy9eT9HlocS6LH6",
   "projectTitle": "Josupeit.Practices",
   "description": "Small, focused .NET libraries (netstandard2.0+, Native AOT verified) for commands, specifications, services, schedulers, observable jobs, and a source-generated dispose pattern.",
   "folders": [],
