@@ -27,6 +27,7 @@ public interface IAsyncService
     /// <returns>Task.</returns>
     /// <exception cref="NotSupportedException">This instance cannot be paused.</exception>
     /// <exception cref="InvalidOperationException">This instance is in a state where it cannot be paused.</exception>
+    /// <remarks>By contract equivalent to calling <see cref="PauseAsync(CancellationToken)"/> with <see cref="CancellationToken.None"/>.</remarks>
     Task PauseAsync();
 
     /// <summary>
@@ -44,6 +45,7 @@ public interface IAsyncService
     /// <returns>Task.</returns>
     /// <exception cref="NotSupportedException">This instance cannot be paused and thus, it cannot be resumed.</exception>
     /// <exception cref="InvalidOperationException">This instance is in a state where it cannot be resumed.</exception>
+    /// <remarks>By contract equivalent to calling <see cref="ResumeAsync(CancellationToken)"/> with <see cref="CancellationToken.None"/>.</remarks>
     Task ResumeAsync();
 
     /// <summary>
@@ -60,6 +62,7 @@ public interface IAsyncService
     /// </summary>
     /// <returns>Task.</returns>
     /// <exception cref="InvalidOperationException">This instance is in a state where it cannot be started.</exception>
+    /// <remarks>By contract equivalent to calling <see cref="StartAsync(CancellationToken)"/> with <see cref="CancellationToken.None"/>.</remarks>
     Task StartAsync();
 
     /// <summary>
@@ -75,6 +78,7 @@ public interface IAsyncService
     /// </summary>
     /// <returns>Task.</returns>
     /// <exception cref="InvalidOperationException">This instance is in a state where it cannot be stopped.</exception>
+    /// <remarks>By contract equivalent to calling <see cref="StopAsync(CancellationToken)"/> with <see cref="CancellationToken.None"/>.</remarks>
     Task StopAsync();
 
     /// <summary>
