@@ -8,8 +8,4 @@
     <PackageVersionTagPrefix>Schedulers.Abstractions/v</PackageVersionTagPrefix>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Josupeit.Practices.Services.Abstractions\Josupeit.Practices.Services.Abstractions.csproj" PackageVersion="[1,2)" />
-  </ItemGroup>
-
 </Project>
