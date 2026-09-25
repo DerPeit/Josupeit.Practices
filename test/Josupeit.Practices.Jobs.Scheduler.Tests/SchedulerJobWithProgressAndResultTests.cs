@@ -154,4 +154,24 @@ public class SchedulerJobWithProgressAndResultTests
 
         return scheduler;
     }
+
+    [Test]
+    public void Start_cancels_when_delegate_throws_OperationCanceledException_for_the_job_token()
+    {
+        var completed = new ManualResetEventSlim();
+        var job = new SchedulerJobWithProgressAndResult<int, string>(CreateImmediateScheduler(), (_, ct) => { ct.WaitHandle.WaitOne(TimeSpan.FromSeconds(5)); ct.ThrowIfCancellationRequested(); return Task.FromResult("x"); });
+
+        job.Changed += (_, _) =>
+        {
+            if (job.IsCompleted)
+                completed.Set();
+        };
+
+        job.Cancel();
+        job.Start();
+
+        Assert.That(completed.Wait(TimeSpan.FromSeconds(5)), Is.True);
+        Assert.That(job.IsCanceled, Is.True);
+        Assert.That(job.IsFaulted, Is.False);
+    }
 }

@@ -29,14 +29,19 @@ public class TaskPoolJob : Job
     }
 
     /// <inheritdoc />
-    public override async void Start()
+    public override void Start()
     {
         ThrowIfCannotStart();
 
         NotifyPending();
 
-        await Task.Yield();
+        // Task.Run rather than an awaited Task.Yield: the latter posts back to the caller's
+        // SynchronizationContext when there is one, so the delegate would run on a UI thread.
+        _ = Task.Run(RunAsync);
+    }
 
+    private async Task RunAsync()
+    {
         NotifyExecuting();
 
         try

@@ -30,14 +30,19 @@ public class TaskPoolJobWithResult<TResult> : JobWithResult<TResult>
     }
 
     /// <inheritdoc />
-    public override async void Start()
+    public override void Start()
     {
         ThrowIfCannotStart();
 
         NotifyPending();
 
-        await Task.Yield();
+        // Task.Run rather than an awaited Task.Yield: the latter posts back to the caller's
+        // SynchronizationContext when there is one, so the delegate would run on a UI thread.
+        _ = Task.Run(RunAsync);
+    }
 
+    private async Task RunAsync()
+    {
         NotifyExecuting();
 
         TResult result;
@@ -46,7 +51,7 @@ public class TaskPoolJobWithResult<TResult> : JobWithResult<TResult>
         {
             result = await _startFunc(CancellationToken).ConfigureAwait(false);
         }
-        catch (TaskCanceledException) when (CancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (CancellationToken.IsCancellationRequested)
         {
             NotifyCanceled();
 
