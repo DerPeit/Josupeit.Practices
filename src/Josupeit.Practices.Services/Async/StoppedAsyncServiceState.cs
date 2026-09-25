@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Josupeit.Practices.Services;
 
-internal class StoppedAsyncServiceState : IAsyncServiceState
+internal sealed class StoppedAsyncServiceState : IAsyncServiceState
 {
     private readonly IAsyncServiceInternals _owner;
 

@@ -18,6 +18,9 @@ jobs:
           git clone "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" .
           git checkout "${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
 
+      - name: Check LLM documentation
+        run: bash scripts/check-llms-docs.sh
+
       - name: Restore local tools
         run: dotnet tool restore
 

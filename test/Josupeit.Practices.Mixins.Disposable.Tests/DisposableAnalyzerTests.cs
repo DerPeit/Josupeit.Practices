@@ -467,4 +467,74 @@ namespace TestNamespace
 
         await test.RunAsync();
     }
+
+    [Test]
+    public async Task JPMD050_reports_error_when_WithProperty_is_combined_with_WithoutIdempotencyGuarantees()
+    {
+        var test = new CSharpAnalyzerVerifier.Test
+        {
+            TestCode = @"
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace
+{
+    [{|#0:DisposableMixin(DisposableMixinOptions.WithProperty | DisposableMixinOptions.WithoutIdempotencyGuarantees)|}]
+    public partial class {|#1:TestClass|}
+    {
+        protected virtual void DisposeManagedResources()
+        {
+        }
+    }
+}
+",
+
+            ExpectedDiagnostics =
+            {
+                new DiagnosticResult("JPMD050", DiagnosticSeverity.Error)
+                    .WithLocation(0)
+                    .WithArguments("TestClass"),
+
+                new DiagnosticResult("JPMD033", DiagnosticSeverity.Hidden)
+                    .WithLocation(1)
+                    .WithArguments("TestClass"),
+
+                new DiagnosticResult("JPMD034", DiagnosticSeverity.Hidden)
+                    .WithLocation(1)
+                    .WithArguments("TestClass"),
+            },
+        };
+
+        await test.RunAsync();
+    }
+
+    [Test]
+    public async Task JPMD060_reports_error_for_a_record_target()
+    {
+        var test = new CSharpAnalyzerVerifier.Test
+        {
+            TestCode = @"
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace
+{
+    [{|#0:DisposableMixin|}]
+    public partial record TestRecord
+    {
+        protected virtual void DisposeManagedResources()
+        {
+        }
+    }
+}
+",
+
+            ExpectedDiagnostics =
+            {
+                new DiagnosticResult("JPMD060", DiagnosticSeverity.Error)
+                    .WithLocation(0)
+                    .WithArguments("TestRecord"),
+            },
+        };
+
+        await test.RunAsync();
+    }
 }

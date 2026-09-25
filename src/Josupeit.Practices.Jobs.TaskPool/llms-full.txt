@@ -1,0 +1,284 @@
+# Josupeit.Practices.Jobs.TaskPool
+
+> `TaskPoolJobFactory`, the simplest `IJobFactory`: every job it creates runs its delegate on the thread pool the moment `Start()` is called - no queue, no ordering, no concurrency limit, no scheduler to start or stop. The four job classes it produces (`TaskPoolJob`, `TaskPoolJobWithResult<TResult>`, `TaskPoolJobWithProgress<TProgress>`, `TaskPoolJobWithProgressAndResult<TProgress, TResult>`) are public and derive from the `Josupeit.Practices.Jobs.Core` base classes. `Start()` validates and marks the job pending synchronously, then yields to the pool; the delegate's outcome becomes `IsCompletedSuccessfully`, `IsFaulted` with `Exception`, or `IsCanceled` when it honors the job's token. Targets netstandard2.0 and net8.0; lives in the `Josupeit.Practices.Jobs` namespace.
+
+## At a glance
+
+- **Package:** `Josupeit.Practices.Jobs.TaskPool`
+- **Namespace:** `Josupeit.Practices.Jobs` - shared with the Abstractions, Core, and Scheduler packages. The `.TaskPool` suffix is package-name only; `using Josupeit.Practices.Jobs.TaskPool;` does not compile.
+- **Target frameworks:** `netstandard2.0`, `net8.0`
+- **Native AOT and trimming:** compatible. The `net8.0` target is built with `IsAotCompatible`, which also marks the assembly trimmable, and is verified by an analyzer-clean build plus a native smoke-test binary that creates and runs jobs through this factory, published and run in CI. See [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md).
+- **Dependencies:** `Josupeit.Practices.Jobs.Core` `[2.0, 3.0)`, which brings `Josupeit.Practices.Jobs.Abstractions` transitively. The `[PublicAPI]` annotations visible in the source are compile-time only and are not shipped.
+- **Contents:** one factory and four job classes, all public and not sealed.
+- **Nullability:** every declaration in this document is shown as compiled under `#nullable enable`. Every delegate parameter is non-nullable and throws `ArgumentNullException` on `null`, from the factory's `Create` overloads and from the job constructors alike.
+- **Authoritative inventory:** [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.TaskPool/PublicAPI.Shipped.txt) is the analyzer-enforced list of every public member declared by this package: the five types, their constructors, the eight virtual `Create` overloads, and the four `Start` overrides. The state members and `Notify*` methods are inherited and listed in the Core and Abstractions inventories. Format key: `!` marks a non-nullable and `?` a nullable reference type; members are prefixed with `abstract`, `virtual`, `override`, or `static` where applicable; accessibility is not shown.
+- **This document:** ships inside the NuGet package as `llms-full.txt` and is published at https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.TaskPool/llms-full.txt. The packaged copy matches its package version; the published copy describes the latest release.
+- **Alternative:** `Josupeit.Practices.Jobs.Scheduler` when jobs must run in order, at most N at a time, or be pausable.
+- **License:** EUPL-1.2
+
+Install:
+
+```
+dotnet add package Josupeit.Practices.Jobs.TaskPool
+```
+
+## Concepts
+
+`TaskPoolJobFactory` is `IJobFactory` over `Task.Run`. Each `Create` overload wraps the delegate in the matching job class; the job does nothing until `Start()`. The Abstractions reference explains the job model and the Core reference the base classes; this document states what these five types add.
+
+### What `Start()` does
+
+Every `Start()` follows one shape:
+
+1. `ThrowIfCannotStart()` - synchronously. A second `Start()`, or one after completion, throws `InvalidOperationException` to the caller.
+2. `NotifyPending()` - synchronously. When `Start()` returns, `IsPending` is `true` and `Changed` has fired once.
+3. Hand off to the thread pool with `Task.Run`. Nothing of the delegate runs on the calling thread, and a `SynchronizationContext` on the caller is neither captured nor used.
+4. On the pool: `NotifyExecuting()`, then the delegate with the job's `CancellationToken` (and an `IProgress<TProgress>` for the progress variants).
+5. The outcome: the delegate returns - `NotifySucceeded(...)` with the result where there is one; it throws `OperationCanceledException` while the job's token is canceled, whichever token the exception names - `NotifyCanceled()`; it throws anything else, or an `OperationCanceledException` while the job's token is not canceled - `NotifyFailed(ex)` with the original exception.
+
+Because the outcome is decided by what the delegate throws, cancellation is cooperative in the usual .NET sense: `Cancel()` signals the token; the delegate decides. A delegate that ignores the token runs to completion and the job ends `IsCompletedSuccessfully`, `Cancel()` notwithstanding.
+
+### The non-cancellable overloads
+
+`Create(Func<Task>)`, `Create<TProgress>(Func<IProgress<TProgress>, Task>)`, `Create<TResult>(Func<Task<TResult>>)`, and `Create<TProgress, TResult>(Func<IProgress<TProgress>, Task<TResult>>)` adapt the delegate to the cancellable job constructor by discarding the token. The job still has a token and `Cancel()` still signals it, but nothing observes it: such a job cannot be canceled once started and always ends succeeded or faulted. Use the `CancellationToken` overloads for work that should stop.
+
+### Progress delivery
+
+The progress variants create a `Progress<TProgress>` wired to `NotifyProgress` **on the pool thread**, where no `SynchronizationContext` is current. `Progress<T>` therefore queues each report to the thread pool instead of invoking it inline: `progress.Report(x)` returns immediately, `Progress` updates and `Changed` fires shortly afterwards on some pool thread, each report as its own work item - so reports may arrive out of order, and the final report can land after the job has already completed. Read `Progress` as "a recently delivered value", not as the latest reported and not as final the instant `IsCompleted` turns `true`. This is deliberate: reporting never blocks the job, whatever the consumer does with the report. Consumers that must not miss the last value should carry it in the result instead.
+
+### No lifecycle, no order
+
+There is nothing to start or stop, no queue to drain, and no cap on concurrency beyond the pool's. Two jobs started back to back may run in either order or at once. The factory holds no state; one instance per application is enough, and jobs from different factories are indistinguishable.
+
+## Types
+
+| Type                                                   | Kind  | Base                                           | Adds                                                                                         |
+| ------------------------------------------------------ | ----- | ---------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `TaskPoolJobFactory`                                   | class | `IJobFactory`                                  | eight virtual `Create` overloads                                                             |
+| `TaskPoolJob`                                          | class | `Job`                                          | constructor taking `Func<CancellationToken, Task>`; `Start()`                                |
+| `TaskPoolJobWithResult<TResult>`                       | class | `JobWithResult<TResult>`                       | constructor taking `Func<CancellationToken, Task<TResult>>`; `Start()`                       |
+| `TaskPoolJobWithProgress<TProgress>`                   | class | `JobWithProgress<TProgress>`                   | constructor taking `Func<IProgress<TProgress>, CancellationToken, Task>`; `Start()`          |
+| `TaskPoolJobWithProgressAndResult<TProgress, TResult>` | class | `JobWithProgressAndResult<TProgress, TResult>` | constructor taking `Func<IProgress<TProgress>, CancellationToken, Task<TResult>>`; `Start()` |
+
+### `TaskPoolJobFactory`
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public class TaskPoolJobFactory : IJobFactory
+{
+    public TaskPoolJobFactory();
+
+    public virtual IJob Create(Func<Task> startFunc);                                      // new TaskPoolJob(_ => startFunc())
+    public virtual IJob Create(Func<CancellationToken, Task> startFunc);                   // new TaskPoolJob(startFunc)
+
+    public virtual IJobWithProgress<TProgress> Create<TProgress>(Func<IProgress<TProgress>, Task> startFunc);
+    public virtual IJobWithProgress<TProgress> Create<TProgress>(Func<IProgress<TProgress>, CancellationToken, Task> startFunc);
+
+    public virtual IJobWithResult<TResult> Create<TResult>(Func<Task<TResult>> startFunc);
+    public virtual IJobWithResult<TResult> Create<TResult>(Func<CancellationToken, Task<TResult>> startFunc);
+
+    public virtual IJobWithProgressAndResult<TProgress, TResult> Create<TProgress, TResult>(Func<IProgress<TProgress>, Task<TResult>> startFunc);
+    public virtual IJobWithProgressAndResult<TProgress, TResult> Create<TProgress, TResult>(Func<IProgress<TProgress>, CancellationToken, Task<TResult>> startFunc);
+}
+```
+
+The `Create` methods are virtual, so a derived factory can wrap or replace the job types. The returned static types are the interfaces; the runtime types are the four classes below.
+
+### The job classes
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public class TaskPoolJob : Job
+{
+    public TaskPoolJob(Func<CancellationToken, Task> startFunc);                           // ArgumentNullException on null
+
+    public override void Start();
+}
+
+public class TaskPoolJobWithResult<TResult> : JobWithResult<TResult>
+{
+    public TaskPoolJobWithResult(Func<CancellationToken, Task<TResult>> startFunc);
+
+    public override void Start();
+}
+
+public class TaskPoolJobWithProgress<TProgress> : JobWithProgress<TProgress>
+{
+    public TaskPoolJobWithProgress(Func<IProgress<TProgress>, CancellationToken, Task> startFunc);
+
+    public override void Start();
+}
+
+public class TaskPoolJobWithProgressAndResult<TProgress, TResult> : JobWithProgressAndResult<TProgress, TResult>
+{
+    public TaskPoolJobWithProgressAndResult(Func<IProgress<TProgress>, CancellationToken, Task<TResult>> startFunc);
+
+    public override void Start();
+}
+```
+
+The constructors take only the cancellable delegate shapes; the factory is what accepts the token-less ones. Everything else - `Id`, the flags, `Exception`, `Result`, `Progress`, `Changed`, `Cancel()` - is inherited from the Core base classes, and the jobs are awaitable through the Abstractions package.
+
+## Contract expectations
+
+What callers can rely on, over and above the `IJob` contract and the Core base-class behavior:
+
+1. **`Start()` returns immediately** with `IsPending` `true`; the delegate has not begun. Misuse - starting twice, or after completion - throws `InvalidOperationException` from the call, never from the pool.
+2. **The delegate runs on a thread-pool thread** with the job's token (and a progress reporter), never on the caller's thread, and starts as soon as the pool picks it up.
+3. **Outcome mapping** - return: succeeded; `OperationCanceledException` while `Cancel()` was called: canceled; any other exception, or a cancellation the job did not request: faulted with the original exception instance in `Exception`.
+4. **`Cancel()` is cooperative.** It signals the token the delegate received; a delegate that does not observe it cannot be stopped. `Cancel()` before `Start()` is allowed - the delegate then sees a token that is canceled or about to be canceled (the cancellation is queued to the pool). `Cancel()` after completion throws `InvalidOperationException`.
+5. **Progress is delivered asynchronously**, possibly out of order and possibly after completion.
+6. **Exceptions never escape** `Start()` or the pool for a delegate's failure; they are stored in `Exception`. A `Changed` handler that throws is the exception, and where it goes depends on the transition: raised by `NotifyPending` inside `Start()`, it propagates to the `Start()` caller and the job stays `IsPending` forever because the hand-off never happens; raised on the pool, it is captured in the discarded task (visible only through `TaskScheduler.UnobservedTaskException`), leaves the job stuck `IsExecuting` when thrown from `NotifyExecuting`, and stops the remaining handlers of that raise from running. Handlers must not throw.
+7. **Not provided:** ordering, a concurrency cap, a queue, a lifecycle, or synchronous execution. For those, `Josupeit.Practices.Jobs.Scheduler` with a `ChannelScheduler`.
+
+## Usage
+
+### Create, start, await
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Jobs;
+
+IJobFactory factory = new TaskPoolJobFactory();
+
+IJob job = factory.Create(ct => ExportAsync(ct));
+
+job.Start();                                    // returns at once; IsPending is true
+await job;                                      // never throws
+
+if (job.IsFaulted)
+    Console.WriteLine(job.Exception);
+```
+
+### A result
+
+```csharp
+IJobWithResult<int> count = factory.Create(async ct =>
+{
+    await Task.Delay(100, ct);
+
+    return 42;
+});
+
+count.Start();
+await count;
+
+if (count.IsCompletedSuccessfully)
+    Console.WriteLine(count.Result);            // 42
+```
+
+### Progress for a UI
+
+```csharp
+IJobWithProgress<int> import = factory.Create<int>(async (progress, ct) =>
+{
+    for (var i = 0; i <= 100; i++)
+    {
+        await Task.Delay(10, ct);
+        progress.Report(i);                     // delivered asynchronously; Changed fires per report
+    }
+});
+
+import.Changed += (_, _) => Console.WriteLine($"{import.Progress}%");   // runs on a pool thread - marshal for UI code
+
+import.Start();
+await import;
+```
+
+### Progress and a result
+
+```csharp
+IJobWithProgressAndResult<int, string> both = factory.Create<int, string>(async (progress, ct) =>
+{
+    progress.Report(50);
+    await Task.Delay(50, ct);
+    progress.Report(100);
+
+    return "done";
+});
+
+both.Start();
+await both;
+
+Console.WriteLine($"{both.Result} at {both.Progress}%");   // Progress may still read 50 here; see Progress delivery
+```
+
+### Cancel from outside
+
+```csharp
+var job = factory.Create(async ct => await Task.Delay(Timeout.Infinite, ct));
+
+job.Start();
+job.Cancel();
+await job;
+
+Console.WriteLine(job.IsCanceled);              // True: the delegate observed the token
+```
+
+### Track a batch
+
+```csharp
+var jobs = new List<IJob>();
+
+foreach (var path in paths)
+    jobs.Add(factory.Create(ct => ProcessAsync(path, ct)));
+
+foreach (var job in jobs)
+    job.Start();                                // all run concurrently on the pool
+
+foreach (var job in jobs)
+    await job.ConfigureAwait(false);
+
+var failed = jobs.Count(j => j.IsFaulted);
+```
+
+### Deriving a job directly
+
+The job classes are public, so code that has no factory can construct them, and a derived factory can substitute its own.
+
+```csharp
+var direct = new TaskPoolJobWithResult<int>(ct => Task.FromResult(7));
+
+direct.Start();
+await direct;                                   // direct.Result == 7
+```
+
+## Choosing this package
+
+- Independent background operations that need tracking, a result, or progress, and may run in any order: this package.
+- Operations that must not overlap, must run in submission order, or must be pausable: `Josupeit.Practices.Jobs.Scheduler` over a `ChannelScheduler`.
+- An awaited call with the result in hand and nobody watching: `Josupeit.Practices.Schedulers.TaskPool`, or plain `Task.Run`; a job is overhead without an observer.
+- Take the `CancellationToken` overloads whenever the work can stop early; the token-less ones cannot be canceled.
+
+## Common mistakes
+
+- **Wrong namespace.** The types live in `Josupeit.Practices.Jobs`. A `Josupeit.Practices.Jobs.TaskPool` namespace does not exist.
+- **Forgetting `Start()`.** `Create` builds the job; nothing runs and `await job` never completes until `Start()`.
+- **Expecting `Start()` to run the delegate inline.** It yields to the pool first; when `Start()` returns, `IsPending` is `true` and the delegate has not begun.
+- **Expecting `Cancel()` to stop a token-less delegate.** `Create(Func<Task>)` and the other token-less overloads discard the token; the job runs to completion and ends succeeded. Use the `CancellationToken` overloads and honor the token.
+- **Expecting `await job` to throw** for a faulted job. It never does; check `IsFaulted` or call `ThrowIfFaulted()`.
+- **Reading `Progress` as final at completion.** Reports are delivered asynchronously; the last one may arrive after `IsCompleted` is `true`.
+- **Constructing a job without a delegate.** There is no parameterless constructor (CS7036); `TaskPoolJob` takes a `Func<CancellationToken, Task>`.
+- **Passing a synchronous delegate to `Create`.** There are no `Action`/`Func<TResult>` overloads; `Create(() => DoWork())` with a `void` method does not compile. Return a `Task`.
+- **Untyped lambda for a progress job.** `factory.Create(progress => ...)` binds `progress` as `CancellationToken`; write `(IProgress<int> progress) => ...` or `Create<int>(...)`.
+- **Starting twice.** `InvalidOperationException` from the second call.
+- **Expecting order or a concurrency cap.** Neither exists here; that is the Scheduler package.
+- **Throwing from a `Changed` handler.** From `Start()` it reaches the caller and leaves the job pending forever; from the pool it is silently swallowed and can leave the job executing forever. Handlers must not throw.
+
+## Related packages
+
+- **[Josupeit.Practices.Jobs.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Abstractions/llms-full.txt)** - `IJob`, the typed variants, `IJobFactory`, and the awaiting support: the contract this factory fulfils. Human-oriented README: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Abstractions/README.md
+- **[Josupeit.Practices.Jobs.Core](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs/llms-full.txt)** - `Job` and the typed base classes these jobs derive from: the state flags, `Cancel()`, and the `Notify*` transitions in detail.
+- **[Josupeit.Practices.Jobs.Scheduler](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Scheduler/llms-full.txt)** - `SchedulerJobFactory`: the same job model routed through an `IScheduler` for order, bounded concurrency, and pausing.
+- **[Josupeit.Practices.Schedulers.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.TaskPool/llms-full.txt)** - `TaskPoolScheduler`: the awaited-call counterpart on the same thread pool, for work nobody needs to observe.
+- **[Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md)** - all packages in the family.
+
+## License
+
+EUPL-1.2. Full text: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md

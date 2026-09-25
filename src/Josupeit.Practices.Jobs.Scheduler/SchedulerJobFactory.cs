@@ -11,7 +11,7 @@ namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This class represents a factory that creates scheduler jobs.<para />
-/// Implements the <see cref="Josupeit.Practices.Jobs.IJobFactory" />
+/// Implements the <see cref="Josupeit.Practices.Jobs.IJobFactory" />.
 /// </summary>
 /// <seealso cref="Josupeit.Practices.Jobs.IJobFactory" />
 [PublicAPI]
@@ -32,6 +32,8 @@ public class SchedulerJobFactory : IJobFactory
     /// <inheritdoc />
     public virtual IJob Create(Func<Task> startFunc)
     {
+        ArgumentNullException.ThrowIfNull(startFunc);
+
         return new SchedulerJob(_scheduler, _ => startFunc());
     }
 
@@ -44,6 +46,8 @@ public class SchedulerJobFactory : IJobFactory
     /// <inheritdoc />
     public virtual IJobWithProgress<TProgress> Create<TProgress>(Func<IProgress<TProgress>, Task> startFunc)
     {
+        ArgumentNullException.ThrowIfNull(startFunc);
+
         return new SchedulerJobWithProgress<TProgress>(_scheduler, (progress, _) => startFunc(progress));
     }
 
@@ -56,6 +60,8 @@ public class SchedulerJobFactory : IJobFactory
     /// <inheritdoc />
     public virtual IJobWithResult<TResult> Create<TResult>(Func<Task<TResult>> startFunc)
     {
+        ArgumentNullException.ThrowIfNull(startFunc);
+
         return new SchedulerJobWithResult<TResult>(_scheduler, _ => startFunc());
     }
 
@@ -68,6 +74,8 @@ public class SchedulerJobFactory : IJobFactory
     /// <inheritdoc />
     public virtual IJobWithProgressAndResult<TProgress, TResult> Create<TProgress, TResult>(Func<IProgress<TProgress>, Task<TResult>> startFunc)
     {
+        ArgumentNullException.ThrowIfNull(startFunc);
+
         return new SchedulerJobWithProgressAndResult<TProgress, TResult>(_scheduler, (progress, _) => startFunc(progress));
     }
 

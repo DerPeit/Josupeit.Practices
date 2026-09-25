@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Josupeit.Practices.Jobs\Josupeit.Practices.Jobs.csproj" PackageVersion="[1,2)" />
-    <ProjectReference Include="..\Josupeit.Practices.Schedulers.Abstractions\Josupeit.Practices.Schedulers.Abstractions.csproj" PackageVersion="[1,2)" />
+    <ProjectReference Include="..\Josupeit.Practices.Jobs\Josupeit.Practices.Jobs.csproj" PackageVersion="[~,3)" />
+    <ProjectReference Include="..\Josupeit.Practices.Schedulers.Abstractions\Josupeit.Practices.Schedulers.Abstractions.csproj" PackageVersion="[~,2)" />
   </ItemGroup>
 
 </Project>

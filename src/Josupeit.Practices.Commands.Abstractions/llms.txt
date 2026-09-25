@@ -1,0 +1,34 @@
+# Josupeit.Practices.Commands.Abstractions
+
+> Interface-only NuGet package defining the CQRS command and query contracts used across Josupeit.Practices: `ICommand`, `ICommand<TInput>`, `ICommandWithOutput<TOutput>`, `ICommandWithOutput<TInput, TOutput>`, `IQuery<TOutput>`, and `IQuery<TInput, TOutput>`. Every interface exposes a synchronous `Execute` and two asynchronous `ExecuteAsync` overloads so callers never need to know whether an implementation is sync or async underneath. Targets netstandard2.0 and net8.0, has no dependencies, and lives in the `Josupeit.Practices.Commands` namespace.
+
+Install with `dotnet add package Josupeit.Practices.Commands.Abstractions`. All types live in the `Josupeit.Practices.Commands` namespace - not `Josupeit.Practices.Commands.Abstractions`. The package contains six interfaces and nothing else:
+
+- `ICommand` - no input, no output
+- `ICommand<in TInput>` - one input, no output
+- `ICommandWithOutput<TOutput>` - no input, returns `TOutput`
+- `ICommandWithOutput<in TInput, TOutput>` - one input, returns `TOutput`
+- `IQuery<TOutput>` - no input, returns `TOutput`, must be pure
+- `IQuery<in TInput, TOutput>` - one input, returns `TOutput`, must be pure
+
+Each interface has exactly three members: `Execute(...)`, `ExecuteAsync(...)`, and `ExecuteAsync(..., CancellationToken)`; none has a default implementation. By contract, `ExecuteAsync(...)` is equivalent to `ExecuteAsync(..., CancellationToken.None)`. Type parameters are ordered input first, output second. `TInput` is contravariant, `TOutput` is invariant. `IQuery` members carry `[System.Diagnostics.Contracts.Pure]`. There is no multi-input variant; bundle several arguments into a record.
+
+Unlike MediatR-style libraries, a command is the executable object itself - behavior plus injected collaborators - not a message dispatched to a separate handler; there is no `Send()` or `IRequestHandler`. Concrete base classes that implement these interfaces and bridge sync and async automatically ship in the separate `Josupeit.Practices.Commands` package.
+
+## Documentation
+
+- [Complete reference](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands.Abstractions/llms-full.txt): every interface declaration with exact signatures, variance rules, contract expectations, and usage patterns. Load this to write code against the package.
+- [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands.Abstractions/PublicAPI.Shipped.txt): analyzer-enforced inventory of every public member. `!` marks non-nullable and `?` nullable reference types; `abstract`/`virtual`/`override`/`static` prefixes mark member kind; accessibility is not shown.
+- [README](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands.Abstractions/README.md): human-oriented package overview as shown on NuGet.
+
+## Related packages
+
+- [Josupeit.Practices.Commands](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands/llms-full.txt): abstract base classes `Command`, `CommandWithOutput`, and `Query` that implement these interfaces, bridge sync and async in both directions, and detect accidental recursion between the two paths.
+
+## Optional
+
+- [Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md): all packages in the family.
+- [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md): Native AOT compatibility statement and how CI verifies it.
+- [Source code](https://codeberg.org/DerPeit/Josupeit.Practices/src/branch/main/src/Josupeit.Practices.Commands.Abstractions): the six interface files on Codeberg.
+- [NuGet package](https://www.nuget.org/packages/Josupeit.Practices.Commands.Abstractions): release history and download counts.
+- [License](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md): EUPL-1.2 full text.

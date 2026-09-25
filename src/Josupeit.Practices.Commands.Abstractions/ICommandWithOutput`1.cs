@@ -24,6 +24,7 @@ public interface ICommandWithOutput<TOutput>
     /// Executes this instance asynchronously.
     /// </summary>
     /// <returns>The <see cref="Task{TOutput}"/> that represents the asynchronous progress encapsulating a result.</returns>
+    /// <remarks>By contract equivalent to calling <see cref="ExecuteAsync(CancellationToken)"/> with <see cref="CancellationToken.None"/>.</remarks>
     Task<TOutput> ExecuteAsync();
 
     /// <summary>

@@ -1,45 +1,38 @@
 <Project>
 
-  <PropertyGroup>
-    <!--
-      It is difficult to ensure that particular targets only run once per project. Usually, they run once per target framework,
-      which leads to errors due to locked files or race conditions. One can check for a so-called "outer build," which is
-      the project's build when multi-targeted. Unfortunately, in BeforeBuild targets the outer build comes last: the
-      inner builds are triggered first, and afterward the outer build runs. So, if we attempt to transform tt files to generated
-      code, we cannot do this in the outer build. Instead, we use the DispatchToInnerBuilds target for this case. This target
-      only runs in multi-targeted projects, which is the reason for the complicated setup. The outer build order is reversed
-      in the "after" targets — they run first there, so we can rely on this in the clean target.
-    -->
-    <IsMultiTargeted>false</IsMultiTargeted>
-    <IsOuterBuild>false</IsOuterBuild>
-
-    <IsMultiTargeted Condition="'$(TargetFrameworks)' != '' AND $(TargetFrameworks.IndexOf(';')) &gt; -1 AND $(TargetFrameworks.IndexOf(';')) != $([MSBuild]::Subtract($(TargetFrameworks.Length), 1))">true</IsMultiTargeted>
-    <IsOuterBuild Condition="!$(IsMultiTargeted) OR '$(TargetFramework)' == ''">true</IsOuterBuild>
-  </PropertyGroup>
-
+  <!--
+    T4 templates are transformed into $(IntermediateOutputPath), i.e. once per target framework into a directory
+    that no other build touches. Generating into the source tree raced: a ProjectReference triggers the referenced
+    project's inner build directly, which could compile while the project's own outer build was rewriting the shared
+    .g.cs file (CS2001). Inputs/Outputs keep the transform incremental per framework; FileWrites lets Clean remove
+    the output. The outer build of a multi-targeted project has no TargetFramework and is skipped. The path uses
+    forward slashes because IntermediateOutputPath contains backslashes, which a Linux shell drops from the dotnet t4
+    command line.
+  -->
   <ItemGroup>
     <TextTemplate Include="**\*.tt">
-      <SourceFilename>%(Filename).tt</SourceFilename>
-      <SourceRelativePath>%(RelativeDir)%(SourceFilename)</SourceRelativePath>
-      <DestinationRelativePath>%(RelativeDir)%(Filename).g.cs</DestinationRelativePath>
+      <SourceRelativePath>%(RelativeDir)%(Filename).tt</SourceRelativePath>
+      <DestinationDir>$(IntermediateOutputPath.Replace('\', '/'))%(RelativeDir)</DestinationDir>
+      <DestinationRelativePath>$(IntermediateOutputPath.Replace('\', '/'))%(RelativeDir)%(Filename).g.cs</DestinationRelativePath>
+      <LegacyDestinationRelativePath>%(RelativeDir)%(Filename).g.cs</LegacyDestinationRelativePath>
     </TextTemplate>
 
-    <Compile Remove="@(TextTemplate->'%(DestinationRelativePath)')" />
+    <!-- Stale outputs from the former in-tree generation must not be compiled a second time. -->
+    <Compile Remove="@(TextTemplate->'%(LegacyDestinationRelativePath)')" />
     <Compile Include="@(TextTemplate->'%(DestinationRelativePath)')">
-      <DependentUpon>%(TextTemplate.SourceFilename)</DependentUpon>
+      <Link>%(TextTemplate.RelativeDir)%(TextTemplate.Filename).g.cs</Link>
+      <DependentUpon>%(TextTemplate.Filename).tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
-  <Target Name="TextTemplateTransformSingleTarget" BeforeTargets="BeforeBuild" Condition="!$(IsMultiTargeted)" />
-  <Target Name="TextTemplateTransformMultiTarget" BeforeTargets="DispatchToInnerBuilds" Condition="$(IsMultiTargeted)" />
-
-  <Target Name="TextTemplateTransform" BeforeTargets="TextTemplateTransformSingleTarget;TextTemplateTransformMultiTarget" Inputs="@(TextTemplate)" Outputs="@(TextTemplate->'%(DestinationRelativePath)')">
+  <Target Name="TextTemplateTransform" BeforeTargets="BeforeBuild" Condition="'$(TargetFramework)' != ''" Inputs="@(TextTemplate)" Outputs="@(TextTemplate->'%(DestinationRelativePath)')">
     <Message Text="Transforming '%(TextTemplate.SourceRelativePath)' to '%(TextTemplate.DestinationRelativePath)'." Importance="High" />
+    <MakeDir Directories="@(TextTemplate->'%(DestinationDir)')" />
     <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet t4 %(TextTemplate.SourceRelativePath) -o %(TextTemplate.DestinationRelativePath)" />
-  </Target>
 
-  <Target Name="TextTemplateClean" AfterTargets="Clean" Condition="$(IsOuterBuild)">
-    <Delete Files="@(TextTemplate->'%(DestinationRelativePath)')" />
+    <ItemGroup>
+      <FileWrites Include="@(TextTemplate->'%(DestinationRelativePath)')" />
+    </ItemGroup>
   </Target>
 
   <!--
@@ -88,7 +81,10 @@
   <!--
     Applies the PackageVersion attribute from each ProjectReference to the corresponding
     _ProjectReferencesWithVersions item that NuGet uses when generating the .nuspec file.
-    "~" is a placeholder that is replaced at runtime with the referenced project's resolved version.
+    "~" is a placeholder for the smallest version the referenced assembly binds to. Assemblies are
+    stamped major.minor.0.0 (nbgv assemblyVersion precision "minor"; adjust the regex below if that
+    changes), so that is the referenced project's major.minor - or its full version while it is a
+    prerelease, so that develop builds can still be consumed from a local feed.
     Source: https://stackoverflow.com/a/73098203
   -->
   <Target Name="UseExplicitPackageVersions" BeforeTargets="GenerateNuspec">
@@ -96,8 +92,12 @@
       <_ProjectReferencesWithVersions Condition="'%(FullPath)' != ''">
         <PackageVersion>@(ProjectReference->'%(PackageVersion)')</PackageVersion>
       </_ProjectReferencesWithVersions>
+      <_ProjectReferencesWithVersions Condition="'%(Identity)' != ''">
+        <_BindingVersion Condition="!$([System.String]::new('%(ProjectVersion)').Contains('-'))">$([System.Text.RegularExpressions.Regex]::Match('%(ProjectVersion)', '^\d+\.\d+').Value)</_BindingVersion>
+        <_BindingVersion Condition="$([System.String]::new('%(ProjectVersion)').Contains('-'))">%(ProjectVersion)</_BindingVersion>
+      </_ProjectReferencesWithVersions>
       <_ProjectReferencesWithVersions Condition="'%(Identity)' != '' And '%(PackageVersion)' != ''">
-        <ProjectVersion>$([System.String]::new('%(PackageVersion)').Replace('~',%(ProjectVersion)))</ProjectVersion>
+        <ProjectVersion>$([System.String]::new('%(PackageVersion)').Replace('~', '%(_BindingVersion)'))</ProjectVersion>
       </_ProjectReferencesWithVersions>
     </ItemGroup>
   </Target>

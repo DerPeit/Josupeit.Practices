@@ -12,7 +12,7 @@ public class JobWithProgressAndResultTests : JobBaseTests<JobWithProgressAndResu
         var job = CreateJob();
 
         job.InvokeMember("NotifyExecuting");
-        job.NotifySucceeded("done");
+        job.InvokeMember("NotifySucceeded", "done");
 
         Assert.That(job.Result, Is.EqualTo("done"));
         Assert.That(job.IsCompleted, Is.True);
@@ -25,7 +25,7 @@ public class JobWithProgressAndResultTests : JobBaseTests<JobWithProgressAndResu
     {
         var job = CreateJob();
 
-        job.NotifySucceeded("result");
+        job.InvokeMember("NotifySucceeded", "result");
 
         job.Received().InvokeMember("OnChanged");
     }
@@ -47,7 +47,7 @@ public class JobWithProgressAndResultTests : JobBaseTests<JobWithProgressAndResu
     {
         var job = CreateJob();
 
-        job.NotifySucceeded("typed");
+        job.InvokeMember("NotifySucceeded", "typed");
 
         Assert.That(((IHasResult)job).Result, Is.EqualTo("typed"));
     }

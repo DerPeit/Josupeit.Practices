@@ -21,14 +21,20 @@ public class TaskPoolSchedulerTests
     }
 
     [Test]
-    public void Schedule_executes_callback_synchronously()
+    public void Schedule_executes_callback_on_a_thread_pool_thread()
     {
         var scheduler = new TaskPoolScheduler();
+        var isThreadPoolThread = false;
         var callbackThreadId = -1;
 
-        scheduler.Schedule(() => callbackThreadId = Thread.CurrentThread.ManagedThreadId);
+        scheduler.Schedule(() =>
+        {
+            isThreadPoolThread = Thread.CurrentThread.IsThreadPoolThread;
+            callbackThreadId = Thread.CurrentThread.ManagedThreadId;
+        });
 
-        Assert.That(callbackThreadId, Is.EqualTo(Thread.CurrentThread.ManagedThreadId));
+        Assert.That(isThreadPoolThread, Is.True);
+        Assert.That(callbackThreadId, Is.Not.EqualTo(Thread.CurrentThread.ManagedThreadId));
     }
 
     [Test]

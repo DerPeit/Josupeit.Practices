@@ -10,7 +10,7 @@ namespace Josupeit.Practices.Jobs;
 
 /// <summary>
 /// This class represents a job factory that creates task pool jobs.<para />
-/// Implements the <see cref="Josupeit.Practices.Jobs.IJobFactory" />
+/// Implements the <see cref="Josupeit.Practices.Jobs.IJobFactory" />.
 /// </summary>
 /// <seealso cref="Josupeit.Practices.Jobs.IJobFactory" />
 [PublicAPI]
@@ -19,6 +19,8 @@ public class TaskPoolJobFactory : IJobFactory
     /// <inheritdoc />
     public virtual IJob Create(Func<Task> startFunc)
     {
+        ArgumentNullException.ThrowIfNull(startFunc);
+
         return new TaskPoolJob(_ => startFunc());
     }
 
@@ -31,6 +33,8 @@ public class TaskPoolJobFactory : IJobFactory
     /// <inheritdoc />
     public virtual IJobWithProgress<TProgress> Create<TProgress>(Func<IProgress<TProgress>, Task> startFunc)
     {
+        ArgumentNullException.ThrowIfNull(startFunc);
+
         return new TaskPoolJobWithProgress<TProgress>((progress, _) => startFunc(progress));
     }
 
@@ -43,6 +47,8 @@ public class TaskPoolJobFactory : IJobFactory
     /// <inheritdoc />
     public virtual IJobWithResult<TResult> Create<TResult>(Func<Task<TResult>> startFunc)
     {
+        ArgumentNullException.ThrowIfNull(startFunc);
+
         return new TaskPoolJobWithResult<TResult>(_ => startFunc());
     }
 
@@ -55,6 +61,8 @@ public class TaskPoolJobFactory : IJobFactory
     /// <inheritdoc />
     public virtual IJobWithProgressAndResult<TProgress, TResult> Create<TProgress, TResult>(Func<IProgress<TProgress>, Task<TResult>> startFunc)
     {
+        ArgumentNullException.ThrowIfNull(startFunc);
+
         return new TaskPoolJobWithProgressAndResult<TProgress, TResult>((progress, _) => startFunc(progress));
     }
 

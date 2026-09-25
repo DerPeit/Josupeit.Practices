@@ -91,4 +91,22 @@ public class SchedulerJobFactoryTests
     {
         return new SchedulerJobFactory(Substitute.For<IScheduler>());
     }
+
+    [Test]
+    public void Create_throws_on_null_startFunc_for_every_overload()
+    {
+        var factory = new SchedulerJobFactory(Substitute.For<IScheduler>());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(() => factory.Create((Func<Task>)null!), Throws.ArgumentNullException);
+            Assert.That(() => factory.Create((Func<CancellationToken, Task>)null!), Throws.ArgumentNullException);
+            Assert.That(() => factory.Create((Func<IProgress<int>, Task>)null!), Throws.ArgumentNullException);
+            Assert.That(() => factory.Create((Func<IProgress<int>, CancellationToken, Task>)null!), Throws.ArgumentNullException);
+            Assert.That(() => factory.Create((Func<Task<int>>)null!), Throws.ArgumentNullException);
+            Assert.That(() => factory.Create((Func<CancellationToken, Task<int>>)null!), Throws.ArgumentNullException);
+            Assert.That(() => factory.Create((Func<IProgress<int>, Task<int>>)null!), Throws.ArgumentNullException);
+            Assert.That(() => factory.Create((Func<IProgress<int>, CancellationToken, Task<int>>)null!), Throws.ArgumentNullException);
+        });
+    }
 }

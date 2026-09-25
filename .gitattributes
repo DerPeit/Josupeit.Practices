@@ -1,0 +1,38 @@
+# Auto-detect text files and normalize line endings in the index.
+* text=auto
+
+# ----- Diff drivers (built-in hunk-header patterns) -----
+
+# C# - shows class/struct/interface/method names in hunk headers.
+*.cs diff=csharp
+
+# T4 templates - mostly C# with text blocks; csharp driver catches code portions.
+*.tt diff=csharp
+
+# Markdown - shows headings in hunk headers.
+*.md diff=markdown
+
+# EditorConfig - INI format; shows section headers in hunk headers.
+# Requires git 2.50+; silently ignored on older versions.
+*.editorconfig diff=ini
+
+# MSBuild / solution XML - no built-in XML driver; html is the closest
+# match and picks up element names for hunk headers.
+*.csproj diff=html
+*.props diff=html
+*.targets diff=html
+*.slnx diff=html
+*.DotSettings diff=html
+
+# Shell scripts - checked out with LF everywhere so bash on Windows runs them unchanged.
+.githooks/* diff=bash eol=lf
+*.sh diff=bash eol=lf
+
+# ----- Binary -----
+
+*.png binary
+
+# ----- Merge -----
+
+# Lock files should be regenerated, not hand-merged.
+packages.lock.json merge=binary linguist-generated

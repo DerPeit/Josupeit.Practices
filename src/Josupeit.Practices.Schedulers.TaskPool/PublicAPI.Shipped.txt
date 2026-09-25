@@ -1,0 +1,4 @@
+#nullable enable
+Josupeit.Practices.Schedulers.TaskPoolScheduler
+Josupeit.Practices.Schedulers.TaskPoolScheduler.TaskPoolScheduler() -> void
+override Josupeit.Practices.Schedulers.TaskPoolScheduler.Enqueue(Josupeit.Practices.Schedulers.IScheduled! scheduled) -> void

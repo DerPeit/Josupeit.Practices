@@ -2,8 +2,11 @@
 // Copyright (c) Manuel Josupeit-Walter
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Josupeit.Practices.Mixins.Disposable.Generator.Analysis;
 using Josupeit.Practices.Mixins.Disposable.Generator.Generation;
@@ -40,6 +43,8 @@ public sealed class DisposableSourceGenerator : IIncrementalGenerator
 
     private static bool CanBeTransformed(SyntaxNode node, CancellationToken cancellationToken)
     {
+        // Classes only. Records are left to the analyzer, which reports JPMD060: the generated state
+        // would take part in a record's synthesized equality.
         if (node is not ClassDeclarationSyntax)
             return false;
 
@@ -79,7 +84,7 @@ public sealed class DisposableSourceGenerator : IIncrementalGenerator
 
                 var sourceTextName = group.Count switch
                 {
-                    > 1 => string.Concat(nameHint, '-', unchecked((uint)target.GetHashCode()), ".g.cs"),
+                    > 1 => string.Concat(nameHint, '-', CreateFnv1aHash(GetTypeIdentity(target.Type)), ".g.cs"),
                     _ => string.Concat(nameHint, ".g.cs"),
                 };
 
@@ -88,5 +93,38 @@ public sealed class DisposableSourceGenerator : IIncrementalGenerator
                 context.AddSource(sourceTextName, sourceText);
             }
         }
+    }
+
+    // Namespace, enclosing types from the outermost inwards, and the type's own name with its type
+    // parameters: unique within a compilation, and the only thing the hint-name suffix has to tell apart.
+    private static string GetTypeIdentity(TargetType type)
+    {
+        var identity = new StringBuilder();
+
+        if (type.Namespace is not null)
+            identity.Append(type.Namespace).Append('.');
+
+        var parents = new Stack<string>();
+
+        for (var parent = type.Parent; parent is not null; parent = parent.Parent)
+            parents.Push(parent.NameWithConstraints);
+
+        foreach (var parent in parents)
+            identity.Append(parent).Append('+');
+
+        return identity.Append(type.NameWithConstraints).ToString();
+    }
+
+    // Hashes a string identically in every process: string.GetHashCode is randomized per process on
+    // .NET Core, which would make the generated file name, and with it the consumer's PDB, differ
+    // between otherwise identical builds. FNV-1a, 32 bit.
+    private static string CreateFnv1aHash(string value)
+    {
+        var hash = 2166136261u;
+
+        foreach (var c in value)
+            hash = (hash ^ c) * 16777619u;
+
+        return hash.ToString("x8", CultureInfo.InvariantCulture);
     }
 }

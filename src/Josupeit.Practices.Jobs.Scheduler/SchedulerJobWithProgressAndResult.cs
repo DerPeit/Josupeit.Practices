@@ -54,6 +54,7 @@ public class SchedulerJobWithProgressAndResult<TProgress, TResult> : JobWithProg
     /// Invoked by the scheduler to execute this job. Runs the start function and notifies the appropriate
     /// completion state.
     /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     protected virtual async Task StartCore()
     {
         NotifyExecuting();
@@ -66,7 +67,7 @@ public class SchedulerJobWithProgressAndResult<TProgress, TResult> : JobWithProg
         {
             result = await _startFunc(progress, CancellationToken).ConfigureAwait(false);
         }
-        catch (TaskCanceledException) when (CancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (CancellationToken.IsCancellationRequested)
         {
             NotifyCanceled();
 

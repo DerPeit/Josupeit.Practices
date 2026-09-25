@@ -1,0 +1,317 @@
+# Josupeit.Practices.Jobs.Scheduler
+
+> `SchedulerJobFactory`, an `IJobFactory` whose jobs run through an `IScheduler` you supply: `Start()` marks the job pending and submits its work with `ScheduleAsync`, so the scheduler's ordering, concurrency limit, and pause rules apply - a `ChannelScheduler` with one consumer runs jobs strictly one after another in `Start()` order. The four job classes (`SchedulerJob`, `SchedulerJobWithResult<TResult>`, `SchedulerJobWithProgress<TProgress>`, `SchedulerJobWithProgressAndResult<TProgress, TResult>`) are public, derive from the `Josupeit.Practices.Jobs.Core` base classes, and expose a virtual `StartCore()` that the scheduler invokes. A scheduler that is not running, or that stops while the job is queued, makes the job faulted with an `InvalidOperationException` wrapping the scheduler's error. Targets netstandard2.0 and net8.0; lives in the `Josupeit.Practices.Jobs` namespace.
+
+## At a glance
+
+- **Package:** `Josupeit.Practices.Jobs.Scheduler`
+- **Namespace:** `Josupeit.Practices.Jobs` - shared with the Abstractions, Core, and TaskPool packages. The `.Scheduler` suffix is package-name only; `using Josupeit.Practices.Jobs.Scheduler;` does not compile. The scheduler types you pass in live in `Josupeit.Practices.Schedulers`.
+- **Target frameworks:** `netstandard2.0`, `net8.0`
+- **Native AOT and trimming:** compatible. The `net8.0` target is built with `IsAotCompatible`, which also marks the assembly trimmable, and is verified by an analyzer-clean build plus a native smoke-test binary that runs jobs through this factory over a `TaskPoolScheduler`, published and run in CI. See [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md).
+- **Dependencies:** `Josupeit.Practices.Jobs.Core` `[2.0, 3.0)` (bringing `Josupeit.Practices.Jobs.Abstractions`) and `Josupeit.Practices.Schedulers.Abstractions` `[1.0, 2.0)` for `IScheduler`. A scheduler implementation - `Josupeit.Practices.Schedulers.Channel` or `Josupeit.Practices.Schedulers.TaskPool` - is not a dependency; you add the one you want. The `[PublicAPI]` annotations visible in the source are compile-time only and are not shipped.
+- **Contents:** one factory and four job classes, all public and not sealed.
+- **Nullability:** every declaration in this document is shown as compiled under `#nullable enable`. The scheduler and every delegate parameter are non-nullable and throw `ArgumentNullException` on `null`, from the factory and from the job constructors alike.
+- **Authoritative inventory:** [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Scheduler/PublicAPI.Shipped.txt) is the analyzer-enforced list of every public and protected member declared by this package: the five types, their constructors, the eight virtual `Create` overloads, the four `Start` overrides, and the four virtual `StartCore` methods. Inherited members are in the Core and Abstractions inventories. Format key: `!` marks a non-nullable and `?` a nullable reference type; members are prefixed with `abstract`, `virtual`, `override`, or `static` where applicable; accessibility is not shown, so the protected `StartCore` looks like a public member.
+- **This document:** ships inside the NuGet package as `llms-full.txt` and is published at https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Scheduler/llms-full.txt. The packaged copy matches its package version; the published copy describes the latest release.
+- **Alternative:** `Josupeit.Practices.Jobs.TaskPool` when jobs are independent and need no order, cap, or pausing.
+- **License:** EUPL-1.2
+
+Install:
+
+```
+dotnet add package Josupeit.Practices.Jobs.Scheduler
+dotnet add package Josupeit.Practices.Schedulers.Channel      # or Josupeit.Practices.Schedulers.TaskPool
+```
+
+## Concepts
+
+`TaskPoolJobFactory` hands every job to the thread pool at once. `SchedulerJobFactory` hands it to an `IScheduler` instead, and whatever that scheduler guarantees - FIFO order, at most N running, pausing, a stop that declines queued work - the jobs inherit. The job model itself is unchanged: the same interfaces, the same base classes, the same awaiting. This document covers the seam between the two.
+
+### What `Start()` does
+
+1. `ThrowIfCannotStart()` - synchronously. A second `Start()`, or one after completion, throws `InvalidOperationException` to the caller.
+2. `NotifyPending()` - synchronously. When `Start()` returns, `IsPending` is `true`.
+3. `scheduler.ScheduleAsync(StartCore, CancellationToken)` - the job's `StartCore` is submitted as a `Func<Task>` with the job's own token as the caller token. From here on the scheduler decides when it runs. `Start()` returns; it never waits for the scheduler.
+4. When the scheduler executes the item, `StartCore` runs on the scheduler's thread: `NotifyExecuting()`, then the delegate with the job's token (and an `IProgress<TProgress>` for the progress variants), then exactly one of `NotifySucceeded(...)`, `NotifyCanceled()` (the delegate threw `OperationCanceledException` while the job's token was canceled), or `NotifyFailed(ex)` (anything else).
+5. The scheduling itself is observed separately: if `ScheduleAsync` completes with `OperationCanceledException` while the job's token is canceled, the job becomes canceled; if it fails for any other reason, the job becomes **faulted** with an `InvalidOperationException` whose `InnerException` is the scheduler's error.
+
+Step 5 is what distinguishes this package. Every reason the scheduler cannot or will not run the item surfaces on the job, never as an exception from `Start()`:
+
+| Scheduler situation                                   | Job outcome | `Exception`                                                                      |
+| ----------------------------------------------------- | ----------- | -------------------------------------------------------------------------------- |
+| `ChannelScheduler` not started, or already stopped    | faulted     | `InvalidOperationException` wrapping the scheduler's `InvalidOperationException` |
+| `ChannelScheduler` stopped while the job was queued   | faulted     | `InvalidOperationException` wrapping `ExecutionDeclinedException`                |
+| job's token already canceled when `Start()` is called | canceled    | `null` - the scheduler refused the submission with `OperationCanceledException`  |
+| any scheduler, delegate completes                     | succeeded   | `null`                                                                           |
+
+A stopped scheduler therefore never leaves a job pending: it ends faulted, and `await job` returns. The wrapping exception's message begins "The attempt to schedule the current job on the scheduler failed unexpectedly"; the real cause is the inner exception.
+
+### `IsPending` means "in the scheduler's queue"
+
+With a `ChannelScheduler`, a started job stays `IsPending` until a consumer dequeues it - possibly a long time, if the queue is deep or the scheduler is paused. `IsExecuting` begins only when `StartCore` runs. This is the one job model where `IsPending` carries real information; with `TaskPoolJobFactory` it lasts microseconds.
+
+### Cancellation
+
+`Cancel()` signals the job's token, which reaches two places:
+
+- **The scheduler, as the caller token of `ScheduleAsync`.** `StartCore` is a token-less delegate from the scheduler's point of view, so for a `ChannelScheduler` the token governs only the submission: if the token is already canceled at submission, the submission is refused and the job ends canceled without ever being queued; canceled while queued, the item stays in the queue and still runs when its turn comes.
+- **The delegate, as its `CancellationToken`.** When the item eventually runs, the delegate sees a canceled token; if it honors it, the job ends canceled. So a job canceled while queued passes briefly through `IsExecuting` before it ends `IsCanceled`, and a token-less delegate (the `Create` overloads without a `CancellationToken`) cannot be canceled once queued at all - it runs to completion.
+
+The scheduler's own stop token does not reach the delegate: a `ChannelScheduler` stopping with a `GracefulStopDelay` waits for running jobs to finish on their own; it cannot interrupt them.
+
+### Progress
+
+The progress variants create a `Progress<TProgress>` wired to `NotifyProgress` inside `StartCore`, on the scheduler's executing thread. With the shipped schedulers that thread has no `SynchronizationContext` (a thread-pool thread for `TaskPoolScheduler`; for `ChannelScheduler` a dedicated consumer thread or, after the consumer's first asynchronous wait, a thread-pool thread), so, as with `TaskPoolJobFactory`, each report is queued to the pool as its own work item: delivery is asynchronous, reports may arrive out of order, and the last one may land after the job has completed. `Progress` is "a recently delivered value", not necessarily the latest reported. This is deliberate: reporting never blocks the job, whatever the consumer does with the report. A scheduler that executes items on a thread with a `SynchronizationContext` gets reports posted there.
+
+### `StartCore` is virtual
+
+`StartCore()` is `protected virtual` on all four job classes and is the whole "execute" step. Override it to wrap the base call - a logging scope, an ambient value, timing - and call `base.StartCore()`; the base implementation is what invokes the delegate and reports the outcome. Code after the base call runs after the terminal `Notify*` has already fired, so observers and awaiters may resume before it executes; do not set state there that they are expected to read.
+
+## Types
+
+| Type                                                    | Kind  | Base                                           | Adds                                                                                                               |
+| ------------------------------------------------------- | ----- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `SchedulerJobFactory`                                   | class | `IJobFactory`                                  | constructor taking `IScheduler`; eight virtual `Create` overloads                                                  |
+| `SchedulerJob`                                          | class | `Job`                                          | constructor `(IScheduler, Func<CancellationToken, Task>)`; `Start()`; `StartCore()`                                |
+| `SchedulerJobWithResult<TResult>`                       | class | `JobWithResult<TResult>`                       | constructor `(IScheduler, Func<CancellationToken, Task<TResult>>)`; `Start()`; `StartCore()`                       |
+| `SchedulerJobWithProgress<TProgress>`                   | class | `JobWithProgress<TProgress>`                   | constructor `(IScheduler, Func<IProgress<TProgress>, CancellationToken, Task>)`; `Start()`; `StartCore()`          |
+| `SchedulerJobWithProgressAndResult<TProgress, TResult>` | class | `JobWithProgressAndResult<TProgress, TResult>` | constructor `(IScheduler, Func<IProgress<TProgress>, CancellationToken, Task<TResult>>)`; `Start()`; `StartCore()` |
+
+### `SchedulerJobFactory`
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public class SchedulerJobFactory : IJobFactory
+{
+    public SchedulerJobFactory(IScheduler scheduler);                                      // ArgumentNullException on null; the scheduler is not started by the factory
+
+    public virtual IJob Create(Func<Task> startFunc);                                      // new SchedulerJob(scheduler, _ => startFunc())
+    public virtual IJob Create(Func<CancellationToken, Task> startFunc);
+
+    public virtual IJobWithProgress<TProgress> Create<TProgress>(Func<IProgress<TProgress>, Task> startFunc);
+    public virtual IJobWithProgress<TProgress> Create<TProgress>(Func<IProgress<TProgress>, CancellationToken, Task> startFunc);
+
+    public virtual IJobWithResult<TResult> Create<TResult>(Func<Task<TResult>> startFunc);
+    public virtual IJobWithResult<TResult> Create<TResult>(Func<CancellationToken, Task<TResult>> startFunc);
+
+    public virtual IJobWithProgressAndResult<TProgress, TResult> Create<TProgress, TResult>(Func<IProgress<TProgress>, Task<TResult>> startFunc);
+    public virtual IJobWithProgressAndResult<TProgress, TResult> Create<TProgress, TResult>(Func<IProgress<TProgress>, CancellationToken, Task<TResult>> startFunc);
+}
+```
+
+The factory keeps a reference to the scheduler and passes it to every job; it neither starts nor stops it. The `Create` methods are virtual for derived factories.
+
+### The job classes
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public class SchedulerJob : Job
+{
+    public SchedulerJob(IScheduler scheduler, Func<CancellationToken, Task> startFunc);
+
+    public override void Start();                            // guard, NotifyPending, scheduler.ScheduleAsync(StartCore, CancellationToken)
+
+    protected virtual Task StartCore();                      // run by the scheduler: NotifyExecuting, the delegate, one terminal Notify*
+}
+
+public class SchedulerJobWithResult<TResult> : JobWithResult<TResult>
+{
+    public SchedulerJobWithResult(IScheduler scheduler, Func<CancellationToken, Task<TResult>> startFunc);
+
+    public override void Start();
+
+    protected virtual Task StartCore();
+}
+
+public class SchedulerJobWithProgress<TProgress> : JobWithProgress<TProgress>
+{
+    public SchedulerJobWithProgress(IScheduler scheduler, Func<IProgress<TProgress>, CancellationToken, Task> startFunc);
+
+    public override void Start();
+
+    protected virtual Task StartCore();
+}
+
+public class SchedulerJobWithProgressAndResult<TProgress, TResult> : JobWithProgressAndResult<TProgress, TResult>
+{
+    public SchedulerJobWithProgressAndResult(IScheduler scheduler, Func<IProgress<TProgress>, CancellationToken, Task<TResult>> startFunc);
+
+    public override void Start();
+
+    protected virtual Task StartCore();
+}
+```
+
+The constructors take the scheduler first and only the cancellable delegate shapes; the factory adapts the token-less ones.
+
+## Contract expectations
+
+What callers can rely on, over and above the `IJob` contract and the Core base-class behavior:
+
+1. **`Start()` returns immediately** with `IsPending` `true`, having submitted to the scheduler. Misuse throws `InvalidOperationException` from the call.
+2. **Execution follows the scheduler's rules.** With a `ChannelScheduler` of degree one, jobs start in `Start()` order and never overlap; with degree N, at most N run at once and start order is not guaranteed; while paused, none start. With a `TaskPoolScheduler`, jobs behave like `TaskPoolJobFactory` jobs.
+3. **Scheduler failures become job failures.** A submission the scheduler rejects, or an accepted item it later declines, ends the job faulted with an `InvalidOperationException` wrapping the cause. `Start()` never throws for a scheduler problem, and `await job` always returns.
+4. **Outcome mapping** for the delegate is the same as in the TaskPool package: return - succeeded; `OperationCanceledException` while the job's token is canceled - canceled; anything else - faulted with the original exception.
+5. **Cancellation is cooperative** and reaches the delegate only when the item runs; a queued job cannot be removed from the queue by `Cancel()`, and a token-less delegate cannot be canceled at all.
+6. **Not provided:** starting or stopping the scheduler, a stop token for the delegate, or any ordering beyond what the scheduler gives.
+
+## Usage
+
+### Strict sequence
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Jobs;
+using Josupeit.Practices.Schedulers;
+
+var scheduler = new ChannelScheduler(new ChannelSchedulerOptions { DegreeOfParallelism = 1 });
+
+await scheduler.StartAsync();                                // the factory does not do this for you
+
+IJobFactory factory = new SchedulerJobFactory(scheduler);
+
+IJob step1 = factory.Create(ct => StepOneAsync(ct));
+IJob step2 = factory.Create(ct => StepTwoAsync(ct));
+
+step1.Start();
+step2.Start();                                               // queued behind step1; IsPending until step1 has finished
+
+await step1;
+await step2;
+
+await scheduler.StopAsync();
+```
+
+### Bounded parallelism over a batch
+
+```csharp
+var scheduler = new ChannelScheduler(new ChannelSchedulerOptions { DegreeOfParallelism = 4 });
+
+await scheduler.StartAsync();
+
+IJobFactory factory = new SchedulerJobFactory(scheduler);
+var jobs = new List<IJobWithResult<int>>();
+
+for (var i = 0; i < 20; i++)
+{
+    var index = i;
+
+    jobs.Add(factory.Create(ct => ProcessAsync(index, ct)));
+}
+
+foreach (var job in jobs)
+    job.Start();                                             // at most four run at any moment
+
+foreach (var job in jobs)
+    await job.ConfigureAwait(false);
+
+var total = jobs.Where(j => j.IsCompletedSuccessfully).Sum(j => j.Result);
+
+await scheduler.StopAsync();
+```
+
+### Pausing the whole queue
+
+```csharp
+await scheduler.PauseAsync();                                // running jobs finish; queued jobs stay IsPending
+
+var queued = factory.Create(ct => Task.CompletedTask);
+
+queued.Start();                                              // accepted and queued, not run
+
+await scheduler.ResumeAsync();
+await queued;
+```
+
+### Telling scheduler failures from work failures
+
+```csharp
+await job;
+
+if (job.IsFaulted && job.Exception is InvalidOperationException { InnerException: ExecutionDeclinedException })
+    Console.WriteLine("the scheduler stopped before this job ran");
+else if (job.IsFaulted && job.Exception is InvalidOperationException { InnerException: not null } scheduling)
+    Console.WriteLine($"could not schedule: {scheduling.InnerException!.Message}");   // e.g. scheduler not started
+else if (job.IsFaulted)
+    Console.WriteLine($"the work failed: {job.Exception}");
+```
+
+### Observing execution with `StartCore`
+
+```csharp
+public sealed class TimedSchedulerJob : SchedulerJob
+{
+    public TimedSchedulerJob(IScheduler scheduler, Func<CancellationToken, Task> startFunc) : base(scheduler, startFunc)
+    {
+    }
+
+    public TimeSpan Elapsed { get; private set; }
+
+    protected override async Task StartCore()
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+
+        try
+        {
+            await base.StartCore().ConfigureAwait(false);    // NotifyExecuting, the delegate, the terminal Notify*
+        }
+        finally
+        {
+            Elapsed = watch.Elapsed;
+        }
+    }
+}
+```
+
+### Hosting
+
+Register the scheduler as a singleton and start it with the host; the factory is a plain singleton over it.
+
+```csharp
+// services.AddSingleton(new ChannelSchedulerOptions { DegreeOfParallelism = 1 });
+// services.AddSingleton<ChannelScheduler>();
+// services.AddSingleton<IScheduler>(sp => sp.GetRequiredService<ChannelScheduler>());
+// services.AddSingleton<IJobFactory, SchedulerJobFactory>();
+// services.AddHostedService<SchedulerHost>();       // StartAsync/StopAsync forward to the ChannelScheduler; see the Schedulers.Channel reference
+```
+
+## Choosing this package
+
+- Jobs that must not overlap, must run in `Start()` order, or must be pausable: this package over a `ChannelScheduler`.
+- Independent jobs with no ordering needs: `Josupeit.Practices.Jobs.TaskPool`, which needs no scheduler lifecycle.
+- The same job code in both modes: write against `IJobFactory` and inject either factory.
+- Awaited calls without observers: use the scheduler directly through `IScheduler`.
+
+## Common mistakes
+
+- **Wrong namespace.** The types live in `Josupeit.Practices.Jobs`, the schedulers in `Josupeit.Practices.Schedulers`. A `Josupeit.Practices.Jobs.Scheduler` namespace does not exist.
+- **Forgetting to start the `ChannelScheduler`.** `Start()` on the job does not throw; the job ends faulted with an `InvalidOperationException` wrapping the scheduler's "not running" error, and `IsFaulted` is the only sign.
+- **Expecting a stopped scheduler to cancel queued jobs.** They end **faulted** (inner `ExecutionDeclinedException`), not canceled.
+- **Expecting `Cancel()` to dequeue a job.** The item stays queued; the job runs when its turn comes, sees a canceled token, and ends canceled only if the delegate honors it.
+- **Using a token-less `Create` overload for work that should be cancelable.** Once queued it runs to completion regardless of `Cancel()`.
+- **Constructing a job or factory without a scheduler.** `new SchedulerJobFactory()` and `new SchedulerJob(startFunc)` do not compile (CS7036); the scheduler is the first argument.
+- **Treating `IsPending` as momentary.** With a queue it can be long; poll or await, do not spin.
+- **Reading `Progress` as final at completion.** Delivered asynchronously; the last report may land after `IsCompleted`.
+- **Expecting `await job` to throw.** It never does; check `IsFaulted`, and look at `Exception.InnerException` to see whether the scheduler or the work failed.
+- **Overriding `StartCore` without calling `base.StartCore()`.** The delegate never runs and no terminal `Notify*` happens; the job hangs executing.
+- **Passing a synchronous delegate or an untyped progress lambda.** Same rules as every `IJobFactory`: `Task`-returning delegates only, and `(IProgress<int> progress) => ...` or `Create<int>(...)` for progress.
+
+## Related packages
+
+- **[Josupeit.Practices.Jobs.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Abstractions/llms-full.txt)** - `IJob`, the typed variants, `IJobFactory`, and the awaiting support. Human-oriented README: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Abstractions/README.md
+- **[Josupeit.Practices.Jobs.Core](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs/llms-full.txt)** - the base classes these jobs derive from: flags, `Cancel()`, and the `Notify*` transitions.
+- **[Josupeit.Practices.Jobs.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.TaskPool/llms-full.txt)** - the same job model without a scheduler.
+- **[Josupeit.Practices.Schedulers.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/llms-full.txt)** - `IScheduler` and `ExecutionDeclinedException`.
+- **[Josupeit.Practices.Schedulers.Channel](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Channel/llms-full.txt)** - `ChannelScheduler`: the natural partner; lifecycle, FIFO, degree of parallelism, pause, and the six stop steps.
+- **[Josupeit.Practices.Schedulers.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.TaskPool/llms-full.txt)** - `TaskPoolScheduler`: a scheduler with no lifecycle, when you want this factory's shape without a queue.
+- **[Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md)** - all packages in the family.
+
+## License
+
+EUPL-1.2. Full text: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md

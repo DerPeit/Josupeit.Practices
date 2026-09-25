@@ -1,6 +1,8 @@
 ﻿// SPDX-License-Identifier: EUPL-1.2
 // Copyright (c) Manuel Josupeit-Walter
 
+#pragma warning disable SA1403 // Embedded resource injected into consumer compilations; multiple namespaces are by design.
+
 #if !JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_ATTRIBUTES && !JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_EMBEDDED_ATTRIBUTE
 
 namespace Microsoft.CodeAnalysis
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis
 
 namespace Josupeit.Practices.Mixins.Disposable
 {
-    [global::System.AttributeUsageAttribute(global::System.AttributeTargets.Class | global::System.AttributeTargets.Struct)]
+    [global::System.AttributeUsageAttribute(global::System.AttributeTargets.Class)]
     [global::System.Diagnostics.ConditionalAttribute("JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Josupeit.Practices.Mixins.Disposable.Generator", "1.0.0.0")]

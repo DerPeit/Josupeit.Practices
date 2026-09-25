@@ -1,0 +1,30 @@
+# Josupeit.Practices.Schedulers.TaskPool
+
+> `TaskPoolScheduler`, the simplest ready-made `IScheduler`: every item is queued to the .NET thread pool through `Task.Run` the moment it is scheduled. No queue of its own, no ordering, no concurrency limit beyond the pool's, no lifecycle to start or stop, and therefore never an `ExecutionDeclinedException`. `Schedule` blocks the caller until the pool has run the item; `ScheduleAsync` returns a task that completes when it has. One public class, derived from `Scheduler` in `Josupeit.Practices.Schedulers.Core`. Targets netstandard2.0, netstandard2.1, and net8.0; lives in the `Josupeit.Practices.Schedulers` namespace.
+
+Install with `dotnet add package Josupeit.Practices.Schedulers.TaskPool`. The type lives in the `Josupeit.Practices.Schedulers` namespace - not `Josupeit.Practices.Schedulers.TaskPool`. One type:
+
+- `TaskPoolScheduler : Scheduler` - public parameterless constructor, not sealed; all 56 `IScheduler` members inherited; `protected override void Enqueue(IScheduled scheduled)` calls `Task.Run(() => scheduled.ExecuteAsync(CancellationToken.None))`
+
+Items run on thread-pool threads, never on the caller's, in no particular order and with no concurrency limit of its own. There is no `Start`, `Stop`, `State`, or `Dispose`; the class implements neither `IService` nor `IDisposable`. A cancellable delegate receives the caller's own `CancellationToken`; a non-cancellable one cannot be interrupted once dispatched. Exceptions reach the caller unwrapped. `Schedule*` capture the caller's `ExecutionContext`; `Unsafe*` run under the default, empty context. For FIFO order, bounded concurrency, or pausing use `Josupeit.Practices.Schedulers.Channel` instead.
+
+## Documentation
+
+- [Complete reference](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.TaskPool/llms-full.txt): where and when items run, the caller's token, execution context, contract expectations, usage (registration, fan-out, cancellation, unsafe hot paths), and common mistakes. Load this to write code against the package.
+- [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.TaskPool/PublicAPI.Shipped.txt): analyzer-enforced inventory of the members this package declares; the inherited `IScheduler` members are in the Core package's inventory. `!` marks non-nullable and `?` nullable reference types; accessibility is not shown.
+- [README](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.TaskPool/README.md): human-oriented package overview as shown on NuGet.
+
+## Related packages
+
+- [Josupeit.Practices.Schedulers.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Abstractions/llms-full.txt): `IScheduler` with all 56 signatures and `ExecutionDeclinedException`.
+- [Josupeit.Practices.Schedulers.Core](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers/llms-full.txt): the `Scheduler` base class that provides everything but the one-line `Enqueue`.
+- [Josupeit.Practices.Schedulers.Channel](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Schedulers.Channel/llms-full.txt): FIFO scheduler with configurable parallelism and pause support.
+- [Josupeit.Practices.Jobs.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.TaskPool/llms-full.txt): tracked jobs on the same thread pool.
+
+## Optional
+
+- [Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md): all packages in the family.
+- [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md): Native AOT compatibility statement and how CI verifies it.
+- [Source code](https://codeberg.org/DerPeit/Josupeit.Practices/src/branch/main/src/Josupeit.Practices.Schedulers.TaskPool): the single source file on Codeberg.
+- [NuGet package](https://www.nuget.org/packages/Josupeit.Practices.Schedulers.TaskPool): release history and download counts.
+- [License](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md): EUPL-1.2 full text.

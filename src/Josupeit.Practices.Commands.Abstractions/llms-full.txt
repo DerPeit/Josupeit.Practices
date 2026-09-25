@@ -1,0 +1,300 @@
+# Josupeit.Practices.Commands.Abstractions
+
+> Interface-only NuGet package defining the CQRS command and query contracts used across Josupeit.Practices: `ICommand`, `ICommand<TInput>`, `ICommandWithOutput<TOutput>`, `ICommandWithOutput<TInput, TOutput>`, `IQuery<TOutput>`, and `IQuery<TInput, TOutput>`. Every interface exposes a synchronous `Execute` and two asynchronous `ExecuteAsync` overloads so callers never need to know whether an implementation is sync or async underneath. Targets netstandard2.0 and net8.0, has no dependencies, and lives in the `Josupeit.Practices.Commands` namespace.
+
+## At a glance
+
+- **Package:** `Josupeit.Practices.Commands.Abstractions`
+- **Namespace:** `Josupeit.Practices.Commands` - the namespace does not carry the `.Abstractions` suffix. `using Josupeit.Practices.Commands;` is correct; `using Josupeit.Practices.Commands.Abstractions;` does not compile.
+- **Target frameworks:** `netstandard2.0`, `net8.0`
+- **Native AOT and trimming:** compatible. The `net8.0` target is built with `IsAotCompatible`, which also marks the assembly trimmable, and is verified by an analyzer-clean build plus a native smoke-test binary published and run in CI. See [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md).
+- **Dependencies:** none. The `[PublicAPI]` annotations visible in the source are compile-time only (JetBrains.Annotations, private assets) and are not shipped.
+- **Contents:** six interfaces. No classes, no extension methods, no attributes of its own.
+- **Nullability:** every declaration in this document is shown as compiled under `#nullable enable`. An unannotated reference type such as `Task` is non-nullable; nullable members carry `?`.
+- **Authoritative inventory:** [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands.Abstractions/PublicAPI.Shipped.txt) is the analyzer-enforced list of every public member, kept in sync with the compiled assembly by RS0016/RS0017. Format key: `!` marks a non-nullable and `?` a nullable reference type; members are prefixed with `abstract`, `virtual`, `override`, or `static` where applicable; accessibility is not shown, so public and protected members look alike.
+- **This document:** ships inside the NuGet package as `llms-full.txt` and is published at https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands.Abstractions/llms-full.txt. The packaged copy matches its package version; the published copy describes the latest release.
+- **Implementations:** `Josupeit.Practices.Commands` provides abstract base classes that implement these interfaces (see Related packages).
+- **License:** EUPL-1.2
+
+Install:
+
+```
+dotnet add package Josupeit.Practices.Commands.Abstractions
+```
+
+## Concepts
+
+The package captures the CQRS vocabulary as a small family of interfaces so that every command or query in an application speaks the same language regardless of where it comes from or how it is implemented.
+
+- A **command** does something. It may change observable state. It may or may not take an input and may or may not return a result.
+- A **query** reads something. It must not change observable state. It always returns a result and may or may not take an input.
+
+A command or query is the executable object itself, not a message handed to a separate handler. This differs from MediatR-style libraries, where a `record CreateOrder : IRequest<Guid>` carries the data and a distinct `IRequestHandler<CreateOrder, Guid>` carries the behavior. Here the class implementing `ICommand<TInput>` contains the behavior, its constructor receives collaborators such as repositories or clocks, and `TInput` carries the per-invocation data. There is no `Send()`, no handler registration, and no mediator: construct the command (or resolve it from a DI container) and call it.
+
+Two axes - "takes an input?" and "returns a result?" - combined with the purity distinction produce the six interfaces. There is intentionally no multi-input variant: when an operation needs several arguments, bundle them into a record or tuple and use that as `TInput`.
+
+Every interface exposes **both a synchronous and an asynchronous execution path**. The caller decides how to invoke; the implementer decides how to implement; neither needs to know about the other. A pipeline can `await command.ExecuteAsync(cancellationToken)` regardless of whether the concrete type performs I/O, and a legacy call site can call `command.Execute()` against an implementation that is asynchronous underneath.
+
+The interfaces do not prescribe how the two paths relate. The contract is that they are behaviorally equivalent. The base classes in `Josupeit.Practices.Commands` guarantee this by implementing one path in terms of the other.
+
+## Interfaces
+
+| Interface                             | Input    | Output    | Pure | Typical use                                     |
+| ------------------------------------- | -------- | --------- | ---- | ----------------------------------------------- |
+| `ICommand`                            | -        | -         | no   | Fire a side effect                              |
+| `ICommand<TInput>`                    | `TInput` | -         | no   | Side effect driven by an argument               |
+| `ICommandWithOutput<TOutput>`         | -        | `TOutput` | no   | Side effect that also reports a result          |
+| `ICommandWithOutput<TInput, TOutput>` | `TInput` | `TOutput` | no   | Side effect driven by an argument with a result |
+| `IQuery<TOutput>`                     | -        | `TOutput` | yes  | Read without side effects                       |
+| `IQuery<TInput, TOutput>`             | `TInput` | `TOutput` | yes  | Parameterized read without side effects         |
+
+All six follow the same shape: one synchronous member and two asynchronous members, the second of which accepts a `CancellationToken`. None of the members has a default implementation. Type parameters are always ordered input first, output second: `ICommandWithOutput<TInput, TOutput>` takes a `TInput` and returns a `TOutput`. The exact declarations follow. `IQuery<...>` and `ICommandWithOutput<...>` are independent interfaces with identical member signatures; `IQuery` does not inherit from `ICommandWithOutput`.
+
+### `ICommand`
+
+Parameterless command without a return value.
+
+```csharp
+namespace Josupeit.Practices.Commands;
+
+public interface ICommand
+{
+    void Execute();
+
+    Task ExecuteAsync();
+
+    Task ExecuteAsync(CancellationToken cancellationToken);
+}
+```
+
+### `ICommand<TInput>`
+
+Command without a return value that takes one input. `TInput` is contravariant.
+
+```csharp
+namespace Josupeit.Practices.Commands;
+
+public interface ICommand<in TInput>
+{
+    void Execute(TInput input);
+
+    Task ExecuteAsync(TInput input);
+
+    Task ExecuteAsync(TInput input, CancellationToken cancellationToken);
+}
+```
+
+### `ICommandWithOutput<TOutput>`
+
+Parameterless command that returns a result. `TOutput` is invariant.
+
+```csharp
+namespace Josupeit.Practices.Commands;
+
+public interface ICommandWithOutput<TOutput>
+{
+    TOutput Execute();
+
+    Task<TOutput> ExecuteAsync();
+
+    Task<TOutput> ExecuteAsync(CancellationToken cancellationToken);
+}
+```
+
+### `ICommandWithOutput<TInput, TOutput>`
+
+Command that takes one input and returns a result. `TInput` is contravariant, `TOutput` is invariant.
+
+```csharp
+namespace Josupeit.Practices.Commands;
+
+public interface ICommandWithOutput<in TInput, TOutput>
+{
+    TOutput Execute(TInput input);
+
+    Task<TOutput> ExecuteAsync(TInput input);
+
+    Task<TOutput> ExecuteAsync(TInput input, CancellationToken cancellationToken);
+}
+```
+
+### `IQuery<TOutput>`
+
+Parameterless query. Same member shape as `ICommandWithOutput<TOutput>`, but implementations must not apply any observable state changes - the execution methods must be pure. Every member is annotated with `[System.Diagnostics.Contracts.Pure]` to make that contract explicit to readers and to analyzers that understand `PureAttribute`.
+
+```csharp
+namespace Josupeit.Practices.Commands;
+
+public interface IQuery<TOutput>
+{
+    [System.Diagnostics.Contracts.Pure]
+    TOutput Execute();
+
+    [System.Diagnostics.Contracts.Pure]
+    Task<TOutput> ExecuteAsync();
+
+    [System.Diagnostics.Contracts.Pure]
+    Task<TOutput> ExecuteAsync(CancellationToken cancellationToken);
+}
+```
+
+### `IQuery<TInput, TOutput>`
+
+Query that takes one input. Same member shape as `ICommandWithOutput<TInput, TOutput>`, with the same purity contract as `IQuery<TOutput>`. `TInput` is contravariant, `TOutput` is invariant.
+
+```csharp
+namespace Josupeit.Practices.Commands;
+
+public interface IQuery<in TInput, TOutput>
+{
+    [System.Diagnostics.Contracts.Pure]
+    TOutput Execute(TInput input);
+
+    [System.Diagnostics.Contracts.Pure]
+    Task<TOutput> ExecuteAsync(TInput input);
+
+    [System.Diagnostics.Contracts.Pure]
+    Task<TOutput> ExecuteAsync(TInput input, CancellationToken cancellationToken);
+}
+```
+
+## Variance
+
+- `TInput` is declared `in` (contravariant) on every interface that has it. A command or query that handles a base type can be used where one for a derived type is expected.
+- `TOutput` is invariant. It appears inside `Task<TOutput>`, which is a class and therefore cannot be covariant, so C# does not allow `out TOutput` here.
+
+```csharp
+ICommand<Animal> feedAnimal = new FeedAnimalCommand();
+ICommand<Dog> feedDog = feedAnimal;         // compiles: TInput is contravariant
+
+IQuery<Dog> findDog = new FindDogQuery();
+IQuery<Animal> findAnimal = findDog;        // does not compile: TOutput is invariant
+```
+
+## Contract expectations
+
+What implementers must guarantee and what consumers may rely on:
+
+1. **Equivalence.** `Execute` and `ExecuteAsync` produce the same effects and the same result. A caller may use whichever path fits its context.
+2. **Token-less async.** `ExecuteAsync()` must behave exactly like `ExecuteAsync(CancellationToken.None)`. This is part of the contract, not a convention, and it is what the Task-based Asynchronous Pattern prescribes for overloads without a cancellation token: callers may use either overload interchangeably when they have no token, and implementers must wire the token-less overload to the token-accepting one.
+3. **Cancellation.** `ExecuteAsync(CancellationToken)` should observe the token. Cancellation surfaces as `OperationCanceledException`, following the standard .NET pattern.
+4. **Purity.** `IQuery<...>` implementations must not produce observable side effects. Internal memoization or logging that does not alter domain state is acceptable. Implementers are not required to repeat the `[Pure]` attribute on their own methods - it is part of the interface contract - but doing so is harmless and extends analyzer coverage to calls made through the concrete type.
+5. **Exceptions.** The interfaces impose no exception contract beyond standard .NET conventions. Implementations should let exceptions propagate rather than swallow them.
+
+## Usage
+
+### Consuming commands and queries through the interfaces
+
+Reference this package in libraries or shared application layers that need to work with commands and queries without depending on any concrete implementation. A dispatcher or mediator only needs the interfaces:
+
+```csharp
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Commands;
+
+public interface ICommandDispatcher
+{
+    Task DispatchAsync(ICommand command, CancellationToken cancellationToken);
+
+    Task DispatchAsync<TInput>(ICommand<TInput> command, TInput input, CancellationToken cancellationToken);
+
+    Task<TOutput> DispatchAsync<TOutput>(ICommandWithOutput<TOutput> command, CancellationToken cancellationToken);
+
+    Task<TOutput> DispatchAsync<TInput, TOutput>(ICommandWithOutput<TInput, TOutput> command, TInput input, CancellationToken cancellationToken);
+
+    Task<TOutput> QueryAsync<TOutput>(IQuery<TOutput> query, CancellationToken cancellationToken);
+
+    Task<TOutput> QueryAsync<TInput, TOutput>(IQuery<TInput, TOutput> query, TInput input, CancellationToken cancellationToken);
+}
+
+public sealed class SequentialDispatcher : ICommandDispatcher
+{
+    public Task DispatchAsync(ICommand command, CancellationToken cancellationToken) => command.ExecuteAsync(cancellationToken);
+
+    public Task DispatchAsync<TInput>(ICommand<TInput> command, TInput input, CancellationToken cancellationToken) => command.ExecuteAsync(input, cancellationToken);
+
+    public Task<TOutput> DispatchAsync<TOutput>(ICommandWithOutput<TOutput> command, CancellationToken cancellationToken) => command.ExecuteAsync(cancellationToken);
+
+    public Task<TOutput> DispatchAsync<TInput, TOutput>(ICommandWithOutput<TInput, TOutput> command, TInput input, CancellationToken cancellationToken) => command.ExecuteAsync(input, cancellationToken);
+
+    public Task<TOutput> QueryAsync<TOutput>(IQuery<TOutput> query, CancellationToken cancellationToken) => query.ExecuteAsync(cancellationToken);
+
+    public Task<TOutput> QueryAsync<TInput, TOutput>(IQuery<TInput, TOutput> query, TInput input, CancellationToken cancellationToken) => query.ExecuteAsync(input, cancellationToken);
+}
+```
+
+Because every interface also has a synchronous member, the same dispatcher could offer blocking overloads that call `Execute(...)` instead, without the implementations having to change.
+
+### Implementing an interface directly
+
+Implementing an interface by hand means providing all three members. The idiomatic layout funnels the token-less overload into the token-accepting one:
+
+```csharp
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Commands;
+
+public sealed class PurgeExpiredSessionsCommand : ICommand
+{
+    private readonly ISessionStore _sessions;
+
+    public PurgeExpiredSessionsCommand(ISessionStore sessions) => _sessions = sessions;
+
+    public void Execute() => _sessions.PurgeExpired();
+
+    public Task ExecuteAsync() => ExecuteAsync(CancellationToken.None);
+
+    public Task ExecuteAsync(CancellationToken cancellationToken) => _sessions.PurgeExpiredAsync(cancellationToken);
+}
+```
+
+A query with an input follows the same layout. The implementation may omit `[Pure]`; the interface contract carries it:
+
+```csharp
+public sealed class GetLoyaltyPointsQuery : IQuery<string, int>
+{
+    private readonly ILoyaltyLedger _ledger;
+
+    public GetLoyaltyPointsQuery(ILoyaltyLedger ledger) => _ledger = ledger;
+
+    public int Execute(string customerEmail) => _ledger.PointsFor(customerEmail);
+
+    public Task<int> ExecuteAsync(string customerEmail) => ExecuteAsync(customerEmail, CancellationToken.None);
+
+    public Task<int> ExecuteAsync(string customerEmail, CancellationToken cancellationToken) => _ledger.PointsForAsync(customerEmail, cancellationToken);
+}
+
+// Both paths yield the same answer.
+int points = query.Execute("bartholomew.bytes@example.com");
+int samePoints = await query.ExecuteAsync("bartholomew.bytes@example.com", cancellationToken);
+```
+
+When the only collaborator is asynchronous, implement `Execute` by blocking on the token-accepting overload, for example `public int Execute(string customerEmail) => ExecuteAsync(customerEmail, CancellationToken.None).GetAwaiter().GetResult();`. Prefer `.GetAwaiter().GetResult()` over `.Result` or `.Wait()`, which wrap exceptions in `AggregateException`. Blocking on a thread that owns a synchronization context - a UI thread, legacy ASP.NET - can deadlock if the awaited code resumes on that context; call the async path from asynchronous callers and reserve `Execute` for genuinely synchronous ones.
+
+Writing all three members for every type is the boilerplate that `Josupeit.Practices.Commands` removes: derive from `Command`, `Command<TInput>`, `CommandWithOutput<TOutput>`, `CommandWithOutput<TInput, TOutput>`, `Query<TOutput>`, or `Query<TInput, TOutput>`, override either the sync or the async path, and the other is bridged automatically. Prefer those base classes unless you have a reason to control the bridging yourself.
+
+## Choosing an interface
+
+- Does the operation change observable state? Yes: use the `ICommand` family. No: use the `IQuery` family.
+- Does it take an argument? Yes: pick the variant with `TInput`. Several arguments: bundle them into a record and use that record as `TInput`.
+- Does it return a result? Yes: `ICommandWithOutput<...>` for commands; every `IQuery<...>` returns a result. No: `ICommand` or `ICommand<TInput>`.
+- Do not model a read as `ICommandWithOutput` for convenience. The purity contract is what allows callers to reorder, cache, or retry queries safely.
+
+## Common mistakes
+
+- **Wrong namespace.** The types live in `Josupeit.Practices.Commands`. A `Josupeit.Practices.Commands.Abstractions` namespace does not exist.
+- **MediatR shape.** There is no `IRequest`, `IRequestHandler`, `ISender`, or `Send()`. The command object is the handler: construct or resolve it and call `Execute` or `ExecuteAsync` directly.
+- **Reversed type parameters.** `ICommandWithOutput<TInput, TOutput>` and `IQuery<TInput, TOutput>` take the input type first. `ICommandWithOutput<Guid, Order>` accepts a `Guid` and returns an `Order`.
+- **Multiple inputs.** `ICommand<TInput1, TInput2>` does not exist. Bundle the arguments into a record and use it as `TInput`.
+- **Partial implementation.** Implementing `Execute` and throwing `NotImplementedException` from `ExecuteAsync`, or the reverse, breaks the equivalence contract. Implement all three members, or derive from a base class in `Josupeit.Practices.Commands` so the bridging is done for you.
+- **Expecting default interface members.** No member funnels into another by default; `ExecuteAsync()` does not automatically call `ExecuteAsync(CancellationToken.None)`. Every hand-written implementation must provide that wiring itself; the base classes in `Josupeit.Practices.Commands` do it for you.
+- **Treating `IQuery` as an `ICommandWithOutput`.** The two are unrelated interfaces. An `IQuery<TOutput>` cannot be passed where an `ICommandWithOutput<TOutput>` is expected, and vice versa.
+
+## Related packages
+
+- **[Josupeit.Practices.Commands](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands/llms-full.txt)** - abstract base classes `Command`, `Command<TInput>`, `CommandWithOutput<TOutput>`, `CommandWithOutput<TInput, TOutput>`, `Query<TOutput>`, and `Query<TInput, TOutput>` that implement these interfaces, bridge sync and async in both directions, and detect accidental recursion between the two paths. Human-oriented README: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands/README.md
+- **[Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md)** - all packages in the family: specifications, commands, services, schedulers, jobs, and the disposable mixin source generator.
+
+## License
+
+EUPL-1.2. Full text: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md

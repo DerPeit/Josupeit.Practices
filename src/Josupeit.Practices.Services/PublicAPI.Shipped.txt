@@ -1,0 +1,87 @@
+#nullable enable
+Josupeit.Practices.Services.AsyncService
+Josupeit.Practices.Services.AsyncService.AsyncService() -> void
+Josupeit.Practices.Services.AsyncService.PauseAsync() -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.AsyncService.PauseAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.AsyncService.ResumeAsync() -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.AsyncService.ResumeAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.AsyncService.StartAsync() -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.AsyncService.StartAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.AsyncService.State.get -> Josupeit.Practices.Services.ServiceState
+Josupeit.Practices.Services.AsyncService.StopAsync() -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.AsyncService.StopAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.AsyncService.ThrowIfNotRunning() -> void
+Josupeit.Practices.Services.AsyncService.ThrowIfPaused() -> void
+Josupeit.Practices.Services.AsyncService.ThrowIfRunning() -> void
+Josupeit.Practices.Services.AsyncService.ThrowIfStopped() -> void
+Josupeit.Practices.Services.DisposableAsyncService
+Josupeit.Practices.Services.DisposableAsyncService.DisposableAsyncService() -> void
+Josupeit.Practices.Services.DisposableAsyncService.Dispose() -> void
+Josupeit.Practices.Services.DisposableAsyncService.Disposing -> System.EventHandler?
+Josupeit.Practices.Services.DisposableAsyncService.IsDisposed.get -> bool
+Josupeit.Practices.Services.DisposableAsyncService.PauseAsync() -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.DisposableAsyncService.PauseAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.DisposableAsyncService.ResumeAsync() -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.DisposableAsyncService.ResumeAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.DisposableAsyncService.StartAsync() -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.DisposableAsyncService.StartAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.DisposableAsyncService.State.get -> Josupeit.Practices.Services.ServiceState
+Josupeit.Practices.Services.DisposableAsyncService.StopAsync() -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.DisposableAsyncService.StopAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.DisposableAsyncService.ThrowIfDisposed() -> void
+Josupeit.Practices.Services.DisposableAsyncService.ThrowIfNotRunning() -> void
+Josupeit.Practices.Services.DisposableAsyncService.ThrowIfPaused() -> void
+Josupeit.Practices.Services.DisposableAsyncService.ThrowIfRunning() -> void
+Josupeit.Practices.Services.DisposableAsyncService.ThrowIfStopped() -> void
+Josupeit.Practices.Services.DisposableAsyncService.~DisposableAsyncService() -> void
+Josupeit.Practices.Services.DisposableService
+Josupeit.Practices.Services.DisposableService.DisposableService() -> void
+Josupeit.Practices.Services.DisposableService.Dispose() -> void
+Josupeit.Practices.Services.DisposableService.Disposing -> System.EventHandler?
+Josupeit.Practices.Services.DisposableService.IsDisposed.get -> bool
+Josupeit.Practices.Services.DisposableService.Pause() -> void
+Josupeit.Practices.Services.DisposableService.Resume() -> void
+Josupeit.Practices.Services.DisposableService.Start() -> void
+Josupeit.Practices.Services.DisposableService.State.get -> Josupeit.Practices.Services.ServiceState
+Josupeit.Practices.Services.DisposableService.Stop() -> void
+Josupeit.Practices.Services.DisposableService.ThrowIfDisposed() -> void
+Josupeit.Practices.Services.DisposableService.ThrowIfNotRunning() -> void
+Josupeit.Practices.Services.DisposableService.ThrowIfPaused() -> void
+Josupeit.Practices.Services.DisposableService.ThrowIfRunning() -> void
+Josupeit.Practices.Services.DisposableService.ThrowIfStopped() -> void
+Josupeit.Practices.Services.DisposableService.~DisposableService() -> void
+Josupeit.Practices.Services.Service
+Josupeit.Practices.Services.Service.Pause() -> void
+Josupeit.Practices.Services.Service.Resume() -> void
+Josupeit.Practices.Services.Service.Service() -> void
+Josupeit.Practices.Services.Service.Start() -> void
+Josupeit.Practices.Services.Service.State.get -> Josupeit.Practices.Services.ServiceState
+Josupeit.Practices.Services.Service.Stop() -> void
+Josupeit.Practices.Services.Service.ThrowIfNotRunning() -> void
+Josupeit.Practices.Services.Service.ThrowIfPaused() -> void
+Josupeit.Practices.Services.Service.ThrowIfRunning() -> void
+Josupeit.Practices.Services.Service.ThrowIfStopped() -> void
+abstract Josupeit.Practices.Services.AsyncService.OnStartAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+abstract Josupeit.Practices.Services.AsyncService.OnStopAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+abstract Josupeit.Practices.Services.DisposableAsyncService.OnStartAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+abstract Josupeit.Practices.Services.DisposableAsyncService.OnStopAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+abstract Josupeit.Practices.Services.DisposableService.OnStart() -> void
+abstract Josupeit.Practices.Services.DisposableService.OnStop() -> void
+abstract Josupeit.Practices.Services.Service.OnStart() -> void
+abstract Josupeit.Practices.Services.Service.OnStop() -> void
+virtual Josupeit.Practices.Services.AsyncService.CanPause.get -> bool
+virtual Josupeit.Practices.Services.AsyncService.OnPauseAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+virtual Josupeit.Practices.Services.AsyncService.OnResumeAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+virtual Josupeit.Practices.Services.DisposableAsyncService.CanPause.get -> bool
+virtual Josupeit.Practices.Services.DisposableAsyncService.DisposeManagedResources() -> void
+virtual Josupeit.Practices.Services.DisposableAsyncService.DisposeUnmanagedResources() -> void
+virtual Josupeit.Practices.Services.DisposableAsyncService.OnPauseAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+virtual Josupeit.Practices.Services.DisposableAsyncService.OnResumeAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+virtual Josupeit.Practices.Services.DisposableService.CanPause.get -> bool
+virtual Josupeit.Practices.Services.DisposableService.DisposeManagedResources() -> void
+virtual Josupeit.Practices.Services.DisposableService.DisposeUnmanagedResources() -> void
+virtual Josupeit.Practices.Services.DisposableService.OnPause() -> void
+virtual Josupeit.Practices.Services.DisposableService.OnResume() -> void
+virtual Josupeit.Practices.Services.Service.CanPause.get -> bool
+virtual Josupeit.Practices.Services.Service.OnPause() -> void
+virtual Josupeit.Practices.Services.Service.OnResume() -> void

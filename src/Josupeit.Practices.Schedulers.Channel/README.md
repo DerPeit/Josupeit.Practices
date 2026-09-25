@@ -1,12 +1,14 @@
 # Josupeit.Practices.Schedulers.Channel
 
-When you need more control over how work is executed — ordering, bounded concurrency, back-pressure, or the ability to pause and resume — `ChannelScheduler` is the right tool. It backs the `IScheduler` interface with `System.Threading.Channels`, processing items in FIFO order across a configurable number of concurrent consumers.
+When you need more control over how work is executed — ordering, bounded concurrency, or the ability to pause and resume — `ChannelScheduler` is the right tool. It backs the `IScheduler` interface with `System.Threading.Channels`, processing items in FIFO order across a configurable number of concurrent consumers. The queue itself is unbounded: submitting never waits.
 
 Because it extends `AsyncSchedulerService`, it is a full-featured background service as well as a scheduler. It must be started before you submit work and stopped when you are done. Stopping is always graceful: pending items are declined, and running items are given time to finish before they are canceled.
 
 ```
 dotnet add package Josupeit.Practices.Schedulers.Channel
 ```
+
+All types live in the `Josupeit.Practices.Schedulers` namespace, shared by every Schedulers package; the package name's `.Channel` suffix is not part of it.
 
 ## How to use
 
@@ -37,7 +39,7 @@ await scheduler.StopAsync();
 
 ## Options reference
 
-| Property | Default | Description |
-|---|---|---|
-| `DegreeOfParallelism` | `Environment.ProcessorCount` | Number of work items that may run concurrently. Set to `1` for strict sequential execution. |
-| `GracefulStopDelay` | `TimeSpan.FromSeconds(3)` | How long to wait for currently executing items when `Stop` is called. Set to `TimeSpan.Zero` to cancel running items immediately, or to a negative value to wait indefinitely. |
+| Property              | Default                      | Description                                                                                                                                                                                                                                           |
+| --------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DegreeOfParallelism` | `Environment.ProcessorCount` | Number of work items that may run concurrently. Set to `1` for strict sequential execution.                                                                                                                                                           |
+| `GracefulStopDelay`   | `TimeSpan.FromSeconds(3)`    | How long running items keep going after `StopAsync` is called before their token is signaled; `StopAsync` still waits for them to return. Set to `TimeSpan.Zero` to signal immediately, or to a negative value to never signal and wait indefinitely. |

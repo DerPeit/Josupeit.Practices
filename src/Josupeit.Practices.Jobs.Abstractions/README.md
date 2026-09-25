@@ -1,12 +1,14 @@
 # Josupeit.Practices.Jobs.Abstractions
 
-A scheduler runs fire-and-forget work items. A job is something richer: it has an observable lifecycle, an identity, and it may carry a result or report incremental progress. This package defines the contracts for that model.
+A scheduler runs awaited work items. A job is something richer: it has an observable lifecycle, an identity, and it may carry a result or report incremental progress. This package defines the contracts for that model.
 
 The typical flow is: create a job through a factory, start it, observe its state via the `Changed` event or by awaiting it directly, and read the result or exception once it completes.
 
 ```
 dotnet add package Josupeit.Practices.Jobs.Abstractions
 ```
+
+All types live in the `Josupeit.Practices.Jobs` namespace; the package name's `.Abstractions` suffix is not part of it.
 
 ## Core interface: `IJob`
 
@@ -32,11 +34,11 @@ public interface IJob
 
 Plain `IJob` covers the most common case. When you need more, use one of the typed variants.
 
-| Interface | Additional member |
-|---|---|
-| `IJobWithResult<TResult>` | `TResult Result` — available once `IsCompletedSuccessfully` is `true` |
-| `IJobWithProgress<TProgress>` | `TProgress Progress` — updated via `IProgress<TProgress>` callbacks during execution |
-| `IJobWithProgressAndResult<TProgress, TResult>` | Both of the above |
+| Interface                                       | Additional member                                                                     |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `IJobWithResult<TResult>`                       | `TResult? Result` — available once `IsCompletedSuccessfully` is `true`                |
+| `IJobWithProgress<TProgress>`                   | `TProgress? Progress` — updated via `IProgress<TProgress>` callbacks during execution |
+| `IJobWithProgressAndResult<TProgress, TResult>` | Both of the above                                                                     |
 
 ## Creating jobs: `IJobFactory`
 

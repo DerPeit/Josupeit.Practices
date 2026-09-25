@@ -8,11 +8,13 @@ This meta-package installs a Roslyn source generator that writes the entire disp
 dotnet add package Josupeit.Practices.Mixins.Disposable
 ```
 
+The generated `DisposableMixin` attribute and its options live in the `Josupeit.Practices.Mixins.Disposable` namespace.
+
 The package is marked as a development dependency (`DevelopmentDependency=true`), so it does not appear as a runtime dependency in packages that consume your library.
 
 ## How to use
 
-Mark your class as `partial` and apply `[DisposableMixin]`. Then provide override points for the resource categories you own. You do not need to implement `IDisposable` or `IAsyncDisposable` yourself — the generator adds them.
+Mark your class as `partial` and apply `[DisposableMixin]`. Structs are not supported; the attribute only applies to classes. Records are not supported either (the analyzer reports JPMD060), because the generated disposal state would take part in a record's synthesized equality and hash code. Then provide override points for the resource categories you own. You do not need to implement `IDisposable` or `IAsyncDisposable` yourself — the generator adds them.
 
 ```csharp
 using Josupeit.Practices.Mixins.Disposable;
@@ -51,12 +53,14 @@ The generator produces both `IDisposable` and `IAsyncDisposable` implementations
 
 Pass a `DisposableMixinOptions` flags value to the attribute to tailor the generated code.
 
-| Flag | Effect |
-|---|---|
-| `WithProperty` | Generates a public `bool IsDisposed { get; }` property |
-| `WithEvent` | Generates a `Disposing` event that is raised when the instance is about to release its resources |
-| `WithoutIdempotencyGuarantees` | Omits the double-dispose guard — use only when you can guarantee `Dispose` is called once |
-| `WithoutAsyncDisposable` | Generates only `IDisposable`, not `IAsyncDisposable` |
+| Flag                           | Effect                                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `WithProperty`                 | Generates a public `bool IsDisposed { get; }` property                                           |
+| `WithEvent`                    | Generates a `Disposing` event that is raised when the instance is about to release its resources |
+| `WithoutIdempotencyGuarantees` | Omits the double-dispose guard — use only when you can guarantee `Dispose` is called once        |
+| `WithoutAsyncDisposable`       | Generates only `IDisposable`, not `IAsyncDisposable`                                             |
+
+`WithProperty` and `WithoutIdempotencyGuarantees` exclude each other: without the guard there is no disposed state to expose, so the analyzer reports an error (JPMD050) and `IsDisposed` is not generated.
 
 ```csharp
 // Expose disposal state for UI binding or observability.
@@ -74,10 +78,10 @@ That declaration is deliberately bare - no `AttributeUsage`, no `Conditional`, n
 
 Two preprocessor symbols suppress parts of that output.
 
-| Symbol | Effect |
-|---|---|
-| `JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_ATTRIBUTES` | Emits nothing at all - no `EmbeddedAttribute`, no `DisposableMixinAttribute`, no `DisposableMixinOptions` |
-| `JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_EMBEDDED_ATTRIBUTE` | Omits only the `EmbeddedAttribute` declaration, keeping the mixin's own attributes |
+| Symbol                                                       | Effect                                                                                                    |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_ATTRIBUTES`         | Emits nothing at all - no `EmbeddedAttribute`, no `DisposableMixinAttribute`, no `DisposableMixinOptions` |
+| `JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_EMBEDDED_ATTRIBUTE` | Omits only the `EmbeddedAttribute` declaration, keeping the mixin's own attributes                        |
 
 ```xml
 <PropertyGroup>
@@ -85,7 +89,7 @@ Two preprocessor symbols suppress parts of that output.
 </PropertyGroup>
 ```
 
-Reach for the second symbol when a co-generator emits a *non*-`partial` `EmbeddedAttribute`, so merging is not an option, or when you simply want to own that declaration yourself. Note that the mixin's attributes still carry `[Embedded]`, so you have to supply an `EmbeddedAttribute` of your own - otherwise the generated code fails with `error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft'`. A bare declaration is enough:
+Reach for the second symbol when a co-generator emits a _non_-`partial` `EmbeddedAttribute`, so merging is not an option, or when you simply want to own that declaration yourself. Note that the mixin's attributes still carry `[Embedded]`, so you have to supply an `EmbeddedAttribute` of your own - otherwise the generated code fails with `error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft'`. A bare declaration is enough:
 
 ```csharp
 namespace Microsoft.CodeAnalysis

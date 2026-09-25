@@ -1,5 +1,7 @@
 <Project>
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -28,7 +30,9 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <IncludeSource>true</IncludeSource>
-    <NoWarn>$(NoWarn);NETSDK1138;NETSDK1215</NoWarn>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <NoWarn>$(NoWarn);NETSDK1138;NETSDK1215;SA1649;CA1032</NoWarn>
     <PackageVersionTagPrefix />
     <PackageReleaseNotesGitPath>. ../Directory.Build.props ../Directory.Build.targets</PackageReleaseNotesGitPath>
   </PropertyGroup>
@@ -58,6 +62,8 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')" />
+    <None Include="llms.txt" Pack="true" PackagePath="\" Condition="Exists('llms.txt')" />
+    <None Include="llms-full.txt" Pack="true" PackagePath="\" Condition="Exists('llms-full.txt')" />
     <None Include="$(MSBuildThisFileDirectory)..\LICENSE.md" Pack="true" PackagePath="\" Link="LICENSE.md" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\Icon.png" Pack="true" PackagePath="\" Link="Icon.png" Visible="false" />
   </ItemGroup>
@@ -88,10 +94,33 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     
-    <PackageReference Include="PolySharp" Version="*">
+    <PackageReference Include="StyleCop.Analyzers" Version="[1.2.0-beta.556,2)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.*">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.*" Condition="'$(EnablePublicApiAnalyzers)' != 'false'">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(EnablePublicApiAnalyzers)' != 'false'">
+    <AdditionalFiles Include="PublicAPI.Shipped.$(TargetFramework).txt" Condition="Exists('$(MSBuildProjectDirectory)\PublicAPI.Shipped.$(TargetFramework).txt')" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.$(TargetFramework).txt" Condition="Exists('$(MSBuildProjectDirectory)\PublicAPI.Unshipped.$(TargetFramework).txt')" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ThrowIfNullExtension.cs" Link="Properties\ThrowIfNullExtension.cs" />
   </ItemGroup>
 
 </Project>

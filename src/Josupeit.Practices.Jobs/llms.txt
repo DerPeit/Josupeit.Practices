@@ -1,0 +1,33 @@
+# Josupeit.Practices.Jobs.Core
+
+> Abstract base classes for implementing the `Josupeit.Practices.Jobs.Abstractions` job model: `JobBase` holds the identity, the six state flags, `Exception`, the `Changed` event, a `CancellationToken` that `Cancel()` signals, the guards `ThrowIfCannotStart()`/`ThrowIfCannotCancel()`, and the protected transitions `NotifyPending()`, `NotifyExecuting()`, `NotifyFailed(Exception)`, `NotifyCanceled()`. The four classes you derive from - `Job`, `JobWithResult<TResult>`, `JobWithProgress<TProgress>`, `JobWithProgressAndResult<TProgress, TResult>` - implement the matching interfaces and add `NotifySucceeded(...)` and, for progress, `NotifyProgress(TProgress?)`. You implement `Start()`. `JobBase` itself does not implement `IJob`. Targets netstandard2.0 and net8.0; depends only on the Abstractions package; lives in the `Josupeit.Practices.Jobs` namespace.
+
+Install with `dotnet add package Josupeit.Practices.Jobs.Core`. All types live in the `Josupeit.Practices.Jobs` namespace - not `Josupeit.Practices.Jobs.Core`. Types:
+
+- `JobBase` - abstract; `Id`, `Exception`, `IsPending`/`IsExecuting`/`IsCompleted`/`IsCompletedSuccessfully`/`IsFaulted`/`IsCanceled`, `event Changed`, protected `CancellationToken`, `abstract Start()`, `virtual Cancel()`, `protected virtual OnChanged()`, protected `NotifyPending()`/`NotifyExecuting()`/`NotifyFailed(Exception)`/`NotifyCanceled()`, protected `ThrowIfCannotStart()`/`ThrowIfCannotCancel()`; does **not** implement `IJob`
+- `Job : JobBase, IJob` - adds protected `NotifySucceeded()`
+- `JobWithResult<TResult>` - adds `TResult? Result` and protected `NotifySucceeded(TResult? result)`
+- `JobWithProgress<TProgress>` - adds `TProgress? Progress`, protected `NotifyProgress(TProgress?)`, protected `NotifySucceeded()`
+- `JobWithProgressAndResult<TProgress, TResult>` - both
+
+All constructors are protected and parameterless; flag setters are `private` or `private protected`, so state changes only through `Notify*`, each of which raises `Changed`. `Notify*` does not validate order; your `Start` must end every path in exactly one terminal call. `ThrowIfCannotStart()` throws `InvalidOperationException` when pending, executing, or completed; keep `Start()` synchronous up to the guard (an `async void Start()` turns that exception into a process-terminating unhandled one). `Cancel()` throws after completion, is idempotent, and signals the token on a thread-pool thread without transitioning the job.
+
+## Documentation
+
+- [Complete reference](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs/llms-full.txt): the transitions table, guards, cancellation semantics, `OnChanged`, declarations, four complete jobs (delegate, result and progress, external engine, UI marshaling), a factory skeleton, and common mistakes. Load this to write code against the package.
+- [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs/PublicAPI.Shipped.txt): analyzer-enforced inventory of every public and protected member. `!` marks non-nullable and `?` nullable reference types; accessibility is not shown.
+- [README](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs/README.md): human-oriented package overview as shown on NuGet.
+
+## Related packages
+
+- [Josupeit.Practices.Jobs.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Abstractions/llms-full.txt): the interfaces and the awaiting support these classes plug into.
+- [Josupeit.Practices.Jobs.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.TaskPool/llms-full.txt): the reference implementation on the thread pool.
+- [Josupeit.Practices.Jobs.Scheduler](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Scheduler/llms-full.txt): jobs routed through an `IScheduler`.
+
+## Optional
+
+- [Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md): all packages in the family.
+- [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md): Native AOT compatibility statement and how CI verifies it.
+- [Source code](https://codeberg.org/DerPeit/Josupeit.Practices/src/branch/main/src/Josupeit.Practices.Jobs): `JobBase` and the T4 template that generates the four job classes on Codeberg.
+- [NuGet package](https://www.nuget.org/packages/Josupeit.Practices.Jobs.Core): release history and download counts.
+- [License](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md): EUPL-1.2 full text.

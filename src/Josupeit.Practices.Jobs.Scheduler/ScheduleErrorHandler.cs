@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace Josupeit.Practices.Jobs;
 
+#pragma warning disable CA1068 // CancellationToken groups logically with the promise it guards, not the outcome callbacks.
+
 internal static class ScheduleErrorHandler
 {
     public static async void HandleScheduleErrors(
@@ -28,7 +30,7 @@ internal static class ScheduleErrorHandler
             notifyFailed(
                 new InvalidOperationException(
                     "The attempt to schedule the current job on the scheduler failed unexpectedly. " +
-                    "The scheduler may not have been running or may have declined scheduling due to backpressure. " +
+                    "The scheduler may not have been running or may have declined the item. " +
                     "See the inner exception for details.",
                     ex));
         }

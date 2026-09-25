@@ -20,7 +20,7 @@ internal readonly ref struct CodeGenerator(SemanticTarget target, string tool, s
 
         var syntaxTree = CSharpSyntaxTree.ParseText(reader.ReadToEnd(), encoding: reader.CurrentEncoding, cancellationToken: cancellationToken);
         var pipeline = new PipelineFactory(target, tool, version).Create();
-        var syntaxNode = pipeline.Run(syntaxTree.GetRoot());
+        var syntaxNode = pipeline.Run(syntaxTree.GetRoot(cancellationToken));
         var sourceText = SourceText.From(syntaxNode.NormalizeWhitespace().ToFullString(), reader.CurrentEncoding);
 
         return sourceText;

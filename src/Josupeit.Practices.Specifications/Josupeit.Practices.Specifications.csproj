@@ -5,6 +5,7 @@
     <Description>Specification pattern with operator overloads for composable, named business rules. Supports sync and async evaluation with AND, OR, XOR, and NOT composition.</Description>
     <PackageTags>specification pattern business-rules ddd composable</PackageTags>
     <PackageVersionTagPrefix>Specifications/v</PackageVersionTagPrefix>
+    <NoWarn>$(NoWarn);CA2225</NoWarn>
   </PropertyGroup>
 
 </Project>

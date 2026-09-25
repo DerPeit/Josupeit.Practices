@@ -1,0 +1,25 @@
+#nullable enable
+Josupeit.Practices.Services.IAsyncService
+Josupeit.Practices.Services.IAsyncService.PauseAsync() -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.IAsyncService.PauseAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.IAsyncService.ResumeAsync() -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.IAsyncService.ResumeAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.IAsyncService.StartAsync() -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.IAsyncService.StartAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.IAsyncService.State.get -> Josupeit.Practices.Services.ServiceState
+Josupeit.Practices.Services.IAsyncService.StopAsync() -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.IAsyncService.StopAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Josupeit.Practices.Services.IService
+Josupeit.Practices.Services.IService.Pause() -> void
+Josupeit.Practices.Services.IService.Resume() -> void
+Josupeit.Practices.Services.IService.Start() -> void
+Josupeit.Practices.Services.IService.State.get -> Josupeit.Practices.Services.ServiceState
+Josupeit.Practices.Services.IService.Stop() -> void
+Josupeit.Practices.Services.ServiceState
+Josupeit.Practices.Services.ServiceState.Paused = 5 -> Josupeit.Practices.Services.ServiceState
+Josupeit.Practices.Services.ServiceState.Pausing = 4 -> Josupeit.Practices.Services.ServiceState
+Josupeit.Practices.Services.ServiceState.Resuming = 6 -> Josupeit.Practices.Services.ServiceState
+Josupeit.Practices.Services.ServiceState.Running = 3 -> Josupeit.Practices.Services.ServiceState
+Josupeit.Practices.Services.ServiceState.Starting = 2 -> Josupeit.Practices.Services.ServiceState
+Josupeit.Practices.Services.ServiceState.Stopped = 1 -> Josupeit.Practices.Services.ServiceState
+Josupeit.Practices.Services.ServiceState.Stopping = 0 -> Josupeit.Practices.Services.ServiceState

@@ -1,0 +1,23 @@
+#nullable enable
+Josupeit.Practices.Jobs.TaskPoolJob
+Josupeit.Practices.Jobs.TaskPoolJob.TaskPoolJob(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! startFunc) -> void
+Josupeit.Practices.Jobs.TaskPoolJobFactory
+Josupeit.Practices.Jobs.TaskPoolJobFactory.TaskPoolJobFactory() -> void
+Josupeit.Practices.Jobs.TaskPoolJobWithProgress<TProgress>
+Josupeit.Practices.Jobs.TaskPoolJobWithProgress<TProgress>.TaskPoolJobWithProgress(System.Func<System.IProgress<TProgress>!, System.Threading.CancellationToken, System.Threading.Tasks.Task!>! startFunc) -> void
+Josupeit.Practices.Jobs.TaskPoolJobWithProgressAndResult<TProgress, TResult>
+Josupeit.Practices.Jobs.TaskPoolJobWithProgressAndResult<TProgress, TResult>.TaskPoolJobWithProgressAndResult(System.Func<System.IProgress<TProgress>!, System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! startFunc) -> void
+Josupeit.Practices.Jobs.TaskPoolJobWithResult<TResult>
+Josupeit.Practices.Jobs.TaskPoolJobWithResult<TResult>.TaskPoolJobWithResult(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! startFunc) -> void
+override Josupeit.Practices.Jobs.TaskPoolJob.Start() -> void
+override Josupeit.Practices.Jobs.TaskPoolJobWithProgress<TProgress>.Start() -> void
+override Josupeit.Practices.Jobs.TaskPoolJobWithProgressAndResult<TProgress, TResult>.Start() -> void
+override Josupeit.Practices.Jobs.TaskPoolJobWithResult<TResult>.Start() -> void
+virtual Josupeit.Practices.Jobs.TaskPoolJobFactory.Create(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! startFunc) -> Josupeit.Practices.Jobs.IJob!
+virtual Josupeit.Practices.Jobs.TaskPoolJobFactory.Create(System.Func<System.Threading.Tasks.Task!>! startFunc) -> Josupeit.Practices.Jobs.IJob!
+virtual Josupeit.Practices.Jobs.TaskPoolJobFactory.Create<TProgress, TResult>(System.Func<System.IProgress<TProgress>!, System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithProgressAndResult<TProgress, TResult>!
+virtual Josupeit.Practices.Jobs.TaskPoolJobFactory.Create<TProgress, TResult>(System.Func<System.IProgress<TProgress>!, System.Threading.Tasks.Task<TResult>!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithProgressAndResult<TProgress, TResult>!
+virtual Josupeit.Practices.Jobs.TaskPoolJobFactory.Create<TProgress>(System.Func<System.IProgress<TProgress>!, System.Threading.CancellationToken, System.Threading.Tasks.Task!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithProgress<TProgress>!
+virtual Josupeit.Practices.Jobs.TaskPoolJobFactory.Create<TProgress>(System.Func<System.IProgress<TProgress>!, System.Threading.Tasks.Task!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithProgress<TProgress>!
+virtual Josupeit.Practices.Jobs.TaskPoolJobFactory.Create<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithResult<TResult>!
+virtual Josupeit.Practices.Jobs.TaskPoolJobFactory.Create<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithResult<TResult>!

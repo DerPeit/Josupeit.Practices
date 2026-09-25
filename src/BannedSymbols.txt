@@ -1,0 +1,33 @@
+; Read by Microsoft.CodeAnalysis.BannedApiAnalyzers as RS0030, for every project under src.
+;
+; Only APIs nothing else here polices. The format is one documentation comment id per line,
+; optionally followed by ; and the message the diagnostic carries. An id that resolves to
+; nothing is silently ignored, so a typo disables an entry without saying so - which is why
+; every line below was verified against a build that fails.
+
+; -- The clock ------------------------------------------------------------------------------------
+; Library code should not read the ambient clock. Consumers should be able to control time
+; through TimeProvider or an injected abstraction for testability.
+P:System.DateTime.Now; Use TimeProvider or an injected clock abstraction instead of the ambient clock.
+P:System.DateTime.UtcNow; Use TimeProvider or an injected clock abstraction instead of the ambient clock.
+P:System.DateTime.Today; Use TimeProvider or an injected clock abstraction instead of the ambient clock.
+P:System.DateTimeOffset.Now; Use TimeProvider or an injected clock abstraction instead of the ambient clock.
+P:System.DateTimeOffset.UtcNow; Use TimeProvider or an injected clock abstraction instead of the ambient clock.
+T:System.Diagnostics.Stopwatch; Use TimeProvider.GetTimestamp and TimeProvider.GetElapsedTime.
+M:System.Threading.Tasks.Task.Delay(System.Int32); Use TimeProvider.Delay or accept a CancellationToken with a timeout.
+M:System.Threading.Tasks.Task.Delay(System.Int32,System.Threading.CancellationToken); Use TimeProvider.Delay or the caller's timeout.
+M:System.Threading.Tasks.Task.Delay(System.TimeSpan); Use TimeProvider.Delay or accept a CancellationToken with a timeout.
+M:System.Threading.Tasks.Task.Delay(System.TimeSpan,System.Threading.CancellationToken); Use TimeProvider.Delay or the caller's timeout.
+
+; -- Sync over async ------------------------------------------------------------------------------
+; Library code that blocks a thread inside an async path stalls the consumer's thread pool.
+; Everything here is awaitable and every path to it is already async.
+M:System.Threading.Thread.Sleep(System.Int32); Await instead of blocking the caller's thread.
+M:System.Threading.Thread.Sleep(System.TimeSpan); Await instead of blocking the caller's thread.
+P:System.Threading.Tasks.Task`1.Result; Await the task instead of blocking.
+M:System.Threading.Tasks.Task.Wait; Await the task instead of blocking.
+M:System.Threading.Tasks.Task.Wait(System.Int32); Await the task instead of blocking.
+M:System.Threading.Tasks.Task.Wait(System.TimeSpan); Await the task instead of blocking.
+M:System.Threading.Tasks.Task.Wait(System.Threading.CancellationToken); Await the task instead of blocking.
+M:System.Threading.Tasks.Task.WaitAll(System.Threading.Tasks.Task[]); Await Task.WhenAll instead of blocking.
+M:System.Threading.Tasks.Task.WaitAny(System.Threading.Tasks.Task[]); Await Task.WhenAny instead of blocking.

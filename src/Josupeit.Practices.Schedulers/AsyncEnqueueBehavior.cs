@@ -15,9 +15,9 @@ internal sealed class AsyncEnqueueBehavior : IEnqueueBehavior
         _asyncEnqueueCallback = asyncEnqueueCallback;
     }
 
-    public void Enqueue(IScheduled scheduled, CancellationToken enqueueCancellationToken = default) 
+    public void Enqueue(IScheduled scheduled, CancellationToken enqueueCancellationToken = default)
         => EnqueueAsync(scheduled, enqueueCancellationToken).GetAwaiter().GetResult();
 
-    public Task EnqueueAsync(IScheduled scheduled, CancellationToken enqueueCancellationToken) 
+    public Task EnqueueAsync(IScheduled scheduled, CancellationToken enqueueCancellationToken)
         => _asyncEnqueueCallback(scheduled, enqueueCancellationToken);
 }

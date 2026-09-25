@@ -41,10 +41,7 @@ public abstract class Query<TOutput> : Executable, IQuery<TOutput>
         }
     }
 
-    /// <summary>
-    /// Executes this instance asynchronously.
-    /// </summary>
-    /// <returns>The <see cref="Task{TOutput}"/> that represents the asynchronous progress encapsulating a result.</returns>
+    /// <inheritdoc />
     public Task<TOutput> ExecuteAsync() => ExecuteAsync(CancellationToken.None);
 
     /// <summary>

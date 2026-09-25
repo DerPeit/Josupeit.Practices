@@ -1,0 +1,10 @@
+{
+  "overrides": [
+    {
+      "files": ["**/llms.txt", "**/llms-full.txt"],
+      "options": {
+        "parser": "markdown"
+      }
+    }
+  ]
+}

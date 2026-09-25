@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.0;netstandard2.0;netstandard2.1;net8.0</TargetFrameworks>
     <RootNamespace>Josupeit.Practices.Schedulers</RootNamespace>
-    <Description>Channel-backed IScheduler with FIFO ordering, configurable parallelism, back-pressure, and pause/resume support. Built on System.Threading.Channels.</Description>
+    <Description>Channel-backed IScheduler with FIFO ordering, configurable parallelism, and pause/resume support. Built on System.Threading.Channels.</Description>
     <PackageTags>scheduler channel concurrency fifo background-service patterns</PackageTags>
     <PackageVersionTagPrefix>Schedulers.Channel/v</PackageVersionTagPrefix>
   </PropertyGroup>
@@ -14,8 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Josupeit.Practices.Schedulers\Josupeit.Practices.Schedulers.csproj" PackageVersion="[1,2)" />
-    <ProjectReference Include="..\Josupeit.Practices.Services\Josupeit.Practices.Services.csproj" PackageVersion="[1,2)" />
+    <ProjectReference Include="..\Josupeit.Practices.Schedulers\Josupeit.Practices.Schedulers.csproj" PackageVersion="[~,2)" />
+    <ProjectReference Include="..\Josupeit.Practices.Services\Josupeit.Practices.Services.csproj" PackageVersion="[~,2)" />
   </ItemGroup>
 
 </Project>

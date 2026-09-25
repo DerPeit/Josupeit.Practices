@@ -44,9 +44,9 @@ The generator produces implementations for both `IDisposable` and `IAsyncDisposa
 
 ## Limitations
 
-### The mixin works only on classes
+### The mixin works on classes only
 
-Struct support was considered and rejected because of several unavoidable issues:
+Structs and record structs are excluded by the attribute itself: it is restricted to `AttributeTargets.Class`, so applying it to a struct is a compiler error (CS0592). Record classes are classes and can carry the attribute, but the generator skips them and the analyzer reports an error (JPMD060). The reason: a record's synthesized `Equals` and `GetHashCode` include every instance field, so the generated `_isDisposed` field and the `Disposing` event's backing field would make two otherwise equal records unequal once one of them is disposed or has a subscriber, and would change their hash codes while they are used as dictionary or set keys. Struct support was considered and rejected because of several unavoidable issues:
 
 1. **Structs are copied.** Event handlers attached inside a called method become invisible at the call site because they operate on a copy.
 2. **Structs can be read-only.** Supporting idempotency on a read-only struct would require heap allocation.

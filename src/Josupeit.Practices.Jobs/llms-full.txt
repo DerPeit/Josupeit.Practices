@@ -1,0 +1,473 @@
+# Josupeit.Practices.Jobs.Core
+
+> Abstract base classes for implementing the `Josupeit.Practices.Jobs.Abstractions` job model: `JobBase` holds the identity, the six state flags, `Exception`, the `Changed` event, a `CancellationToken` that `Cancel()` signals, the guards `ThrowIfCannotStart()`/`ThrowIfCannotCancel()`, and the protected transitions `NotifyPending()`, `NotifyExecuting()`, `NotifyFailed(Exception)`, `NotifyCanceled()`. The four classes you derive from - `Job`, `JobWithResult<TResult>`, `JobWithProgress<TProgress>`, `JobWithProgressAndResult<TProgress, TResult>` - implement the matching interfaces and add `NotifySucceeded(...)` and, for progress, `NotifyProgress(TProgress?)`. You implement `Start()`. `JobBase` itself does not implement `IJob`. Targets netstandard2.0 and net8.0; depends only on the Abstractions package; lives in the `Josupeit.Practices.Jobs` namespace.
+
+## At a glance
+
+- **Package:** `Josupeit.Practices.Jobs.Core`
+- **Namespace:** `Josupeit.Practices.Jobs` - shared with the Abstractions, TaskPool, and Scheduler packages. The `.Core` suffix is package-name only; `using Josupeit.Practices.Jobs.Core;` does not compile.
+- **Target frameworks:** `netstandard2.0`, `net8.0`
+- **Native AOT and trimming:** compatible. The `net8.0` target is built with `IsAotCompatible`, which also marks the assembly trimmable, and is verified by an analyzer-clean build plus a native smoke-test binary published and run in CI. See [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md).
+- **Dependencies:** `Josupeit.Practices.Jobs.Abstractions` `[1.1, 2.0)`. The `[PublicAPI]` annotations visible in the source are compile-time only and are not shipped.
+- **Contents:** five abstract classes. `JobBase` is the common root; `Job`, `JobWithResult<TResult>`, `JobWithProgress<TProgress>`, and `JobWithProgressAndResult<TProgress, TResult>` are the ones to derive from. No factory base class - a factory is a plain `IJobFactory` implementation that constructs your job type.
+- **Nullability:** every declaration in this document is shown as compiled under `#nullable enable`. `Exception`, `Result`, and `Progress` are nullable and read `null`/`default` until set; `Changed` is a nullable event field. `NotifyFailed` requires a non-null exception.
+- **Authoritative inventory:** [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs/PublicAPI.Shipped.txt) is the analyzer-enforced list of every public and protected member, kept in sync with the compiled assembly by RS0016/RS0017, including the members generated from the T4 template. Format key: `!` marks a non-nullable and `?` a nullable reference type; members are prefixed with `abstract`, `virtual`, `override`, or `static` where applicable; accessibility is not shown, so the protected `Notify*` methods and guards look like public members there.
+- **This document:** ships inside the NuGet package as `llms-full.txt` and is published at https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs/llms-full.txt. The packaged copy matches its package version; the published copy describes the latest release.
+- **Ready-made jobs:** `Josupeit.Practices.Jobs.TaskPool` and `Josupeit.Practices.Jobs.Scheduler` derive their job types from these classes. Reach for this package only to integrate a different execution engine.
+- **License:** EUPL-1.2
+
+Install:
+
+```
+dotnet add package Josupeit.Practices.Jobs.Core
+```
+
+## Concepts
+
+The Abstractions package defines what a job looks like from the outside; this package makes implementing one mechanical. `JobBase` owns every piece of state the interfaces expose and lets a derived class change it only through `Notify*` methods, each of which sets the flags for one transition and raises `Changed`. Because `Changed` is what `await job` listens to, a job built on these classes is awaitable for free.
+
+### Division of labor
+
+- **`JobBase`:** `Id` (a random `Guid` at construction), the flags, `Exception`, `Changed`, a private `CancellationTokenSource` exposed as `CancellationToken`, `Cancel()`, the two guards, and the four non-terminal-or-failing transitions. It declares `Start()` abstract and does **not** implement `IJob` - it has all the members but not the interface.
+- **The four job classes:** each implements its interface (`IJob`, `IJobWithResult<TResult>`, `IJobWithProgress<TProgress>`, `IJobWithProgressAndResult<TProgress, TResult>`), stores `Result` and/or `Progress`, and adds `NotifySucceeded(...)` - with the result where there is one - and `NotifyProgress(TProgress?)` on the progress variants. Derive from one of these, never from `JobBase` directly, or your type is not an `IJob`.
+- **You:** the constructor (take the work), `Start()`, and the loop that runs the work and calls the right `Notify*` methods.
+
+### The transitions
+
+| Method                  | Sets                                               | Clears                     | Raises `Changed` |
+| ----------------------- | -------------------------------------------------- | -------------------------- | ---------------- |
+| `NotifyPending()`       | `IsPending`                                        |                            | yes              |
+| `NotifyExecuting()`     | `IsExecuting`                                      | `IsPending`                | yes              |
+| `NotifySucceeded(...)`  | `IsCompleted`, `IsCompletedSuccessfully`, `Result` | `IsExecuting`              | yes              |
+| `NotifyFailed(ex)`      | `IsCompleted`, `IsFaulted`, `Exception`            | `IsPending`, `IsExecuting` | yes              |
+| `NotifyCanceled()`      | `IsCompleted`, `IsCanceled`                        | `IsPending`, `IsExecuting` | yes              |
+| `NotifyProgress(value)` | `Progress`                                         |                            | yes              |
+
+A fresh job has every flag `false` and `Exception` `null`. The `Notify*` methods do not validate order or exclusivity: calling `NotifySucceeded` after `NotifyFailed` leaves both `IsFaulted` and `IsCompletedSuccessfully` set. Your `Start` path is responsible for ending in exactly one of the three terminal methods. `NotifySucceeded` does not clear `IsPending`; call `NotifyExecuting` first, as every path through the ready-made jobs does.
+
+### Guards
+
+`ThrowIfCannotStart()` throws `InvalidOperationException` when the job is pending, executing, or completed - each with a message naming the reason. `ThrowIfCannotCancel()` throws when the job is completed. Call the first at the top of `Start()`; `Cancel()` calls the second itself. Because they throw synchronously, make sure `Start()` is a synchronous method up to and including the guard - an `async void Start()` would rethrow the guard's exception on the thread pool as an unhandled exception instead of returning it to the caller.
+
+### Cancellation
+
+`Cancel()` is virtual and, after the guard, requests cancellation of the internal `CancellationTokenSource` - but on a thread-pool thread, so registered callbacks never run inline in the caller. Consequences: `Cancel()` may return before `CancellationToken.IsCancellationRequested` becomes `true`; a second `Cancel()` is a no-op; `Cancel()` before `Start()` is allowed and the work then observes a token that is canceled or about to be canceled; `Cancel()` after completion throws `InvalidOperationException`. The token is the one you pass to your work; `JobBase` never transitions the job on cancellation by itself - your `Start` path catches `OperationCanceledException` and calls `NotifyCanceled()`.
+
+### `Changed`
+
+Raised by `OnChanged()`, which is `protected virtual`. Every `Notify*` method calls it, so an override is the one place to intercept all transitions - for logging, or to marshal the event to a UI thread. An override must call `base.OnChanged()`, or `Changed` never fires and awaiters never resume. The event is raised on whichever thread called the `Notify*` method, usually the thread running your work.
+
+## Types
+
+| Type                                           | Kind           | Implements                                      | Adds                                                                                                 |
+| ---------------------------------------------- | -------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `JobBase`                                      | abstract class | nothing                                         | state, `Changed`, `CancellationToken`, `Cancel()`, guards, `NotifyPending/Executing/Failed/Canceled` |
+| `Job`                                          | abstract class | `IJob`                                          | `NotifySucceeded()`                                                                                  |
+| `JobWithResult<TResult>`                       | abstract class | `IJobWithResult<TResult>`                       | `Result`, `NotifySucceeded(TResult? result)`                                                         |
+| `JobWithProgress<TProgress>`                   | abstract class | `IJobWithProgress<TProgress>`                   | `Progress`, `NotifyProgress(TProgress? progress)`, `NotifySucceeded()`                               |
+| `JobWithProgressAndResult<TProgress, TResult>` | abstract class | `IJobWithProgressAndResult<TProgress, TResult>` | `Progress`, `Result`, `NotifyProgress(TProgress? progress)`, `NotifySucceeded(TResult? result)`      |
+
+All five have a single protected parameterless constructor; there is nothing to pass to `base(...)`.
+
+### `JobBase`
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public abstract class JobBase
+{
+    protected JobBase();
+
+    public event EventHandler? Changed;
+
+    public Guid Id { get; }                                  // Guid.NewGuid() at construction
+
+    public Exception? Exception { get; }                     // set by NotifyFailed
+
+    public bool IsCanceled { get; }
+
+    public bool IsCompleted { get; }
+
+    public bool IsCompletedSuccessfully { get; }
+
+    public bool IsExecuting { get; }
+
+    public bool IsFaulted { get; }
+
+    public bool IsPending { get; }
+
+    protected CancellationToken CancellationToken { get; }   // canceled by Cancel(); pass it to your work
+
+    public abstract void Start();                            // yours: guard, NotifyPending, run
+
+    public virtual void Cancel();                            // ThrowIfCannotCancel, then cancels the token on a pool thread
+
+    protected virtual void OnChanged();                      // raises Changed; every Notify* calls it
+
+    protected void NotifyPending();
+
+    protected void NotifyExecuting();
+
+    protected void NotifyFailed(Exception ex);
+
+    protected void NotifyCanceled();
+
+    protected void ThrowIfCannotCancel();                    // InvalidOperationException when IsCompleted
+
+    protected void ThrowIfCannotStart();                     // InvalidOperationException when IsPending, IsExecuting, or IsCompleted
+}
+```
+
+The flag setters are `private` (`IsPending`, `IsCanceled`, `IsFaulted`, `Exception`) or `private protected` (`IsExecuting`, `IsCompleted`, `IsCompletedSuccessfully`): a derived class cannot assign `IsCompleted = true` (CS0200 or CS0272) and must go through `Notify*`.
+
+### `Job`
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public abstract class Job : JobBase, IJob
+{
+    protected Job();
+
+    protected void NotifySucceeded();                        // IsCompleted, IsCompletedSuccessfully; clears IsExecuting; raises Changed
+}
+```
+
+### `JobWithResult<TResult>`
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public abstract class JobWithResult<TResult> : JobBase, IJobWithResult<TResult>
+{
+    protected JobWithResult();
+
+    public TResult? Result { get; }                          // default until NotifySucceeded
+
+    protected void NotifySucceeded(TResult? result);
+}
+```
+
+### `JobWithProgress<TProgress>`
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public abstract class JobWithProgress<TProgress> : JobBase, IJobWithProgress<TProgress>
+{
+    protected JobWithProgress();
+
+    public TProgress? Progress { get; }                      // last reported value
+
+    protected void NotifyProgress(TProgress? progress);      // sets Progress; raises Changed
+
+    protected void NotifySucceeded();
+}
+```
+
+### `JobWithProgressAndResult<TProgress, TResult>`
+
+```csharp
+namespace Josupeit.Practices.Jobs;
+
+public abstract class JobWithProgressAndResult<TProgress, TResult> : JobBase, IJobWithProgressAndResult<TProgress, TResult>
+{
+    protected JobWithProgressAndResult();
+
+    public TProgress? Progress { get; }
+
+    public TResult? Result { get; }
+
+    protected void NotifyProgress(TProgress? progress);
+
+    protected void NotifySucceeded(TResult? result);
+}
+```
+
+The non-generic `IHasResult.Result` and `IHasProgress.Progress` are implemented explicitly and return the typed value boxed.
+
+## Contract expectations
+
+What the base classes guarantee, given that your `Start` does its part:
+
+1. **Every `Notify*` raises `Changed`** through `OnChanged`, after the flags have been set, so a handler or awaiter observing the event sees the new state.
+2. **The state is exactly what the transitions table says** - no more. Nothing resets a flag except the transitions listed, and nothing validates the sequence.
+3. **`Cancel()` only signals the token.** It never sets `IsCanceled`; only `NotifyCanceled()` does. It throws after completion and is idempotent before.
+4. **The guards are the only validation.** `ThrowIfCannotStart` and `ThrowIfCannotCancel` throw `InvalidOperationException` with messages naming the state; nothing else in the classes throws for a state reason.
+5. **Awaitability follows from `Changed`.** A job that ends in exactly one terminal `Notify*` completes `await job`, `job.Wait()`, and the awaiter from the Abstractions package.
+6. **Your part:** call `ThrowIfCannotStart()` synchronously at the top of `Start()`, `NotifyPending()` before handing the work off, `NotifyExecuting()` when it begins, exactly one terminal `Notify*` at the end, and pass `CancellationToken` to the work so `Cancel()` means something.
+7. **Not provided:** a factory base, an execution engine, disposal of the internal `CancellationTokenSource` (a canceled or abandoned source needs none), or thread marshaling of `Changed`.
+
+## Usage
+
+### A job that runs a delegate on the thread pool
+
+The shape the ready-made jobs use. Guard and mark pending synchronously so misuse reaches the caller; do the rest asynchronously.
+
+```csharp
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Jobs;
+
+public sealed class DelegateJob : Job
+{
+    private readonly Func<CancellationToken, Task> _work;
+
+    public DelegateJob(Func<CancellationToken, Task> work) => _work = work ?? throw new ArgumentNullException(nameof(work));
+
+    public override void Start()
+    {
+        ThrowIfCannotStart();
+        NotifyPending();
+
+        _ = Task.Run(RunAsync);      // leave the caller's thread; an awaited Task.Yield() would return to the caller's SynchronizationContext
+    }
+
+    private async Task RunAsync()
+    {
+        NotifyExecuting();
+
+        try
+        {
+            await _work(CancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (CancellationToken.IsCancellationRequested)
+        {
+            NotifyCanceled();
+            return;
+        }
+        catch (Exception ex)
+        {
+            NotifyFailed(ex);
+            return;
+        }
+
+        NotifySucceeded();
+    }
+}
+```
+
+### Result and progress
+
+```csharp
+public sealed class ChecksumJob : JobWithProgressAndResult<int, string>
+{
+    private readonly byte[] _data;
+
+    public ChecksumJob(byte[] data) => _data = data;
+
+    public override void Start()
+    {
+        ThrowIfCannotStart();
+        NotifyPending();
+
+        _ = Task.Run(RunAsync);
+    }
+
+    private async Task RunAsync()
+    {
+        NotifyExecuting();
+
+        try
+        {
+            var progress = new Progress<int>(NotifyProgress);        // reports arrive through NotifyProgress; each raises Changed
+            var checksum = await ComputeAsync(_data, progress, CancellationToken).ConfigureAwait(false);
+
+            NotifySucceeded(checksum);
+        }
+        catch (OperationCanceledException) when (CancellationToken.IsCancellationRequested)
+        {
+            NotifyCanceled();
+        }
+        catch (Exception ex)
+        {
+            NotifyFailed(ex);
+        }
+    }
+
+    private static async Task<string> ComputeAsync(byte[] data, IProgress<int> progress, CancellationToken cancellationToken)
+    {
+        var sum = 0;
+
+        for (var i = 0; i < data.Length; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            sum = unchecked(sum * 31 + data[i]);
+
+            if (i % 1024 == 0)
+                progress.Report((int)(100L * i / Math.Max(1, data.Length)));
+
+            if (i % 65536 == 0)
+                await Task.Yield();
+        }
+
+        return sum.ToString("x8");
+    }
+}
+```
+
+`Progress<T>` posts to the `SynchronizationContext` captured at its construction; construct it where you want `NotifyProgress` to run, or call `NotifyProgress` directly from the work for no marshaling.
+
+### A job driven by an external engine
+
+When something else runs the work and calls back, the job is just the state holder. Every callback ends in one terminal `Notify*`.
+
+```csharp
+public sealed class EngineJob : JobWithResult<byte[]>, IEngineCallback
+{
+    private readonly IEngine _engine;
+    private readonly string _request;
+
+    public EngineJob(IEngine engine, string request)
+    {
+        _engine = engine;
+        _request = request;
+    }
+
+    public override void Start()
+    {
+        ThrowIfCannotStart();
+        NotifyPending();
+
+        _engine.Submit(_request, this, CancellationToken);       // the engine calls back below, on its own threads
+    }
+
+    void IEngineCallback.Started() => NotifyExecuting();
+
+    void IEngineCallback.Completed(byte[] payload) => NotifySucceeded(payload);
+
+    void IEngineCallback.Failed(Exception error) => NotifyFailed(error);
+
+    void IEngineCallback.Canceled() => NotifyCanceled();
+}
+
+public interface IEngine
+{
+    void Submit(string request, IEngineCallback callback, CancellationToken cancellationToken);
+}
+
+public interface IEngineCallback
+{
+    void Started();
+
+    void Completed(byte[] payload);
+
+    void Failed(Exception error);
+
+    void Canceled();
+}
+```
+
+### Marshaling `Changed` to a UI thread
+
+```csharp
+public sealed class UiDelegateJob : Job
+{
+    private readonly SynchronizationContext _ui;
+    private readonly Func<CancellationToken, Task> _work;
+
+    public UiDelegateJob(SynchronizationContext ui, Func<CancellationToken, Task> work)
+    {
+        _ui = ui;
+        _work = work;
+    }
+
+    protected override void OnChanged()
+    {
+        if (SynchronizationContext.Current == _ui)
+            base.OnChanged();                                       // must reach base, or Changed never fires
+        else
+            _ui.Post(_ => base.OnChanged(), null);
+    }
+
+    public override void Start()
+    {
+        ThrowIfCannotStart();
+        NotifyPending();
+
+        _ = Task.Run(RunAsync);
+    }
+
+    private async Task RunAsync()
+    {
+        NotifyExecuting();
+
+        try
+        {
+            await _work(CancellationToken).ConfigureAwait(false);
+
+            NotifySucceeded();
+        }
+        catch (OperationCanceledException) when (CancellationToken.IsCancellationRequested)
+        {
+            NotifyCanceled();
+        }
+        catch (Exception ex)
+        {
+            NotifyFailed(ex);
+        }
+    }
+}
+```
+
+### A factory for your job type
+
+```csharp
+public sealed class DelegateJobFactory : IJobFactory
+{
+    public IJob Create(Func<Task> startFunc) => new DelegateJob(_ => startFunc());
+
+    public IJob Create(Func<CancellationToken, Task> startFunc) => new DelegateJob(startFunc);
+
+    public IJobWithProgress<TProgress> Create<TProgress>(Func<IProgress<TProgress>, Task> startFunc) => throw new NotSupportedException();
+
+    public IJobWithProgress<TProgress> Create<TProgress>(Func<IProgress<TProgress>, CancellationToken, Task> startFunc) => throw new NotSupportedException();
+
+    public IJobWithResult<TResult> Create<TResult>(Func<Task<TResult>> startFunc) => throw new NotSupportedException();
+
+    public IJobWithResult<TResult> Create<TResult>(Func<CancellationToken, Task<TResult>> startFunc) => throw new NotSupportedException();
+
+    public IJobWithProgressAndResult<TProgress, TResult> Create<TProgress, TResult>(Func<IProgress<TProgress>, Task<TResult>> startFunc) => throw new NotSupportedException();
+
+    public IJobWithProgressAndResult<TProgress, TResult> Create<TProgress, TResult>(Func<IProgress<TProgress>, CancellationToken, Task<TResult>> startFunc) => throw new NotSupportedException();
+}
+```
+
+A complete factory needs four job types, one per shape; `Josupeit.Practices.Jobs.TaskPool` is the reference for how the eight overloads map onto them.
+
+## Choosing a base class
+
+- No result, no progress: `Job`.
+- A value at the end: `JobWithResult<TResult>`.
+- Intermediate reports: `JobWithProgress<TProgress>`.
+- Both: `JobWithProgressAndResult<TProgress, TResult>` - progress first, result second, like the interface.
+- Never `JobBase` directly; it is not an `IJob`.
+- Just running delegates on the pool or through an `IScheduler`: use `Josupeit.Practices.Jobs.TaskPool` or `Josupeit.Practices.Jobs.Scheduler` instead of deriving.
+
+## Common mistakes
+
+- **Wrong namespace.** The types live in `Josupeit.Practices.Jobs`. A `Josupeit.Practices.Jobs.Core` namespace does not exist.
+- **Deriving from `JobBase`.** It does not implement `IJob`; `IJob job = new MyJobBaseDerivative()` is CS0266 (CS0029 if the class is sealed). Derive from `Job` or a typed variant.
+- **Assigning the flags.** `IsCompleted = true` in a derived class does not compile (CS0200 or CS0272). Use the `Notify*` methods.
+- **Calling `NotifySucceeded` from outside the job.** It is `protected` (CS0122). Only the job completes itself.
+- **`async void Start()`.** The guard's `InvalidOperationException` is thrown before the first `await`, and an `async void` method rethrows it on the thread pool as unhandled - a second `Start()` terminates the process instead of failing the caller. Keep `Start()` synchronous and hand off to a private `async Task`.
+- **Forgetting the terminal `Notify*` on some path.** `IsCompleted` never turns `true`, and `await job` never returns. Every `catch` and every early exit must end in `NotifySucceeded`, `NotifyFailed`, or `NotifyCanceled`.
+- **Two terminal `Notify*` calls.** Nothing prevents it; the flags accumulate and the job reports two outcomes.
+- **Skipping `NotifyExecuting`.** `NotifySucceeded` does not clear `IsPending`, so the job ends `IsPending` and `IsCompletedSuccessfully` at once.
+- **Expecting `Cancel()` to complete the job.** It only signals the token. `IsCanceled` becomes `true` when your code calls `NotifyCanceled()`.
+- **Expecting the token to be canceled when `Cancel()` returns.** It is signaled on a thread-pool thread; `IsCancellationRequested` may still be `false` immediately afterwards.
+- **Calling `Cancel()` on a finished job.** `InvalidOperationException`. Check `IsCompleted` first if the caller cannot know.
+- **Overriding `OnChanged` without calling `base.OnChanged()`.** `Changed` never fires; awaiters hang.
+- **Passing arguments to the base constructor.** All five constructors are parameterless (CS1729).
+
+## Related packages
+
+- **[Josupeit.Practices.Jobs.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Abstractions/llms-full.txt)** - `IJob`, the typed variants, `IJobFactory`, and the awaiting support these classes plug into. Human-oriented README: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Abstractions/README.md
+- **[Josupeit.Practices.Jobs.TaskPool](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.TaskPool/llms-full.txt)** - `TaskPoolJobFactory` and its four job types, the reference implementation of these base classes on the thread pool.
+- **[Josupeit.Practices.Jobs.Scheduler](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Jobs.Scheduler/llms-full.txt)** - `SchedulerJobFactory` and its job types, built on these classes and routed through an `IScheduler`.
+- **[Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md)** - all packages in the family.
+
+## License
+
+EUPL-1.2. Full text: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md

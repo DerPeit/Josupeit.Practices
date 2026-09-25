@@ -5,7 +5,7 @@ using System;
 
 namespace Josupeit.Practices.Services;
 
-internal class PausedServiceState : IServiceState
+internal sealed class PausedServiceState : IServiceState
 {
     private readonly IServiceInternals _owner;
 

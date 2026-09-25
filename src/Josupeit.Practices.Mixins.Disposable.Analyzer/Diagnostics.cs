@@ -5,12 +5,14 @@ using Microsoft.CodeAnalysis;
 
 namespace Josupeit.Practices.Mixins.Disposable.Analyzer;
 
+#pragma warning disable SA1118 // Diagnostic message strings span multiple lines by nature.
+
 internal static class Diagnostics
 {
     public static readonly DiagnosticDescriptor TargetMustNotHaveDisposableBase = new(
         "JPMD010",
         title: "Class is already disposable",
-        messageFormat: 
+        messageFormat:
             "Class '{0}' derives from a class that already implements System.IDisposable or System.IAsyncDisposable (or both). " +
             "This scenario is unsupported. Use the provided hooks from the base class to dispose any resources owned by this class, " +
             "instead. The [DisposableMixin] has no effect.",
@@ -88,5 +90,21 @@ internal static class Diagnostics
         messageFormat: "Method '{0}.{1}' should have private visibility",
         category: "Usage",
         defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor PropertyRequiresIdempotencyGuarantees = new(
+        "JPMD050",
+        title: "WithProperty requires idempotency guarantees",
+        messageFormat: "Class '{0}' combines DisposableMixinOptions.WithProperty with WithoutIdempotencyGuarantees; IsDisposed cannot be tracked without the guard and is not generated",
+        category: "Usage",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor RecordTargetNotSupported = new(
+        "JPMD060",
+        title: "Records are not supported",
+        messageFormat: "Record '{0}' cannot use the disposable mixin: the generated disposal state would take part in the record's synthesized equality and hash code; nothing is generated",
+        category: "Usage",
+        defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 }

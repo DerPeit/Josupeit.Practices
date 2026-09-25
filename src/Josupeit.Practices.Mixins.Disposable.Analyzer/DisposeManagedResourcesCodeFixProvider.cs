@@ -7,14 +7,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CodeActions;
 
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Josupeit.Practices.Mixins.Disposable.Analyzer;
+
+#pragma warning disable SA1009, SA1111 // Roslyn syntax-factory builder style.
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(DisposeManagedResourcesCodeFixProvider))]
 [Shared]
@@ -33,7 +35,7 @@ public sealed class DisposeManagedResourcesCodeFixProvider : CodeFixProvider
         var diagnostic = context.Diagnostics[0];
         var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-        var classDeclaration = root.FindToken(diagnosticSpan.Start).Parent?.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+        var classDeclaration = root.FindToken(diagnosticSpan.Start).Parent?.AncestorsAndSelf().OfType<TypeDeclarationSyntax>().FirstOrDefault();
         if (classDeclaration == null)
             return;
 
@@ -45,7 +47,7 @@ public sealed class DisposeManagedResourcesCodeFixProvider : CodeFixProvider
             diagnostic);
     }
 
-    private static async Task<Document> AddDisposeManagedResourcesMethodAsync(Document document, ClassDeclarationSyntax classDeclaration, CancellationToken cancellationToken)
+    private static async Task<Document> AddDisposeManagedResourcesMethodAsync(Document document, TypeDeclarationSyntax classDeclaration, CancellationToken cancellationToken)
     {
         var modifiers = classDeclaration.Modifiers.Any(SyntaxKind.SealedKeyword) switch
         {

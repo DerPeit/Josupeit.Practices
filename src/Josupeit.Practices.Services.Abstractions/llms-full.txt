@@ -1,0 +1,326 @@
+# Josupeit.Practices.Services.Abstractions
+
+> Interface-only NuGet package defining the background-service lifecycle contracts used across Josupeit.Practices: `IService` (synchronous `Start`, `Stop`, `Pause`, `Resume`), `IAsyncService` (the same operations as `Task`-returning methods, each with and without a `CancellationToken`), and the `ServiceState` enum covering every stable and transitional state. The two interfaces are independent - `IAsyncService` does not extend `IService`. Targets netstandard2.0 and net8.0, has no dependencies, and lives in the `Josupeit.Practices.Services` namespace.
+
+## At a glance
+
+- **Package:** `Josupeit.Practices.Services.Abstractions`
+- **Namespace:** `Josupeit.Practices.Services` - the namespace does not carry the `.Abstractions` suffix. `using Josupeit.Practices.Services;` is correct; `using Josupeit.Practices.Services.Abstractions;` does not compile.
+- **Target frameworks:** `netstandard2.0`, `net8.0`
+- **Native AOT and trimming:** compatible. The `net8.0` target is built with `IsAotCompatible`, which also marks the assembly trimmable, and is verified by an analyzer-clean build plus a native smoke-test binary published and run in CI. See [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md).
+- **Dependencies:** none. The `[PublicAPI]` annotations visible in the source are compile-time only (JetBrains.Annotations, private assets) and are not shipped.
+- **Contents:** two interfaces and one enum. No classes, no events, no extension methods.
+- **Nullability:** every declaration in this document is shown as compiled under `#nullable enable`. An unannotated reference type such as `Task` is non-nullable; nothing in this package is nullable.
+- **Authoritative inventory:** [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services.Abstractions/PublicAPI.Shipped.txt) is the analyzer-enforced list of every public member, kept in sync with the compiled assembly by RS0016/RS0017. Format key: `!` marks a non-nullable and `?` a nullable reference type; members are prefixed with `abstract`, `virtual`, `override`, or `static` where applicable; enum members show their numeric value; accessibility is not shown.
+- **This document:** ships inside the NuGet package as `llms-full.txt` and is published at https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services.Abstractions/llms-full.txt. The packaged copy matches its package version; the published copy describes the latest release.
+- **Implementations:** `Josupeit.Practices.Services` provides abstract base classes (`Service`, `AsyncService`, and disposable variants) that implement these interfaces with state validation and optional pause support (see Related packages).
+- **License:** EUPL-1.2
+
+Install:
+
+```
+dotnet add package Josupeit.Practices.Services.Abstractions
+```
+
+## Concepts
+
+Background services share one lifecycle: they start, optionally pause and resume, and eventually stop. This package captures that lifecycle as a pair of interfaces - one synchronous, one asynchronous - so the rest of an application can control a service without knowing anything about its implementation.
+
+- **`IService`** exposes the lifecycle as blocking calls: `Start()`, `Stop()`, `Pause()`, `Resume()`.
+- **`IAsyncService`** exposes the same four operations as `Task`-returning methods, each in a token-less and a `CancellationToken` overload.
+- **`ServiceState`** names every state a service can be in, including the four transitional ones.
+
+Unlike `Josupeit.Practices.Commands`, where every interface carries both paths, the sync and async lifecycles here are **separate interfaces**. `IAsyncService` does not inherit from `IService`; a type may implement one or both, and a consumer holding an `IAsyncService` cannot pass it where an `IService` is expected.
+
+A service always begins in `Stopped` and moves through the following states:
+
+```
+Stopped -> Starting -> Running -> Stopping -> Stopped
+                        Running -> Pausing -> Paused -> Resuming -> Running
+```
+
+Pausing is optional. An implementation that cannot pause throws `NotSupportedException` from `Pause`/`PauseAsync` and `Resume`/`ResumeAsync`. Calling any operation from a state in which it is not valid throws `InvalidOperationException`. Exceptions are the only error channel: there is no faulted state and no event on the interfaces.
+
+## Types
+
+| Type            | Kind      | Members                                                                                         |
+| --------------- | --------- | ----------------------------------------------------------------------------------------------- |
+| `IService`      | interface | `State`, `Start()`, `Stop()`, `Pause()`, `Resume()`                                             |
+| `IAsyncService` | interface | `State`, `StartAsync`, `StopAsync`, `PauseAsync`, `ResumeAsync` - each with and without a token |
+| `ServiceState`  | enum      | `Stopping`, `Stopped`, `Starting`, `Running`, `Pausing`, `Paused`, `Resuming`                   |
+
+None of the interface members has a default implementation. Neither interface is generic, so there is no variance to consider.
+
+### `IService`
+
+Synchronous lifecycle. Every call blocks until the transition has completed.
+
+```csharp
+namespace Josupeit.Practices.Services;
+
+public interface IService
+{
+    ServiceState State { get; }
+
+    void Start();
+
+    void Stop();
+
+    void Pause();
+
+    void Resume();
+}
+```
+
+Documented exceptions: `Start`, `Stop`, `Pause`, `Resume` throw `InvalidOperationException` when the current state does not permit the transition; `Pause` and `Resume` throw `NotSupportedException` when the implementation cannot be paused.
+
+### `IAsyncService`
+
+Asynchronous lifecycle. Each operation has a token-less overload and one that accepts a `CancellationToken`. Nine members in total.
+
+```csharp
+namespace Josupeit.Practices.Services;
+
+public interface IAsyncService
+{
+    ServiceState State { get; }
+
+    Task StartAsync();
+
+    Task StartAsync(CancellationToken cancellationToken);
+
+    Task StopAsync();
+
+    Task StopAsync(CancellationToken cancellationToken);
+
+    Task PauseAsync();
+
+    Task PauseAsync(CancellationToken cancellationToken);
+
+    Task ResumeAsync();
+
+    Task ResumeAsync(CancellationToken cancellationToken);
+}
+```
+
+Documented exceptions mirror `IService`: `InvalidOperationException` for an invalid transition, `NotSupportedException` from the pause and resume methods when pausing is unsupported. Because the methods return `Task`, either exception may be thrown synchronously from the call or arrive as a faulted `Task`; await inside a `try` block to handle both.
+
+### `ServiceState`
+
+The numeric values are shown explicitly here; the source relies on the implicit sequence. Note that the first member - and therefore `default(ServiceState)` - is `Stopping`, not `Stopped`.
+
+```csharp
+namespace Josupeit.Practices.Services;
+
+public enum ServiceState
+{
+    Stopping = 0,
+    Stopped = 1,
+    Starting = 2,
+    Running = 3,
+    Pausing = 4,
+    Paused = 5,
+    Resuming = 6,
+}
+```
+
+## State machine
+
+| From      | Operation                | Passes through | Ends in   |
+| --------- | ------------------------ | -------------- | --------- |
+| `Stopped` | `Start` / `StartAsync`   | `Starting`     | `Running` |
+| `Running` | `Stop` / `StopAsync`     | `Stopping`     | `Stopped` |
+| `Running` | `Pause` / `PauseAsync`   | `Pausing`      | `Paused`  |
+| `Paused`  | `Resume` / `ResumeAsync` | `Resuming`     | `Running` |
+
+The transitional states are observable: a concurrent reader may see `Starting` while `Start` is still executing. Whether further transitions are permitted - for example stopping a paused service - is decided by the implementation; the interfaces guarantee only that a transition the implementation does not permit throws `InvalidOperationException` and leaves `State` unchanged from the caller's point of view.
+
+## Contract expectations
+
+What implementers must guarantee and what consumers may rely on:
+
+1. **Initial state.** A service starts life in `Stopped`. Because `default(ServiceState)` is `Stopping`, a hand-written implementation must initialize its state field to `ServiceState.Stopped` explicitly.
+2. **Validity.** An operation the implementation does not permit in the current state throws `InvalidOperationException`. Which further transitions are permitted - including whether a repeated same-direction call such as `Start` while `Running` or `Stop` while `Stopped` is a no-op or an error - is left to the implementation. Do not rely on either behavior; check `State` first or consult the implementation's documentation.
+3. **Optional pausing.** `Pause`/`Resume` and their async counterparts throw `NotSupportedException` when the implementation cannot pause. The interfaces expose no capability flag; a consumer that must know in advance uses implementation-specific API (for example `Service.CanPause` in `Josupeit.Practices.Services`) or catches the exception.
+4. **Token-less async overloads.** `StartAsync()` must behave exactly like `StartAsync(CancellationToken.None)`, and likewise for `StopAsync`, `PauseAsync`, and `ResumeAsync`. This is part of the contract, not a convention, and it is what the Task-based Asynchronous Pattern prescribes for overloads without a cancellation token: callers may use either overload interchangeably when they have no token. A hand-written `IAsyncService` must implement all nine members - there are no default interface members - and must wire each token-less overload to its token-accepting counterpart.
+5. **Cancellation.** The token cancels the transition operation itself and surfaces as `OperationCanceledException`. The interfaces do not specify which state the service is in after a canceled transition.
+6. **No events, no faulted state.** Failures surface as exceptions from the lifecycle call, and the interfaces do not specify which state the service is in after a failed transition. Observing state changes requires polling `State` or an implementation-specific mechanism.
+7. **Thread safety.** Not specified by the interfaces. Whether concurrent lifecycle calls are serialized is up to the implementation.
+
+## Usage
+
+### Controlling a service through the interfaces
+
+Reference this package wherever code needs to start, stop, or observe a service without depending on its implementation. The most common host is the .NET generic host; an `IAsyncService` adapts to `IHostedService` in two lines:
+
+```csharp
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Services;
+using Microsoft.Extensions.Hosting;
+
+public sealed class AsyncServiceHost : IHostedService
+{
+    private readonly IAsyncService _service;
+
+    public AsyncServiceHost(IAsyncService service) => _service = service;
+
+    public Task StartAsync(CancellationToken cancellationToken) => _service.StartAsync(cancellationToken);
+
+    public Task StopAsync(CancellationToken cancellationToken) => _service.StopAsync(cancellationToken);
+}
+```
+
+Pausing is optional, so a generic caller guards it. The state check reduces `InvalidOperationException`s but cannot rule them out under concurrency - the interfaces make no atomicity promise:
+
+```csharp
+public static bool TryPause(IService service)
+{
+    if (service.State != ServiceState.Running)
+        return false;
+
+    try
+    {
+        service.Pause();
+
+        return true;
+    }
+    catch (NotSupportedException)
+    {
+        return false;
+    }
+}
+```
+
+### Implementing `IService` directly
+
+A minimal implementation without pause support. Note the explicit `Stopped` initializer and the transitional states around the real work. This implementation rejects a repeated `Start`; treating it as a no-op would be an equally valid reading of the contract:
+
+```csharp
+using System;
+using Josupeit.Practices.Services;
+
+public sealed class PigeonPostService : IService
+{
+    private readonly IPigeonLoft _loft;
+    private ServiceState _state = ServiceState.Stopped;
+
+    public PigeonPostService(IPigeonLoft loft) => _loft = loft;
+
+    public ServiceState State => _state;
+
+    public void Start()
+    {
+        if (_state != ServiceState.Stopped)
+            throw new InvalidOperationException($"Cannot start while {_state}.");
+
+        _state = ServiceState.Starting;
+
+        _loft.ReleasePigeons();
+
+        _state = ServiceState.Running;
+    }
+
+    public void Stop()
+    {
+        if (_state != ServiceState.Running)
+            throw new InvalidOperationException($"Cannot stop while {_state}.");
+
+        _state = ServiceState.Stopping;
+
+        _loft.RecallPigeons();
+
+        _state = ServiceState.Stopped;
+    }
+
+    public void Pause() => throw new NotSupportedException("Pigeons do not pause.");
+
+    public void Resume() => throw new NotSupportedException("Pigeons do not pause.");
+}
+```
+
+### Implementing `IAsyncService` directly
+
+The same shape with all nine members. The token-less overloads funnel into the token-accepting ones:
+
+```csharp
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Josupeit.Practices.Services;
+
+public sealed class MoonPhaseCacheService : IAsyncService
+{
+    private readonly IMoonPhaseFeed _feed;
+    private ServiceState _state = ServiceState.Stopped;
+
+    public MoonPhaseCacheService(IMoonPhaseFeed feed) => _feed = feed;
+
+    public ServiceState State => _state;
+
+    public Task StartAsync() => StartAsync(CancellationToken.None);
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        if (_state != ServiceState.Stopped)
+            throw new InvalidOperationException($"Cannot start while {_state}.");
+
+        _state = ServiceState.Starting;
+
+        await _feed.ConnectAsync(cancellationToken).ConfigureAwait(false);
+
+        _state = ServiceState.Running;
+    }
+
+    public Task StopAsync() => StopAsync(CancellationToken.None);
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        if (_state != ServiceState.Running)
+            throw new InvalidOperationException($"Cannot stop while {_state}.");
+
+        _state = ServiceState.Stopping;
+
+        await _feed.DisconnectAsync(cancellationToken).ConfigureAwait(false);
+
+        _state = ServiceState.Stopped;
+    }
+
+    public Task PauseAsync() => throw new NotSupportedException("Moon phases do not pause.");
+
+    public Task PauseAsync(CancellationToken cancellationToken) => throw new NotSupportedException("Moon phases do not pause.");
+
+    public Task ResumeAsync() => throw new NotSupportedException("Moon phases do not pause.");
+
+    public Task ResumeAsync(CancellationToken cancellationToken) => throw new NotSupportedException("Moon phases do not pause.");
+}
+```
+
+Neither example synchronizes concurrent callers or copes with a transition that throws halfway through. Validating transitions, holding the transitional states, coordinating with disposal, and offering opt-in pause support is exactly what the base classes in `Josupeit.Practices.Services` provide; prefer them unless you need full control.
+
+## Choosing an interface
+
+- The lifecycle itself involves I/O - opening connections, draining queues, flushing buffers: implement `IAsyncService`, and host it via `IHostedService` or an equivalent async host.
+- The lifecycle is in-process and quick - starting a timer, spinning up a thread: `IService` is enough.
+- Consumers differ: a type may implement both interfaces. The base classes in `Josupeit.Practices.Services` implement one each; pick `Service` or `AsyncService` accordingly.
+
+## Common mistakes
+
+- **Wrong namespace.** The types live in `Josupeit.Practices.Services`. A `Josupeit.Practices.Services.Abstractions` namespace does not exist.
+- **Assuming `IAsyncService : IService`.** They are unrelated. An `IAsyncService` cannot be passed where an `IService` is expected, and implementing one does not give you the other.
+- **Assuming `default(ServiceState)` is `Stopped`.** It is `Stopping` (value 0). Initialize state fields explicitly.
+- **Assuming an idempotency rule.** The contract does not say whether `Start` on a running service is a no-op or an `InvalidOperationException`; implementations differ. Check `State` first or consult the implementation's documentation.
+- **Looking for `StateChanged` or `IsRunning`.** Neither exists on the interfaces. Poll `State`, or use an implementation-specific event.
+- **Looking for a `Faulted` or `Error` state.** There is none; failures are exceptions thrown by the lifecycle call.
+- **Looking for a `CanPause` property on the interfaces.** There is none; unsupported pausing throws `NotSupportedException`. `CanPause` exists on the base classes in `Josupeit.Practices.Services`, not on the contracts.
+- **Treating `State != Running` as "stopped".** Four transitional states exist. When shutting down, wait for `Stopped`, not for "not running".
+- **Implementing only the token-accepting async overloads.** All nine `IAsyncService` members are required; there are no default interface members.
+
+## Related packages
+
+- **[Josupeit.Practices.Services](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/llms-full.txt)** - abstract base classes `Service`, `AsyncService`, and their disposable variants that implement these interfaces, validate every transition, hold the transitional states, and offer opt-in pause support through `CanPause`. Human-oriented README: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Services/README.md
+- **[Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md)** - all packages in the family: specifications, commands, services, schedulers, jobs, and the disposable mixin source generator.
+
+## License
+
+EUPL-1.2. Full text: https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md

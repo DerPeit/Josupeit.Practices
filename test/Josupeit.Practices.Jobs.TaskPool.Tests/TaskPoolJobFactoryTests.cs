@@ -79,4 +79,22 @@ public class TaskPoolJobFactoryTests
 
         Assert.That(job, Is.InstanceOf<TaskPoolJobWithProgressAndResult<string, string>>());
     }
+
+    [Test]
+    public void Create_throws_on_null_startFunc_for_every_overload()
+    {
+        var factory = new TaskPoolJobFactory();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(() => factory.Create((Func<Task>)null!), Throws.ArgumentNullException);
+            Assert.That(() => factory.Create((Func<CancellationToken, Task>)null!), Throws.ArgumentNullException);
+            Assert.That(() => factory.Create((Func<IProgress<int>, Task>)null!), Throws.ArgumentNullException);
+            Assert.That(() => factory.Create((Func<IProgress<int>, CancellationToken, Task>)null!), Throws.ArgumentNullException);
+            Assert.That(() => factory.Create((Func<Task<int>>)null!), Throws.ArgumentNullException);
+            Assert.That(() => factory.Create((Func<CancellationToken, Task<int>>)null!), Throws.ArgumentNullException);
+            Assert.That(() => factory.Create((Func<IProgress<int>, Task<int>>)null!), Throws.ArgumentNullException);
+            Assert.That(() => factory.Create((Func<IProgress<int>, CancellationToken, Task<int>>)null!), Throws.ArgumentNullException);
+        });
+    }
 }

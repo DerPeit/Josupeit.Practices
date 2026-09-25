@@ -1,0 +1,27 @@
+# Josupeit.Practices.Specifications
+
+> One abstract class, `Specification<TCandidate>`, for named, composable business rules. Override `IsSatisfiedBy(TCandidate)` or `IsSatisfiedByAsync(TCandidate, CancellationToken)` - whichever suits the rule - and the base class bridges the other direction. Compose with the C# operators `&&`/`&`, `||`/`|`, `^`, and `!`; the result is again a `Specification<TCandidate>`, evaluates lazily per candidate, short-circuits, and works in both the synchronous and the asynchronous direction. No expression trees, no lambda factory, no query translation: rules are classes, evaluation is in memory. Targets netstandard2.0 and net8.0; no dependencies; lives in the `Josupeit.Practices.Specifications` namespace.
+
+Install with `dotnet add package Josupeit.Practices.Specifications`. One public type in the `Josupeit.Practices.Specifications` namespace:
+
+- `Specification<TCandidate>` - abstract, protected parameterless constructor; `virtual bool IsSatisfiedBy(TCandidate)`, non-virtual `Task<bool> IsSatisfiedByAsync(TCandidate)` (equals passing `CancellationToken.None`), `virtual Task<bool> IsSatisfiedByAsync(TCandidate, CancellationToken)`; operators `&`, `|`, `^`, `!` returning `Specification<TCandidate>` (`ArgumentNullException` on null), and `true`/`false` both returning `false` so that `&&` and `||` build specifications
+
+Override one direction; the base bridges the other: the asynchronous bridge returns a faulted task instead of throwing and a canceled task for an already-canceled token, the synchronous bridge blocks with `GetAwaiter().GetResult()` and rethrows the original exception. Overriding neither, or calling the base from an override, throws `InvalidOperationException`. `&&`/`&` and `||`/`|` short-circuit at evaluation, `^` evaluates both, `!` negates; composites pass the token down. `if (spec)` compiles and is always `false`. No `And`/`Or` methods, no lambda constructor, no `ToExpression()`, no variance between candidate types.
+
+## Documentation
+
+- [Complete reference](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Specifications/llms-full.txt): the two directions and how they bridge, composition semantics and the `operator true` consequence, what the package is not, the declaration, contract expectations, usage, and common mistakes. Load this to write code against the package.
+- [PublicAPI.Shipped.txt](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Specifications/PublicAPI.Shipped.txt): analyzer-enforced inventory of every public and protected member. `!` marks non-nullable and `?` nullable reference types; accessibility is not shown.
+- [README](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Specifications/README.md): human-oriented package overview as shown on NuGet.
+
+## Related packages
+
+- [Josupeit.Practices.Commands.Abstractions](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/src/Josupeit.Practices.Commands.Abstractions/llms-full.txt): the same sync/async bridging idea for executable operations.
+
+## Optional
+
+- [Josupeit.Practices overview](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/README.md): all packages in the family.
+- [AOT.md](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/AOT.md): Native AOT compatibility statement and how CI verifies it.
+- [Source code](https://codeberg.org/DerPeit/Josupeit.Practices/src/branch/main/src/Josupeit.Practices.Specifications): the base class and the four internal composites on Codeberg.
+- [NuGet package](https://www.nuget.org/packages/Josupeit.Practices.Specifications): release history and download counts.
+- [License](https://codeberg.org/DerPeit/Josupeit.Practices/raw/branch/main/LICENSE.md): EUPL-1.2 full text.

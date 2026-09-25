@@ -18,9 +18,9 @@ namespace Josupeit.Practices.Mixins.Disposable.Tests;
 [TestOf(typeof(DisposableSourceGenerator))]
 internal sealed class DisposableSourceGeneratorTests
 {
-    private const string AttributesHintName = "Attributes.g.cs";
-    private const string NoAttributesSymbol = "JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_ATTRIBUTES";
-    private const string NoEmbeddedAttributeSymbol = "JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_EMBEDDED_ATTRIBUTE";
+    private const string ATTRIBUTES_HINT_NAME = "Attributes.g.cs";
+    private const string NO_ATTRIBUTES_SYMBOL = "JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_ATTRIBUTES";
+    private const string NO_EMBEDDED_ATTRIBUTE_SYMBOL = "JOSUPEIT_PRACTICES_MIXINS_DISPOSABLE_NO_EMBEDDED_ATTRIBUTE";
 
     [Test]
     public async Task Generator_produces_full_implementation_with_all_options()
@@ -679,6 +679,43 @@ namespace TestNamespace
     }
 
     [Test]
+    public async Task Generator_suffixes_same_named_classes_with_a_process_independent_hash()
+    {
+        // The expected names are fixed literals on purpose: a hash that varied between processes would make
+        // the generated file path, and with it the consumer's PDB, non-deterministic.
+        var first = @"
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace.First
+{
+    [DisposableMixin]
+    public partial class TestClass
+    {
+    }
+}
+";
+
+        var second = @"
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace.Second
+{
+    [DisposableMixin]
+    public partial class TestClass
+    {
+    }
+}
+";
+
+        var run = await RunGenerator([first, second]);
+
+        var hintNames = GetGeneratedHintNames(run).Where(x => x != ATTRIBUTES_HINT_NAME).ToArray();
+
+        Assert.That(run.Errors, Is.Empty);
+        Assert.That(hintNames, Is.EquivalentTo(new[] { "TestClass-d792cf2a.g.cs", "TestClass-188a9594.g.cs" }));
+    }
+
+    [Test]
     public async Task Generator_omits_only_EmbeddedAttribute_for_NO_EMBEDDED_ATTRIBUTE()
     {
         var ownEmbeddedAttribute = @"
@@ -704,7 +741,7 @@ namespace TestNamespace
 
         var run = await RunGenerator(
             [source, ownEmbeddedAttribute],
-            preprocessorSymbols: [NoEmbeddedAttributeSymbol]);
+            preprocessorSymbols: [NO_EMBEDDED_ATTRIBUTE_SYMBOL]);
 
         var attributes = GetAttributesSyntaxTree(run);
 
@@ -726,7 +763,7 @@ namespace TestNamespace
 }
 ";
 
-        var run = await RunGenerator([source], preprocessorSymbols: [NoEmbeddedAttributeSymbol]);
+        var run = await RunGenerator([source], preprocessorSymbols: [NO_EMBEDDED_ATTRIBUTE_SYMBOL]);
 
         Assert.That(run.Errors.Select(x => x.Id), Is.All.EqualTo("CS0234"));
         Assert.That(run.Errors, Is.Not.Empty);
@@ -735,13 +772,13 @@ namespace TestNamespace
     [Test]
     public async Task Generator_omits_all_attributes_for_NO_ATTRIBUTES()
     {
-        await AssertNoTypesAreDeclared(NoAttributesSymbol);
+        await AssertNoTypesAreDeclared(NO_ATTRIBUTES_SYMBOL);
     }
 
     [Test]
     public async Task Generator_omits_all_attributes_for_both_opt_out_symbols()
     {
-        await AssertNoTypesAreDeclared(NoAttributesSymbol, NoEmbeddedAttributeSymbol);
+        await AssertNoTypesAreDeclared(NO_ATTRIBUTES_SYMBOL, NO_EMBEDDED_ATTRIBUTE_SYMBOL);
     }
 
     private static async Task AssertNoTypesAreDeclared(params string[] preprocessorSymbols)
@@ -769,7 +806,7 @@ namespace TestNamespace
 
         Assert.That(run.Errors, Is.Empty, "Compilation should succeed without errors");
 
-        var generatedSource = run.Result.Results[0].GeneratedSources.Single(s => s.HintName != AttributesHintName);
+        var generatedSource = run.Result.Results[0].GeneratedSources.Single(s => s.HintName != ATTRIBUTES_HINT_NAME);
 
         return generatedSource.SourceText.ToString();
     }
@@ -810,7 +847,7 @@ namespace TestNamespace
 
     private static SyntaxTree GetAttributesSyntaxTree(GeneratorRun run)
     {
-        return run.Result.Results[0].GeneratedSources.Single(x => x.HintName == AttributesHintName).SyntaxTree;
+        return run.Result.Results[0].GeneratedSources.Single(x => x.HintName == ATTRIBUTES_HINT_NAME).SyntaxTree;
     }
 
     private static IEnumerable<string> GetGeneratedHintNames(GeneratorRun run)
@@ -828,4 +865,49 @@ namespace TestNamespace
     }
 
     private sealed record GeneratorRun(GeneratorDriverRunResult Result, ImmutableArray<Diagnostic> Errors);
+
+    [Test]
+    public async Task Generator_ignores_record_class_target()
+    {
+        var source = @"
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace
+{
+    [DisposableMixin]
+    public partial record TestRecord(string Name)
+    {
+        protected virtual void DisposeManagedResources()
+        {
+        }
+    }
+}
+";
+        var run = await RunGenerator([source]);
+
+        var generatedSources = run.Result.Results[0].GeneratedSources.Where(x => x.HintName != ATTRIBUTES_HINT_NAME);
+
+        Assert.That(run.Errors, Is.Empty);
+        Assert.That(generatedSources, Is.Empty);
+    }
+
+    [Test]
+    public async Task Generator_omits_property_when_idempotency_guarantees_are_removed()
+    {
+        var source = @"
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace
+{
+    [DisposableMixin(DisposableMixinOptions.WithProperty | DisposableMixinOptions.WithoutIdempotencyGuarantees)]
+    public partial class TestClass
+    {
+    }
+}
+";
+        var generated = await RunGeneratorAndGetOutput(source);
+
+        Assert.That(generated, Does.Not.Contain("IsDisposed"));
+        Assert.That(generated, Does.Not.Contain("_isDisposed"));
+    }
 }

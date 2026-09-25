@@ -1,0 +1,49 @@
+#nullable enable
+Josupeit.Practices.Jobs.AwaitableExtensions
+Josupeit.Practices.Jobs.AwaitableExtensions.extension(Josupeit.Practices.Jobs.IJob!)
+Josupeit.Practices.Jobs.AwaitableExtensions.extension(Josupeit.Practices.Jobs.IJob!).ConfigureAwait(bool continueOnCapturedContext) -> Josupeit.Practices.Jobs.ConfiguredJobAwaitable
+Josupeit.Practices.Jobs.AwaitableExtensions.extension(Josupeit.Practices.Jobs.IJob!).GetAwaiter() -> Josupeit.Practices.Jobs.IJobAwaiter!
+Josupeit.Practices.Jobs.AwaitableExtensions.extension(Josupeit.Practices.Jobs.IJob!).Wait() -> void
+Josupeit.Practices.Jobs.ConfiguredJobAwaitable
+Josupeit.Practices.Jobs.ConfiguredJobAwaitable.ConfiguredJobAwaitable() -> void
+Josupeit.Practices.Jobs.ConfiguredJobAwaitable.GetAwaiter() -> Josupeit.Practices.Jobs.IJobAwaiter!
+Josupeit.Practices.Jobs.IHasProgress
+Josupeit.Practices.Jobs.IHasProgress.Progress.get -> object?
+Josupeit.Practices.Jobs.IHasProgress<TProgress>
+Josupeit.Practices.Jobs.IHasProgress<TProgress>.Progress.get -> TProgress?
+Josupeit.Practices.Jobs.IHasResult
+Josupeit.Practices.Jobs.IHasResult.Result.get -> object?
+Josupeit.Practices.Jobs.IHasResult<TResult>
+Josupeit.Practices.Jobs.IHasResult<TResult>.Result.get -> TResult?
+Josupeit.Practices.Jobs.IJob
+Josupeit.Practices.Jobs.IJob.Cancel() -> void
+Josupeit.Practices.Jobs.IJob.Changed -> System.EventHandler!
+Josupeit.Practices.Jobs.IJob.Exception.get -> System.Exception?
+Josupeit.Practices.Jobs.IJob.Id.get -> System.Guid
+Josupeit.Practices.Jobs.IJob.IsCanceled.get -> bool
+Josupeit.Practices.Jobs.IJob.IsCompleted.get -> bool
+Josupeit.Practices.Jobs.IJob.IsCompletedSuccessfully.get -> bool
+Josupeit.Practices.Jobs.IJob.IsExecuting.get -> bool
+Josupeit.Practices.Jobs.IJob.IsFaulted.get -> bool
+Josupeit.Practices.Jobs.IJob.IsPending.get -> bool
+Josupeit.Practices.Jobs.IJob.Start() -> void
+Josupeit.Practices.Jobs.IJobAwaiter
+Josupeit.Practices.Jobs.IJobAwaiter.GetResult() -> void
+Josupeit.Practices.Jobs.IJobAwaiter.IsCompleted.get -> bool
+Josupeit.Practices.Jobs.IJobFactory
+Josupeit.Practices.Jobs.IJobFactory.Create(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! startFunc) -> Josupeit.Practices.Jobs.IJob!
+Josupeit.Practices.Jobs.IJobFactory.Create(System.Func<System.Threading.Tasks.Task!>! startFunc) -> Josupeit.Practices.Jobs.IJob!
+Josupeit.Practices.Jobs.IJobFactory.Create<TProgress, TResult>(System.Func<System.IProgress<TProgress>!, System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithProgressAndResult<TProgress, TResult>!
+Josupeit.Practices.Jobs.IJobFactory.Create<TProgress, TResult>(System.Func<System.IProgress<TProgress>!, System.Threading.Tasks.Task<TResult>!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithProgressAndResult<TProgress, TResult>!
+Josupeit.Practices.Jobs.IJobFactory.Create<TProgress>(System.Func<System.IProgress<TProgress>!, System.Threading.CancellationToken, System.Threading.Tasks.Task!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithProgress<TProgress>!
+Josupeit.Practices.Jobs.IJobFactory.Create<TProgress>(System.Func<System.IProgress<TProgress>!, System.Threading.Tasks.Task!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithProgress<TProgress>!
+Josupeit.Practices.Jobs.IJobFactory.Create<TResult>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TResult>!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithResult<TResult>!
+Josupeit.Practices.Jobs.IJobFactory.Create<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! startFunc) -> Josupeit.Practices.Jobs.IJobWithResult<TResult>!
+Josupeit.Practices.Jobs.IJobWithProgress<TProgress>
+Josupeit.Practices.Jobs.IJobWithProgressAndResult<TProgress, TResult>
+Josupeit.Practices.Jobs.IJobWithResult<TResult>
+Josupeit.Practices.Jobs.RethrowExtensions
+static Josupeit.Practices.Jobs.AwaitableExtensions.ConfigureAwait(this Josupeit.Practices.Jobs.IJob! job, bool continueOnCapturedContext) -> Josupeit.Practices.Jobs.ConfiguredJobAwaitable
+static Josupeit.Practices.Jobs.AwaitableExtensions.GetAwaiter(this Josupeit.Practices.Jobs.IJob! job) -> Josupeit.Practices.Jobs.IJobAwaiter!
+static Josupeit.Practices.Jobs.AwaitableExtensions.Wait(this Josupeit.Practices.Jobs.IJob! job) -> void
+static Josupeit.Practices.Jobs.RethrowExtensions.ThrowIfFaulted(this Josupeit.Practices.Jobs.IJob! job) -> void

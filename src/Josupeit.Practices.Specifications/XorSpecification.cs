@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace Josupeit.Practices.Specifications;
 
+#pragma warning disable CA1849, RS0030 // .Result is guarded by IsCompleted; the access is synchronous by construction.
+
 [DebuggerDisplay("({_left} ^ {_right})")]
 internal sealed class XorSpecification<TCandidate> : Specification<TCandidate>
 {
@@ -37,7 +39,7 @@ internal sealed class XorSpecification<TCandidate> : Specification<TCandidate>
         var isRightSatisfiedPromise = _right.IsSatisfiedByAsync(candidate, cancellationToken);
 
         if (!isRightSatisfiedPromise.IsCompleted)
-            return AwaitedRight(isRightSatisfiedPromise.Result, isRightSatisfiedPromise);
+            return AwaitedRight(isLeftSatisfiedPromise.Result, isRightSatisfiedPromise);
 
         if (isRightSatisfiedPromise.IsCanceled || isRightSatisfiedPromise.IsFaulted)
             return isRightSatisfiedPromise;

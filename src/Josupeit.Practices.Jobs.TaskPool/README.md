@@ -6,6 +6,8 @@ The simplest way to turn an async delegate into a trackable, observable job. `Ta
 dotnet add package Josupeit.Practices.Jobs.TaskPool
 ```
 
+All types live in the `Josupeit.Practices.Jobs` namespace, shared by every Jobs package; the package name's `.TaskPool` suffix is not part of it.
+
 ## How to use
 
 ### Simple job

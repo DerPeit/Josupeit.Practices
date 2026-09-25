@@ -43,11 +43,7 @@ public abstract class Query<TInput, TOutput> : Executable, IQuery<TInput, TOutpu
         }
     }
 
-    /// <summary>
-    /// Executes this instance asynchronously.
-    /// </summary>
-    /// <param name="input">An input parameter.</param>
-    /// <returns>The <see cref="Task{TOutput}"/> that represents the asynchronous progress encapsulating a result.</returns>
+    /// <inheritdoc />
     public Task<TOutput> ExecuteAsync(TInput input) => ExecuteAsync(input, CancellationToken.None);
 
     /// <summary>
