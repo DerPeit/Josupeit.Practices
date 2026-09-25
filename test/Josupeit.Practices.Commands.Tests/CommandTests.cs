@@ -1,6 +1,7 @@
 ﻿// SPDX-License-Identifier: EUPL-1.2
 // Copyright (c) Manuel Josupeit-Walter
 
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Josupeit.Practices.Commands.Tests;
@@ -82,5 +83,61 @@ public class CommandTests
 
         Assert.ThrowsAsync<TaskCanceledException>(async () => await command.ExecuteAsync(new CancellationToken(canceled: true)));
         Assert.DoesNotThrow(() => command.DidNotReceive().Execute());
+    }
+
+    [Test]
+    public void Execute_does_not_report_recursion_when_called_concurrently_on_the_same_instance()
+    {
+        var started = new CountdownEvent(2);
+        var gate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var command = new GatedCommand(started, gate);
+        var first = Task.Run(() => command.Execute());
+        var second = Task.Run(() => command.Execute());
+        var bothStarted = started.Wait(TimeSpan.FromSeconds(10));
+
+        gate.SetResult(true);
+
+        Func<Task> act = () => Task.WhenAll(first, second);
+
+        Assert.That(bothStarted, Is.True);
+        Assert.That(act, Throws.Nothing);
+    }
+
+    [Test]
+    public void Execute_does_not_accumulate_execution_context_state_across_instances()
+    {
+        // The recursion guard lives in an AsyncLocal per instance. A guard that leaves its entry behind
+        // makes every later execution in the same flow copy a growing map: 20,000 instances then take
+        // tens of seconds instead of milliseconds. The bound is generous to stay clear of slow CI machines.
+        var stopwatch = Stopwatch.StartNew();
+
+        for (var i = 0; i < 20_000; i++)
+            new NoOpCommand().Execute();
+
+        Assert.That(stopwatch.Elapsed, Is.LessThan(TimeSpan.FromSeconds(2)));
+    }
+
+    private sealed class NoOpCommand : Command
+    {
+        public override Task ExecuteAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    }
+
+    private sealed class GatedCommand : Command
+    {
+        private readonly CountdownEvent _started;
+        private readonly TaskCompletionSource<bool> _gate;
+
+        public GatedCommand(CountdownEvent started, TaskCompletionSource<bool> gate)
+        {
+            _started = started;
+            _gate = gate;
+        }
+
+        public override async Task ExecuteAsync(CancellationToken cancellationToken)
+        {
+            _started.Signal();
+
+            await _gate.Task.ConfigureAwait(false);
+        }
     }
 }

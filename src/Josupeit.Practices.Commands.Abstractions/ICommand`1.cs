@@ -25,6 +25,7 @@ public interface ICommand<in TInput>
     /// </summary>
     /// <param name="input">An input parameter.</param>
     /// <returns>The <see cref="Task"/> that represents the asynchronous progress.</returns>
+    /// <remarks>By contract equivalent to calling <see cref="ExecuteAsync(TInput, CancellationToken)"/> with <see cref="CancellationToken.None"/>.</remarks>
     Task ExecuteAsync(TInput input);
 
     /// <summary>

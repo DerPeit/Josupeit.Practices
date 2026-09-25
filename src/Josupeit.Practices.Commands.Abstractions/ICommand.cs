@@ -22,6 +22,7 @@ public interface ICommand
     /// Executes this instance asynchronously.
     /// </summary>
     /// <returns>The <see cref="Task"/> that represents the asynchronous progress.</returns>
+    /// <remarks>By contract equivalent to calling <see cref="ExecuteAsync(CancellationToken)"/> with <see cref="CancellationToken.None"/>.</remarks>
     Task ExecuteAsync();
 
     /// <summary>

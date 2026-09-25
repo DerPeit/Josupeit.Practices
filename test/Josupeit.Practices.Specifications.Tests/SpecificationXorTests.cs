@@ -72,6 +72,34 @@ public class SpecificationXorTests
         Assert.That(await combined.IsSatisfiedByAsync(0), Is.False);
     }
 
+    [Test]
+    public async Task IsSatisfiedByAsync_awaits_an_asynchronous_right_operand_when_only_it_is_satisfied()
+    {
+        // Left completes synchronously, right does not: the composite must await the right operand
+        // and combine it with the left result rather than blocking on it or comparing it with itself.
+        var combined = CreateSpecification(false) ^ CreateAsyncSpecification(true);
+
+        Assert.That(await combined.IsSatisfiedByAsync(0), Is.True);
+    }
+
+    [Test]
+    public async Task IsSatisfiedByAsync_awaits_an_asynchronous_right_operand_when_both_are_satisfied()
+    {
+        var combined = CreateSpecification(true) ^ CreateAsyncSpecification(true);
+
+        Assert.That(await combined.IsSatisfiedByAsync(0), Is.False);
+    }
+
+    private static Specification<int> CreateAsyncSpecification(bool isSatisfied)
+    {
+        var specification = Substitute.ForPartsOf<Specification<int>>();
+
+        specification.When(x => x.IsSatisfiedByAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())).DoNotCallBase();
+        specification.IsSatisfiedByAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(_ => Task.Delay(20).ContinueWith(_ => isSatisfied, TaskScheduler.Default));
+
+        return specification;
+    }
+
     private static Specification<int> CreateSpecification(bool isSatisfied)
     {
         var specification = Substitute.ForPartsOf<Specification<int>>();

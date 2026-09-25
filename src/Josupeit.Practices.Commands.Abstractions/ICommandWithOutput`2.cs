@@ -27,6 +27,7 @@ public interface ICommandWithOutput<in TInput, TOutput>
     /// </summary>
     /// <param name="input">An input parameter.</param>
     /// <returns>The <see cref="Task{TOutput}"/> that represents the asynchronous progress encapsulating a result.</returns>
+    /// <remarks>By contract equivalent to calling <see cref="ExecuteAsync(TInput, CancellationToken)"/> with <see cref="CancellationToken.None"/>.</remarks>
     Task<TOutput> ExecuteAsync(TInput input);
 
     /// <summary>

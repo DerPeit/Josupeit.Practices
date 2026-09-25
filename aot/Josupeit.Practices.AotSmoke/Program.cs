@@ -22,6 +22,14 @@ try
     Check(await spec.IsSatisfiedByAsync(4, CancellationToken.None), "specification async");
     Check(!spec.IsSatisfiedBy(3), "specification negative");
 
+    Specification<int> either = new IsPositive() | new IsEven();
+    Specification<int> odd = !new IsEven();
+
+    Check(either.IsSatisfiedBy(-2), "specification or");
+    Check(await either.IsSatisfiedByAsync(3, CancellationToken.None), "specification or async");
+    Check(odd.IsSatisfiedBy(3), "specification not");
+    Check(!odd.IsSatisfiedBy(4), "specification not negative");
+
     // Commands and queries: sync path and the async bridge over the same override.
     new GreetCommand().Execute();
     await new GreetCommand().ExecuteAsync(CancellationToken.None);
