@@ -14,7 +14,7 @@ internal sealed class PipelineFactory(SemanticTarget target, string tool, string
         pipeline |= new TypeTailoringRewriter(target.Type);
         pipeline |= new AnnotatingRewriter(tool, version, target.IsBrowsableAttributeAvailable);
 
-        if (!target.Options.HasFlag(MixinOptions.WithProperty))
+        if (!target.Options.HasFlag(MixinOptions.WithProperty) || target.Options.HasFlag(MixinOptions.WithoutIdempotencyGuarantees))
             pipeline |= new PropertyRemovingRewriter();
 
         if (!target.Options.HasFlag(MixinOptions.WithEvent))

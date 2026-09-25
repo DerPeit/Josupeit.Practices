@@ -15,3 +15,5 @@ JPMD033 | Usage | Hidden | Diagnostics
 JPMD034 | Usage | Hidden | Diagnostics
 JPMD040 | Usage | Warning | Diagnostics
 JPMD041 | Usage | Warning | Diagnostics
+JPMD050 | Usage | Error | Diagnostics
+JPMD060 | Usage | Error | Diagnostics

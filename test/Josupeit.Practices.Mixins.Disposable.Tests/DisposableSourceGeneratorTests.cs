@@ -679,6 +679,43 @@ namespace TestNamespace
     }
 
     [Test]
+    public async Task Generator_suffixes_same_named_classes_with_a_process_independent_hash()
+    {
+        // The expected names are fixed literals on purpose: a hash that varied between processes would make
+        // the generated file path, and with it the consumer's PDB, non-deterministic.
+        var first = @"
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace.First
+{
+    [DisposableMixin]
+    public partial class TestClass
+    {
+    }
+}
+";
+
+        var second = @"
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace.Second
+{
+    [DisposableMixin]
+    public partial class TestClass
+    {
+    }
+}
+";
+
+        var run = await RunGenerator([first, second]);
+
+        var hintNames = GetGeneratedHintNames(run).Where(x => x != ATTRIBUTES_HINT_NAME).ToArray();
+
+        Assert.That(run.Errors, Is.Empty);
+        Assert.That(hintNames, Is.EquivalentTo(new[] { "TestClass-d792cf2a.g.cs", "TestClass-188a9594.g.cs" }));
+    }
+
+    [Test]
     public async Task Generator_omits_only_EmbeddedAttribute_for_NO_EMBEDDED_ATTRIBUTE()
     {
         var ownEmbeddedAttribute = @"
@@ -828,4 +865,49 @@ namespace TestNamespace
     }
 
     private sealed record GeneratorRun(GeneratorDriverRunResult Result, ImmutableArray<Diagnostic> Errors);
+
+    [Test]
+    public async Task Generator_ignores_record_class_target()
+    {
+        var source = @"
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace
+{
+    [DisposableMixin]
+    public partial record TestRecord(string Name)
+    {
+        protected virtual void DisposeManagedResources()
+        {
+        }
+    }
+}
+";
+        var run = await RunGenerator([source]);
+
+        var generatedSources = run.Result.Results[0].GeneratedSources.Where(x => x.HintName != ATTRIBUTES_HINT_NAME);
+
+        Assert.That(run.Errors, Is.Empty);
+        Assert.That(generatedSources, Is.Empty);
+    }
+
+    [Test]
+    public async Task Generator_omits_property_when_idempotency_guarantees_are_removed()
+    {
+        var source = @"
+using Josupeit.Practices.Mixins.Disposable;
+
+namespace TestNamespace
+{
+    [DisposableMixin(DisposableMixinOptions.WithProperty | DisposableMixinOptions.WithoutIdempotencyGuarantees)]
+    public partial class TestClass
+    {
+    }
+}
+";
+        var generated = await RunGeneratorAndGetOutput(source);
+
+        Assert.That(generated, Does.Not.Contain("IsDisposed"));
+        Assert.That(generated, Does.Not.Contain("_isDisposed"));
+    }
 }
