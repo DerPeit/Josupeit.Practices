@@ -1,5 +1,9 @@
 # Practices & Patterns
 
+> [!NOTE]
+> Development happens on [Codeberg](https://codeberg.org/DerPeit/Josupeit.Practices).
+> Copies elsewhere (e.g. GitHub) are read-only mirrors; please open issues and pull requests on Codeberg.
+
 A collection of small, focused .NET libraries for patterns that appear repeatedly in production applications — commands, background services, schedulers, observable jobs, and the dispose pattern — each packaged separately so you only take what you need.
 
 All packages target **netstandard2.0** as a minimum. Where a feature requires it (e.g. `IAsyncDisposable`, `System.Threading.Channels`), an additional target is included. No package requires a specific application framework. The runtime packages also carry a **net8.0** target that is verified [Native AOT compatible](AOT.md); the disposable mixin is a compile-time package and stays netstandard2.0-only.
